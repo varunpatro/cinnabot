@@ -7,13 +7,20 @@ var wa = whatsapi.createAdapter({
     ccode: '65' // country code
 });
 
+function parse(str) {
+		var x = str.split('@');
+		return x[0];
+}
 
 wa.on('receivedMessage', function(message) {
     console.log("Body: " + message.body);
 	console.log("From: " + message.from);
+    wa.sendMessage(parse(message.from), message.body, function (err, id) {
+				  if (err) { console.log(err.message); return;}
+				  console.log('Server received message %s', id);
+	});
+
 });
-
-
 
 wa.connect(function connected(err) {
     if (err) { console.log(err); return; }
