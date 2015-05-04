@@ -1,5 +1,4 @@
 var jf = require('jsonfile');
-var util = require('util');
 
 var file = './log.json';
 
