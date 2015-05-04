@@ -1,16 +1,28 @@
 var whatsapi = require('whatsapi');
+var logger = require('/logger');
+var jf = require('jsonfile');
+
+const CREDENTIALS = jf.readFileSync('./credentials.json');
+
+/** CREATE WHATSAPP OBJECT */
 
 var wa = whatsapi.createAdapter({
-    msisdn: '6581113335', // phone number with country code
-    username: 'Yui Wei', // your name on WhatsApp
-    password: 'k23L9COMI3a6cpg4dF+K3v4l6zg=', // WhatsApp password
-    ccode: '65' // country code
+    msisdn: CREDENTIALS.phone, // phone number with country code
+    username: 'cinnabot', // your name on WhatsApp
+    password: CREDENTIALS.password, // WhatsApp password
+    ccode: CREDENTIALS.cc // country code
 });
 
-function parse(str) {
-		var x = str.split('@');
-		return x[0];
-}
+/** START CONNECTION */
+
+wa.connect(function connected(err) {
+    if (err) { console.log(err); return; }
+    console.log('Connected');
+    // Now login
+    wa.login(logged);
+});
+
+/** EVENT HANDLERS */
 
 wa.on('receivedMessage', function(message) {
     console.log("Body: " + message.body);
@@ -22,12 +34,7 @@ wa.on('receivedMessage', function(message) {
 
 });
 
-wa.connect(function connected(err) {
-    if (err) { console.log(err); return; }
-    console.log('Connected');
-    // Now login
-    wa.login(logged);
-});
+/** CALL BACKS */
 
 function logged(err) {
     if (err) { console.log(err); return; }
