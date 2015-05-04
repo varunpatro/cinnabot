@@ -1,6 +1,7 @@
 var whatsapi = require('whatsapi');
 var logger = require('/logger');
 var jf = require('jsonfile');
+var api = require('/api');
 
 const CREDENTIALS = jf.readFileSync('./credentials.json');
 
@@ -25,13 +26,19 @@ wa.connect(function connected(err) {
 /** EVENT HANDLERS */
 
 wa.on('receivedMessage', function(message) {
-    console.log("Body: " + message.body);
-	console.log("From: " + message.from);
-    wa.sendMessage(parse(message.from), message.body, function (err, id) {
-				  if (err) { console.log(err.message); return;}
-				  console.log('Server received message %s', id);
+    var responseObj = api.request(message);
+    var responsePhone = responseObj.phone;
+    var reponseMessage = responseObj.message;
+    wa.sendMessage(resonsePhone, responseMessage, function (err, id) {
+	    if (err) {
+            console.log(err.message);
+            return;
+        } else {
+		    logger.logMessage(message, responseObj);
+            logger.storeLogs();
+            // console.log('Server received message %s', id);
+        }
 	});
-
 });
 
 /** CALL BACKS */
