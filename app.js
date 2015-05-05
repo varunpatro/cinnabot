@@ -25,11 +25,11 @@ wa.connect(function connected(err) {
 
 /** EVENT HANDLERS */
 
-wa.on('receivedMessage', function(message) {
-    var responseObj = api.request(message);
+wa.on('receivedMessage', function(messageObj) {
+    var responseObj = api.request(messageObj);
     var responsePhone = responseObj.phone;
-    var reponseMessage = responseObj.message;
-    wa.sendMessage(resonsePhone, responseMessage, function (err, id) {
+    var responseMessage = responseObj.message;
+    wa.sendMessage(responsePhone, responseMessage, function (err, id) {
 	    if (err) {
             console.log(err.message);
             return;
