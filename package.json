@@ -5,6 +5,7 @@
   "author": "Varun Patro, Tan Yui Wei",
   "dependencies": {
     "jsonfile": "^2.0.0",
+    "restler": "^3.2.2",
     "whatsapi": "^1.0.2"
   }
 }
