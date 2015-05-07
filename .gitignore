@@ -3,3 +3,5 @@ node_modules/
 *.swp
 
 test*
+
+wa_credentials.json
