@@ -27,7 +27,7 @@ rest.get(psiURL).on('complete', function (data) {
 });
 
 function getWeather() {
-    return "Clementi weather: " + CLEMENTI_nowcast + '\n 24 Hour PSI: ' + westPSI_24HR + ', 3 Hour PSI: ' + westPSI_3HR + '.';
+    return "Clementi weather: " + CLEMENTI_nowcast + '\n24 Hour PSI: ' + westPSI_24HR + '\n3 Hour PSI: ' + westPSI_3HR + '.';
 }
 
 module.exports = {

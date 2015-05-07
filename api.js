@@ -1,4 +1,5 @@
 var util = require('./util');
+var weather = require('./weather');
 
 var help_message = 
     "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report";
@@ -30,6 +31,7 @@ function parseCmd(input, msgObj) {
             case 'nextbus':
             //case 'traffic':
             case 'weather':
+                return weather.getWeather();
             break;
     }
 }
