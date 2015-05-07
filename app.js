@@ -1,7 +1,7 @@
 var whatsapi = require('whatsapi');
-var logger = require('/logger');
+var logger = require('./logger');
 var jf = require('jsonfile');
-var api = require('/api');
+var api = require('./api');
 
 const CREDENTIALS = jf.readFileSync('./credentials.json');
 
