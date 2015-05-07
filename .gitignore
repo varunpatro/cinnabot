@@ -6,5 +6,6 @@ test*
 
 wa_credentials.json
 lta_credentials.json
+nea_credentials.json
 
 log*
