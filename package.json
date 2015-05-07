@@ -6,6 +6,7 @@
   "dependencies": {
     "jsonfile": "^2.0.0",
     "restler": "^3.2.2",
-    "whatsapi": "^1.0.2"
+    "whatsapi": "^1.0.2",
+    "xml2js": "^0.4.8"
   }
 }

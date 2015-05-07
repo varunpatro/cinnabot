@@ -4,7 +4,7 @@ var help_message =
     "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report";
 
 var syntax_error_message = 
-    "Cinnabot didn't understand that command.";
+    "Cinnabot didn't understand that command. Type \"/help\" for more information.";
 
 function request(msgObj) { //msg object. Returns a msgObj
     var msgText = msgObj.body;
