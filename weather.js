@@ -1,7 +1,7 @@
 var rest = require('restler');
 var jf = require('jsonfile');
 
-var nea_credentials_path = './nea_credentials.json';
+var nea_credentials_path = './private/nea_credentials.json';
 var neaAuthKey = jf.readFileSync(nea_credentials_path).key;
 
 var nowcastURL = 'http://www.nea.gov.sg/api/WebAPI?dataset=nowcast&keyref=' + neaAuthKey;

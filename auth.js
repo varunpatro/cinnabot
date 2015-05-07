@@ -1,6 +1,6 @@
 var jf = require('jsonfile');
 
-var studentsInfoFilepath = './students_info.json';
+var studentsInfoFilepath = './private/students_info.json';
 var studentsInfo = jf.readFileSync(studentsInfoFilepath);
 
 function isAllowed(phone) {

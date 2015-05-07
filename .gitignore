@@ -1,12 +1,8 @@
 node_modules/
+private/
 
 *.swp
 
 test*
-
-wa_credentials.json
-lta_credentials.json
-nea_credentials.json
-students_info.json
 
 log*

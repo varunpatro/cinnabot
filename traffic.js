@@ -1,7 +1,7 @@
 var rest = require('restler');
 var jf = require('jsonfile');
 
-var ltaCredFile = './lta_credentials.json';
+var ltaCredFile = './private/lta_credentials.json';
 var ltaCredentials = jf.readFileSync(ltaCredFile);
 
 var busStopUrl = 'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=' ;
