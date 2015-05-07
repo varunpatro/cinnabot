@@ -52,7 +52,7 @@ function faultResponse(msgObj) {
     var urgency_qn = "How urgent is it?\n 1) Very urgent\n 2) Urgent\n 3) Slightly urgent\n 4) Can wait";
     var location_qn = "Where is the problem?";
     var info_qn = "Enter your name and matric number, separated by a comma.\n e.g. Cinna Bot, U0123456X";
-    var roomno_qn = "Your room number:":
+    var roomno_qn = "Your room number:";
     var description_qn = "Describe the problem. If you answered 'New' to the first question, include date of first occurrence.";
 
     wa.sendMessage(msgObj.from, category_qn, function(err, id) {

@@ -4,9 +4,7 @@ var jf = require('jsonfile');
 var file = './log.json';
 
 if (!fs.existsSync(file)) {
-    jf.writeFile(file, {}, function (err) {
-            console.error(err);
-    });
+    jf.writeFileSync(file, new Object());
 }
 
 var filecontents = jf.readFileSync(file);    
