@@ -1,5 +1,6 @@
 var util = require('./util');
 var weather = require('./weather');
+var auth = require('./auth');
 
 var help_message = 
     "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report";
@@ -7,12 +8,24 @@ var help_message =
 var syntax_error_message = 
     "Cinnabot didn't understand that command. Type \"/help\" for more information.";
 
+var invalid_user_message = 
+    "Hi, you're not registered in the cinnabot server. Please contact your RA to register.";
+
 function request(msgObj) { //msg object. Returns a msgObj
-    var msgText = msgObj.body;
-    return {
-        phone: util.getPhoneNum(msgObj.from),
-        message: parseCmd(msgText, msgObj)
+    var msgFrom = util.getPhoneNum(msgObj.from);
+    var msgRequest = msgObj.body;
+    var msgResponse = "";
+    
+    if (!auth.isAllowed(msgFrom)) {
+        msgResponse = invalid_user_message;
+    } else {
+        msgResponse = parseCmd(msgRequest, msgObj);
     }
+    
+    return {
+        phone: msgFrom,
+        message: msgResponse
+    };
 }
 
 function parseCmd(input, msgObj) { 
