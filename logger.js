@@ -1,7 +1,7 @@
 var fs = require('fs');
 var jf = require('jsonfile');
 
-var file = './log - ' + new Date().getTime() + '.json';
+var file = './logs/log - ' + new Date().getTime() + '.json';
 
 if (!fs.existsSync(file)) {
     jf.writeFileSync(file, new Object());
