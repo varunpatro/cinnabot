@@ -1,15 +1,19 @@
 var rest = require('restler');
+var jf = require('jsonfile');
 
-var busstop_url = 'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=' ;
+var ltaCredFile = './lta_credentials.json';
+var ltaCredentials = jf.readFileSync(ltaCredFile);
 
-var busstop_headers = {
-    "AccountKey": "ka44N24PjMwhr4R/4ZxO0A==",
-    "UniqueUserID": "e95c73d0-7771-4744-994e-1e0a6d17392d"
+var busStopUrl = 'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=' ;
+
+var busStopHeaders = {
+    "AccountKey": ltaCredentials.AccountKey, 
+    "UniqueUserID": ltaCredentials.UniqueUserID
 };
 
-function busstop(id) {
-    var req_url = busstop_url + id.toString();
-    var req_options = {"headers": busstop_headers};
+function busStop(id) {
+    var req_url = busStopUrl + id.toString();
+    var req_options = {"headers": busStopHeaders};
     var response = send(req_url, req_options);
     return response;
 }
@@ -23,6 +27,6 @@ function process_info(data) {
 }
 
 module.exports = {
-    'x': busstop
+    'busStopQuery': busStop
 }
 
