@@ -35,7 +35,7 @@ wa.on('receivedMessage', function(messageObj) {
             console.log(err.message);
             return;
         } else {
-		    logger.logMessage(message, responseObj);
+		    logger.logMessage(messageObj, responseObj);
             logger.storeLogs();
             // console.log('Server received message %s', id);
         }

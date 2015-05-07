@@ -1,20 +1,17 @@
+var util = require('./util');
+
 var help_message = 
     "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report";
 
 var syntax_error_message = 
     "Cinnabot didn't understand that command.";
-/*
-body	String	UTF-8 decoded body text message
-from	String	Sender JID
-author	String	If from is a group ID, this is the real sender JID
-id	    String	Message ID
-date	Date	Message date/time
-notify	String	
-isGroup	Boolean	Whether the message comes from a group or not
-*/
+
 function request(msgObj) { //msg object. Returns a msgObj
     var msgText = msgObj.body;
-    return parseCmd(msgText, msgObj);
+    return {
+        phone: util.getPhoneNum(msgObj.from),
+        message: parseCmd(msgText, msgObj)
+    }
 }
 
 function parseCmd(input, msgObj) { 
@@ -67,4 +64,6 @@ function faultResponse(msgObj) {
 }
 
 
-
+module.exports = {
+    'request': request
+}

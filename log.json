@@ -1,1 +1,61 @@
-{}
+{
+  "Thu May 07 2015 21:01:19 GMT+0800 (SGT)": {
+    "request": {
+      "body": "/",
+      "from": "6593716368@s.whatsapp.net",
+      "author": "",
+      "id": "1431003678.--101",
+      "date": "2015-05-07T13:01:19.000Z",
+      "notify": "Varun Patro",
+      "isGroup": false
+    },
+    "response": {
+      "phone": "6593716368"
+    }
+  },
+  "Thu May 07 2015 21:01:33 GMT+0800 (SGT)": {
+    "request": {
+      "body": "/help",
+      "from": "6593716368@s.whatsapp.net",
+      "author": "",
+      "id": "1431003692.--103",
+      "date": "2015-05-07T13:01:33.000Z",
+      "notify": "Varun Patro",
+      "isGroup": false
+    },
+    "response": {
+      "phone": "6593716368",
+      "message": "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report"
+    }
+  },
+  "Thu May 07 2015 21:02:57 GMT+0800 (SGT)": {
+    "request": {
+      "body": "/help",
+      "from": "6593716368@s.whatsapp.net",
+      "author": "",
+      "id": "1431003776.--108",
+      "date": "2015-05-07T13:02:57.000Z",
+      "notify": "Varun Patro",
+      "isGroup": false
+    },
+    "response": {
+      "phone": "6593716368",
+      "message": "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report"
+    }
+  },
+  "Thu May 07 2015 21:06:50 GMT+0800 (SGT)": {
+    "request": {
+      "body": "/help",
+      "from": "6593716368@s.whatsapp.net",
+      "author": "",
+      "id": "1431004009.--117",
+      "date": "2015-05-07T13:06:50.000Z",
+      "notify": "Varun Patro",
+      "isGroup": false
+    },
+    "response": {
+      "phone": "6593716368",
+      "message": "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report"
+    }
+  }
+}
