@@ -3,7 +3,7 @@ var logger = require('/logger');
 var jf = require('jsonfile');
 var api = require('/api');
 
-const CREDENTIALS = jf.readFileSync('./credentials.json');
+const CREDENTIALS = jf.readFileSync('./wa_credentials.json');
 
 /** CREATE WHATSAPP OBJECT */
 
