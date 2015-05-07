@@ -1,8 +1,15 @@
+var fs = require('fs');
 var jf = require('jsonfile');
 
 var file = './log.json';
 
-var filecontents = jf.readFileSync(file);
+if (!fs.existsSync(file)) {
+    jf.writeFile(file, {}, function (err) {
+            console.error(err);
+    });
+}
+
+var filecontents = jf.readFileSync(file);    
 
 function readLogs() {
     return filecontents;
