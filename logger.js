@@ -22,7 +22,7 @@ function logMessage(request, response) {
 
 function storeLogs() {
     jf.writeFile(file, filecontents, function(err) {
-        console.log(err);
+        // console.log(err);
     });
 }
 
