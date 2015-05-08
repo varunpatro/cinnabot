@@ -25,7 +25,7 @@ function process_info(data, callback) {
     var processed_data = "Buses in operations:";
     data.Services.forEach(function(bus) {
     if (bus.Status === 'In Operation') {
-        processed_data += '\n' + bus.ServiceNo + " \t- " + util.timeLeftMin(new Date(bus.NextBus.EstimatedArrival)) + ", " + util.timeLeftMin(new Date(bus.SubsequentBus.EstimatedArrival));
+        processed_data += '\n' + bus.ServiceNo + " - " + util.timeLeftMin(new Date(bus.NextBus.EstimatedArrival)) + ", " + util.timeLeftMin(new Date(bus.SubsequentBus.EstimatedArrival));
             }
     });
     callback(processed_data);
