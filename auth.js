@@ -4,7 +4,7 @@ var studentsInfoFilepath = './private/students_info.json';
 var studentsInfo = jf.readFileSync(studentsInfoFilepath);
 
 function isAllowed(phone) {
-    return studentsInfo.hasOwnProperty(num);        
+    return studentsInfo.hasOwnProperty(phone);
 }
 
 module.exports = {
