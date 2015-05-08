@@ -15,6 +15,9 @@ var busStopHeaders = {
 };
 
 function busStop(id, callback) {
+    if (callback === undefined) {
+        callback = console.log;
+    }
     var req_url = busStopUrl + id.toString();
     var req_options = {"headers": busStopHeaders};
     var response = send(req_url, req_options, callback);
