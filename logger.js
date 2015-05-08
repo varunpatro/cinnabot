@@ -2,7 +2,7 @@ var fs = require('fs');
 var jf = require('jsonfile');
 
 
-if (!fs.exists('./logs')) {
+if (!fs.existsSync('./logs')) {
     fs.mkdirSync('./logs');
 }
 var file = './logs/log - ' + new Date().getTime() + '.json';
