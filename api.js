@@ -1,6 +1,8 @@
+var auth = require('./auth');
+var rest = require('restler');
 var util = require('./util');
 var weather = require('./weather');
-var auth = require('./auth');
+
 
 var help_message = 
     "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report";
@@ -14,18 +16,37 @@ var invalid_user_message =
 function request(msgObj) { //msg object. Returns a msgObj
     var msgFrom = util.getPhoneNum(msgObj.from);
     var msgRequest = msgObj.body;
+    var msgType = "";
     var msgResponse = "";
     
     if (!auth.isAllowed(msgFrom)) {
         msgResponse = invalid_user_message;
     } else {
         msgResponse = parseCmd(msgRequest, msgObj);
+        msgType = responseType(msgRequest);
+
     }
     
     return {
         phone: msgFrom,
+        type: msgType,
         message: msgResponse
     };
+}
+
+function responseType(input) {
+    if(input[0] != '/') {
+        //log error message
+        return syntax_error_message;
+    }
+    var cmd = input.substr(1).split(' ');
+    switch(cmd[0]) {
+        case 'menu':
+            return "image";
+        default: 
+            return "text";
+            break;
+    }
 }
 
 function parseCmd(input, msgObj) { 
@@ -51,7 +72,8 @@ function parseCmd(input, msgObj) {
 }
 
 function menuResponse(msgObj) {
-
+    var imgURL = 'menu.jpg';
+    return imgURL;
 }
 
 function faultResponse(msgObj) { //FAULT <LVL> <DETAILS>
