@@ -42,7 +42,7 @@ function responseType(input) {
     switch(cmd[0]) {
         case 'menu':
             return "image";
-        case 'traffic':
+        case 'nextbus':
             return 'function';
         default: 
             return "text";
@@ -61,12 +61,12 @@ function parseCmd(input, phone, msgObj, callback) {
                 return faultResponse(msgObj);
             case 'help':
                 return help_message;
-            case 'mealcred':
+            case 'mealcr/ed':
             case 'menu':
                 return menuResponse(msgObj);
             case 'nextbus':
-            case 'traffic':
-                return traffic.busStopQuery(11099, function(data) {
+                var busStop = cmd[1] ? cmd[1] : traffic.defaultBusStop;
+                return traffic.busStopQuery(busStop, function(data) {
                     callback(phone, data);
                 });
             case 'weather':

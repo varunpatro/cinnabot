@@ -6,6 +6,7 @@ var ltaCredFile = './private/lta_credentials.json';
 var ltaCredentials = jf.readFileSync(ltaCredFile);
 
 var busStops = [19059, 19051, 17099, 17091];
+var defaultBusStop = 19059;
 
 var busStopUrl = 'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=' ;
 
@@ -41,6 +42,7 @@ function send(req_url, req_options, callback) {
 }
 
 module.exports = {
-    'busStopQuery': busStop
+    'busStopQuery': busStop,
+    'defaultBusStop': defaultBusStop
 }
 
