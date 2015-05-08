@@ -28,18 +28,34 @@ wa.connect(function connected(err) {
 
 wa.on('receivedMessage', function(messageObj) {
     var responseObj = api.request(messageObj);
-    var responsePhone = responseObj.phone;
-    var responseMessage = responseObj.message;
-    wa.sendMessage(responsePhone, responseMessage, function (err, id) {
-	    if (err) {
-            console.log(err.message);
-            return;
-        } else {
-		    logger.logMessage(messageObj, responseObj);
-            logger.storeLogs();
-            // console.log('Server received message %s', id);
-        }
-	});
+    if (messageObj.type=="text") {
+        var responsePhone = responseObj.phone;
+        var responseMessage = responseObj.message;
+        wa.sendMessage(responsePhone, responseMessage, function (err, id) {
+            if (err) {
+                console.log(err.message);
+                return;
+            } else {
+                logger.logMessage(messageObj, responseObj);
+                logger.storeLogs();
+                // console.log('Server received message %s', id);
+            }
+        });
+    } else if (messageObj.type=="image") {
+        var responsePhone = responseObj.phone;
+        var responseImgURL = responseObj.message;
+        //to, filepath, caption, msgid, callback
+        wa.sendImageTo(responsePhone, responseImgURL, function (err, id) {
+            if (err) {
+                console.log(err.message);
+                return;
+            } else {
+                logger.logMessage(messageObj, responseObj);
+                logger.storeLogs();
+                // console.log('Server received message %s', id);
+            }
+        });
+    }       
 });
 
 /** CALL BACKS */

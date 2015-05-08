@@ -1,6 +1,8 @@
+var auth = require('./auth');
+var rest = require('restler');
 var util = require('./util');
 var weather = require('./weather');
-var auth = require('./auth');
+
 
 var help_message = 
     "Here's what you can ask Cinnabot!\n /fault - report a fault in the building \n /menu - check what Compass has in store this week \n /nextbus<space>bus # - see the next bus timings \n /weather - get a weather report";
@@ -19,13 +21,36 @@ function request(msgObj) { //msg object. Returns a msgObj
     if (!auth.isAllowed(msgFrom)) {
         msgResponse = invalid_user_message;
     } else {
+        msgType = responseType(msgRequest);
         msgResponse = parseCmd(msgRequest, msgObj);
     }
     
     return {
         phone: msgFrom,
+        type: msgType,
         message: msgResponse
     };
+}
+
+function responseType(input) {
+    if(input[0] != '/') {
+        //log error message
+        return syntax_error_message;
+    }
+    var cmd = input.substr(1).split(' ');
+    switch(cmd[0]) {
+        case 'fault':
+        case 'help':
+        case 'mealcred':
+        case 'nextbus':
+        case 'traffic':
+        case 'weather':
+            return "text";
+            break;
+        case 'menu':
+            return "image";
+            break;
+    }
 }
 
 function parseCmd(input, msgObj) { 
@@ -51,7 +76,8 @@ function parseCmd(input, msgObj) {
 }
 
 function menuResponse(msgObj) {
-
+    var imgURL = "https://scontent-sin.xx.fbcdn.net/hphotos-xap1/t31.0-8/11182654_372123109664136_4931991770243700345_o.png";
+    return imgURL;
 }
 
 function faultResponse(msgObj) { //FAULT <LVL> <DETAILS>
