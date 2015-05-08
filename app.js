@@ -28,7 +28,22 @@ wa.connect(function connected(err) {
 
 wa.on('receivedMessage', function(messageObj) {
     var responseObj = api.request(messageObj);
-    if (messageObj.type=="text") {
+    if (responseObj.type=="image") {
+        var responsePhone = responseObj.phone;
+        var responseImgURL = responseObj.message;
+        //to, filepath, caption, msgid, callback
+        wa.sendImage(responsePhone, responseImgURL, function (err, id) {
+            if (err) {
+                console.log(responseImgURL);
+                console.log(err.message);
+                return;
+            } else {
+                logger.logMessage(messageObj, responseObj);
+                logger.storeLogs();
+                // console.log('Server received message %s', id);
+            }
+        });
+    } else {
         var responsePhone = responseObj.phone;
         var responseMessage = responseObj.message;
         wa.sendMessage(responsePhone, responseMessage, function (err, id) {
@@ -41,21 +56,7 @@ wa.on('receivedMessage', function(messageObj) {
                 // console.log('Server received message %s', id);
             }
         });
-    } else if (messageObj.type=="image") {
-        var responsePhone = responseObj.phone;
-        var responseImgURL = responseObj.message;
-        //to, filepath, caption, msgid, callback
-        wa.sendImageTo(responsePhone, responseImgURL, function (err, id) {
-            if (err) {
-                console.log(err.message);
-                return;
-            } else {
-                logger.logMessage(messageObj, responseObj);
-                logger.storeLogs();
-                // console.log('Server received message %s', id);
-            }
-        });
-    }       
+    } 
 });
 
 /** CALL BACKS */

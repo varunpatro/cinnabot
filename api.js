@@ -16,13 +16,15 @@ var invalid_user_message =
 function request(msgObj) { //msg object. Returns a msgObj
     var msgFrom = util.getPhoneNum(msgObj.from);
     var msgRequest = msgObj.body;
+    var msgType = "";
     var msgResponse = "";
     
     if (!auth.isAllowed(msgFrom)) {
         msgResponse = invalid_user_message;
     } else {
-        msgType = responseType(msgRequest);
         msgResponse = parseCmd(msgRequest, msgObj);
+        msgType = responseType(msgRequest);
+
     }
     
     return {
@@ -39,16 +41,10 @@ function responseType(input) {
     }
     var cmd = input.substr(1).split(' ');
     switch(cmd[0]) {
-        case 'fault':
-        case 'help':
-        case 'mealcred':
-        case 'nextbus':
-        case 'traffic':
-        case 'weather':
-            return "text";
-            break;
         case 'menu':
             return "image";
+        default: 
+            return "text";
             break;
     }
 }
@@ -76,7 +72,7 @@ function parseCmd(input, msgObj) {
 }
 
 function menuResponse(msgObj) {
-    var imgURL = "https://scontent-sin.xx.fbcdn.net/hphotos-xap1/t31.0-8/11182654_372123109664136_4931991770243700345_o.png";
+    var imgURL = 'menu.jpg';
     return imgURL;
 }
 
