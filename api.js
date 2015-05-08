@@ -41,6 +41,7 @@ function parseCmd(input, msgObj) {
                 return help_message;
             case 'mealcred':
             case 'menu':
+                return menuResponse(msgObj);
             case 'nextbus':
             //case 'traffic':
             case 'weather':
@@ -49,16 +50,23 @@ function parseCmd(input, msgObj) {
     }
 }
 
-function faultResponse(msgObj) {
+function menuResponse(msgObj) {
+
+}
+
+function faultResponse(msgObj) { //FAULT <LVL> <DETAILS>
+    
     var problem_category = null; //new; reported but not rectified; reported, rectified but reoccurred; other
     var problem_urgency = null; //very urgent, urgent, slightly urgent, can wait
     var problem_location = null; //string
+    var problem_description = null;
+
+    //Should get these from database
     var name = null; //str
     var room_number = null; //str
     var matric_number = null; //str
     var nus_email = null; //str
     var phone_number = null;
-    var problem_description = null;
     
     var category_qn = "What kind of issue is it?\n 1) New\n 2) Reported but not rectified\n 3) Reported and rectified but reoccurred\n 4) Other";
     var urgency_qn = "How urgent is it?\n 1) Very urgent\n 2) Urgent\n 3) Slightly urgent\n 4) Can wait";
