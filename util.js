@@ -3,7 +3,7 @@ function extractPhoneNumber(phoneString) {
 }
 
 function timeLeftMin(time) {
-    return Math.ceil((time - new Date()) / 1000 / 60) + " min";
+    return Math.ceil((time - new Date()) / 1000 / 60) + ' min';
 }
 
 module.exports = {

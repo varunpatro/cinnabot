@@ -1,7 +1,6 @@
 var fs = require('fs');
 var jf = require('jsonfile');
 
-
 if (!fs.existsSync('./logs')) {
     fs.mkdirSync('./logs');
 }
@@ -11,7 +10,7 @@ if (!fs.existsSync(file)) {
     jf.writeFileSync(file, {});
 }
 
-var filecontents = jf.readFileSync(file);    
+var filecontents = jf.readFileSync(file);
 
 function readLogs() {
     return filecontents;
@@ -19,9 +18,9 @@ function readLogs() {
 
 function logMessage(request, response) {
     filecontents[request.date] = {
-        "request": request,
-        "response" : response
-    };	
+        'request': request,
+        'response' : response
+    };
 }
 
 function storeLogs() {

@@ -80,6 +80,7 @@ function menuResponse(msgObj) {
     return imgURL;
 }
 
+/**
 function faultResponse(msgObj) { //FAULT <LVL> <DETAILS>
     
     var problem_category = null; //new; reported but not rectified; reported, rectified but reoccurred; other
@@ -111,6 +112,7 @@ function faultResponse(msgObj) { //FAULT <LVL> <DETAILS>
     });
 
 }
+*/
 
 
 module.exports = {

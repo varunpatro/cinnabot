@@ -8,36 +8,41 @@ var ltaCredentials = jf.readFileSync(ltaCredFile);
 var busStops = [19059, 19051, 17099, 17091];
 var defaultBusStop = 19059;
 
-var busStopUrl = 'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=' ;
+var busStopUrl =
+    'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=';
 
 var busStopHeaders = {
-    "AccountKey": ltaCredentials.AccountKey, 
-    "UniqueUserID": ltaCredentials.UniqueUserID
+    'AccountKey': ltaCredentials.AccountKey,
+    'UniqueUserID': ltaCredentials.UniqueUserID
 };
 
 function busStop(id, callback) {
     if (callback === undefined) {
         callback = console.log;
     }
-    var req_url = busStopUrl + id.toString();
-    var req_options = {"headers": busStopHeaders};
-    var response = send(req_url, req_options, callback);
+    var reqUrl = busStopUrl + id.toString();
+    var reqOptions = {'headers': busStopHeaders};
+    var response = send(reqUrl, reqOptions, callback);
     return response;
 }
 
-function process_info(data, callback) {
-    var processed_data = "Buses in operations:";
+function processInfo(data, callback) {
+    var processedData = 'Buses in operations:';
     data.Services.forEach(function(bus) {
-    if (bus.Status === 'In Operation') {
-        processed_data += '\n' + bus.ServiceNo + " - " + util.timeLeftMin(new Date(bus.NextBus.EstimatedArrival)) + ", " + util.timeLeftMin(new Date(bus.SubsequentBus.EstimatedArrival));
-            }
+        if (bus.Status === 'In Operation') {
+            var nextBusTime = new Date(bus.NextBus.EstimatedArrival);
+            var subseqBusTime = new Date(bus.SubsequentBus.EstimatedArrival);
+            processedData += '\n' + bus.ServiceNo + ' - ' +
+                util.timeLeftMin(nextBusTime) + ', ' +
+                util.timeLeftMin(subseqBusTime);
+        }
     });
-    callback(processed_data);
+    callback(processedData);
 }
 
-function send(req_url, req_options, callback) {
-    return rest.get(req_url, req_options).on('complete', function(data) {
-        process_info(data, callback);
+function send(reqUrl, reqOptions, callback) {
+    return rest.get(reqUrl, reqOptions).on('complete', function(data) {
+        processInfo(data, callback);
     });
 }
 

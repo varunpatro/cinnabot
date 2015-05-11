@@ -9,8 +9,8 @@ var CREDENTIALS = jf.readFileSync(credentialsFilePath);
 /** CREATE WHATSAPP OBJECT */
 
 var wa = whatsapi.createAdapter({
-    msisdn: CREDENTIALS.phone, 
-    username: 'cinnabot', 
+    msisdn: CREDENTIALS.phone,
+    username: 'cinnabot',
     password: CREDENTIALS.password,
     ccode: CREDENTIALS.cc
 });
@@ -31,11 +31,11 @@ wa.on('receivedMessage', function(messageObj) {
     var responsePhone = responseObj.phone;
     var responseMessage = responseObj.message;
 
-    if (responseObj.type === "function") {
+    if (responseObj.type === 'function') {
         // do something for async apis
-    } else if (responseObj.type === "image") {
+    } else if (responseObj.type === 'image') {
         var responseImgURL = responseObj.message;
-        wa.sendImage(responsePhone, responseImgURL, function (err, id) {
+        wa.sendImage(responsePhone, responseImgURL, function(err, id) {
             if (err) {
                 console.log(responseImgURL);
                 console.log(err.message);
@@ -48,6 +48,8 @@ wa.on('receivedMessage', function(messageObj) {
 
     logger.logMessage(messageObj, responseObj);
     logger.storeLogs();
+
+    console.log(messageObj.body);
 });
 
 /** CALL BACKS */
@@ -61,10 +63,10 @@ function logged(err) {
 /** HELPER FUNCTIONS */
 
 function sendMsg(responsePhone, responseMessage) {
-    wa.sendMessage(responsePhone, responseMessage, function (err, id) {
+    wa.sendMessage(responsePhone, responseMessage, function(err, id) {
         if (err) {
             console.log(err.message);
             return;
         }
-    });    
+    });
 }
