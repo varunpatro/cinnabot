@@ -9,4 +9,4 @@ function isAllowed(phone) {
 
 module.exports = {
     isAllowed: isAllowed
-}
+};

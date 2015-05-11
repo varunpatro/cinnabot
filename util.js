@@ -9,4 +9,4 @@ function timeLeftMin(time) {
 module.exports = {
     getPhoneNum: extractPhoneNumber,
     timeLeftMin: timeLeftMin
-}
+};

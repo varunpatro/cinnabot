@@ -6,12 +6,12 @@ var neaAuthKey = jf.readFileSync(nea_credentials_path).key;
 
 var nowcastURL = 'http://www.nea.gov.sg/api/WebAPI?dataset=nowcast&keyref=' + neaAuthKey;
 var nowcastJSON;
-var CLEMENTI_nowcast = undefined;
+var CLEMENTI_nowcast;
 
 var psiURL = 'http://www.nea.gov.sg/api/WebAPI/?dataset=psi_update&keyref=' + neaAuthKey;
 var psiJSON;
-var westPSI_3HR = undefined;
-var westPSI_24HR = undefined;
+var westPSI_3HR;
+var westPSI_24HR;
 
 rest.get(nowcastURL).on('complete', function (data) {
     nowCastJSON = data;
@@ -32,4 +32,4 @@ function getWeather() {
 
 module.exports = {
     getWeather: getWeather
-}
+};

@@ -46,7 +46,6 @@ function responseType(input) {
             return 'function';
         default: 
             return "text";
-            break;
     }
 }
 
@@ -71,7 +70,8 @@ function parseCmd(input, phone, msgObj, callback) {
                 });
             case 'weather':
                 return weather.getWeather();
-            break;
+            default: 
+                return help_messge;
     }
 }
 
@@ -115,4 +115,4 @@ function faultResponse(msgObj) { //FAULT <LVL> <DETAILS>
 
 module.exports = {
     'request': request
-}
+};

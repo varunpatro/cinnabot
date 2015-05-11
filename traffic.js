@@ -44,5 +44,5 @@ function send(req_url, req_options, callback) {
 module.exports = {
     'busStopQuery': busStop,
     'defaultBusStop': defaultBusStop
-}
+};
 

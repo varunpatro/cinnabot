@@ -8,7 +8,7 @@ if (!fs.existsSync('./logs')) {
 var file = './logs/log - ' + new Date().getTime() + '.json';
 
 if (!fs.existsSync(file)) {
-    jf.writeFileSync(file, new Object());
+    jf.writeFileSync(file, {});
 }
 
 var filecontents = jf.readFileSync(file);    
