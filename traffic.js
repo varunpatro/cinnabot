@@ -21,7 +21,9 @@ function busStop(id, callback) {
         callback = console.log;
     }
     var reqUrl = busStopUrl + id.toString();
-    var reqOptions = {'headers': busStopHeaders};
+    var reqOptions = {
+        'headers': busStopHeaders
+    };
     var response = send(reqUrl, reqOptions, callback);
     return response;
 }
@@ -50,4 +52,3 @@ module.exports = {
     'busStopQuery': busStop,
     'defaultBusStop': defaultBusStop
 };
-

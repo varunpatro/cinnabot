@@ -18,7 +18,10 @@ var wa = whatsapi.createAdapter({
 /** START CONNECTION */
 
 wa.connect(function connected(err) {
-    if (err) { console.log(err); return; }
+    if (err) {
+        console.log(err);
+        return;
+    }
     console.log('Connected');
     // Now login
     wa.login(logged);
@@ -55,7 +58,10 @@ wa.on('receivedMessage', function(messageObj) {
 /** CALL BACKS */
 
 function logged(err) {
-    if (err) { console.log(err); return; }
+    if (err) {
+        console.log(err);
+        return;
+    }
     console.log('Logged in to WA server');
     wa.sendIsOnline();
 }

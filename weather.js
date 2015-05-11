@@ -21,11 +21,11 @@ rest.get(nowcastURL).on('complete', function(data) {
 });
 
 rest.get(psiURL).on('complete', function(data) {
-    psiJSON = data;
+    psiJSON = data.channel.item[region0];
 
     // region[4] is for West Singapore
-    westPSI24 = psiJSON.channel.item[0].region[4].record[0].reading[0].$.value;
-    westPSI3 = psiJSON.channel.item[0].region[4].record[0].reading[1].$.value;
+    westPSI24 = psiJSON.region[4].record[0].reading[0].$.value;
+    westPSI3westPSI3 = psiJSON.region[4].record[0].reading[1].$.value;
 });
 
 function getWeather() {

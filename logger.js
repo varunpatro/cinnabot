@@ -19,7 +19,7 @@ function readLogs() {
 function logMessage(request, response) {
     filecontents[request.date] = {
         'request': request,
-        'response' : response
+        'response': response
     };
 }
 
