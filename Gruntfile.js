@@ -13,12 +13,16 @@ module.exports = function(grunt) {
                 config: '.jscsrc',
                 excludeFiles: ['test*']
             }
+        },
+        jsbeautifier: {
+            files: ['*.js'],
+            options: {}
         }
     });
 
-
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-jscs'); // js code style
-    grunt.registerTask('default', ['jshint']);
+    grunt.loadNpmTasks('grunt-jsbeautifier');
+    grunt.registerTask('default', ['jshint', 'jsbeautifier']);
     grunt.registerTask('style', ['jscs']);
 };
