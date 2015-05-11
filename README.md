@@ -5,6 +5,11 @@ WhatsApp Bot for Cinnamon College
 
 `npm install`
 
+## Dev
+
+`grunt` for linting and beautifying
+`grunt style` for consistent style
+
 ## ToDo
 
 1. Create log features
