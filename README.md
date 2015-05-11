@@ -13,9 +13,9 @@ WhatsApp Bot for Cinnamon College
 
 ## ToDo
 
-1. Create log features
+1. ~~Create log features~~
 2. Meal plans query
-3. Weather information query
+3. ~~Weather information query~~
 4. LTA traffic information query
 5. Fault Reporting feature
 
