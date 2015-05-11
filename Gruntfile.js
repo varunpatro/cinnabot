@@ -6,9 +6,18 @@ module.exports = function (grunt) {
             options: {
                 ignores: []
             }
+        },
+        jscs: {
+            src: "*.js",
+            options: {
+                config: ".jscsrc"
+            }
         }
     });
 
+
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-jscs'); // js code style
     grunt.registerTask('default', ['jshint']);
+    grunt.registerTask('style', ['jscs']);
 };
