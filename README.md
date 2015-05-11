@@ -8,6 +8,7 @@ WhatsApp Bot for Cinnamon College
 ## Dev
 
 `grunt` for linting and beautifying
+
 `grunt style` for consistent style
 
 ## ToDo
