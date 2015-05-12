@@ -23,6 +23,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-jscs'); // js code style
     grunt.loadNpmTasks('grunt-jsbeautifier');
-    grunt.registerTask('default', ['jshint', 'jsbeautifier']);
+    grunt.registerTask('default', ['jsbeautifier', 'jshint']);
     grunt.registerTask('style', ['jscs']);
 };
