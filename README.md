@@ -9,6 +9,8 @@ WhatsApp Bot for Cinnamon College
 
 `grunt` for linting and beautifying
 
+`grunt start` to start the app
+
 `grunt style` for consistent style
 
 ## ToDo
