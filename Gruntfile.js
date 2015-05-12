@@ -17,12 +17,20 @@ module.exports = function(grunt) {
         jsbeautifier: {
             files: ['*.js'],
             options: {}
+        },
+        nodemon: {
+            dev: {
+                script: 'app.js'
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-jscs'); // js code style
     grunt.loadNpmTasks('grunt-jsbeautifier');
+    grunt.loadNpmTasks('grunt-nodemon');
+
     grunt.registerTask('default', ['jsbeautifier', 'jshint']);
     grunt.registerTask('style', ['jscs']);
+    grunt.registerTask('start', ['nodemon']);
 };
