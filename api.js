@@ -12,7 +12,7 @@ var helpMessage =
 
 var syntaxErrorMessage =
     'Cinnabot didn\'t understand that command. Type \'/help\' for more' +
-    'information.';
+    ' information.';
 
 var invalidUserMessage =
     'Hi, you\'re not registered in the cinnabot server. Please contact your' +

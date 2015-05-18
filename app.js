@@ -53,6 +53,7 @@ wa.on('receivedMessage', function(messageObj) {
     logger.storeLogs();
 
     console.log(messageObj.body);
+    console.log("From: " + messageObj.from);
 });
 
 /** CALL BACKS */
