@@ -27,6 +27,7 @@ WhatsApp Bot for Cinnamon College
 
 1. Don't use forward-slash as a trigger - very computerish. Instead connection can be started as a cool command like 'ok cinnabot'
 2. Have cooler phrases as commands instead of one word commands. Like ''.
+3. Reply with images (e.g.  memes of various RAs)
 
 ### Misc
 
