@@ -29,7 +29,8 @@ bot.on('message', function(msg) {
         case "psi":
             return psi(chatId);
         case "bus":
-            return bus(chatId);
+            var busstop = msg.text.split(' ')[1];
+            return bus(chatId, busstop);
         default:
             return default_msg(chatId);
     }
@@ -40,11 +41,11 @@ function psi(chatId) {
     bot.sendMessage(chatId, weather.getWeather());
 }
 
-function bus(chatId) {
+function bus(chatId, busstop) {
     function callback(data) {
         bot.sendMessage(chatId, data);
     }
-    traffic.busStopQuery(traffic.defaultBusStop, callback);
+    traffic.busStopQuery(busstop || traffic.defaultBusStop, callback);
 }
 
 function default_msg(chatId) {
