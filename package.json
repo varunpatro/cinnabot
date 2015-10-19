@@ -1,12 +1,13 @@
 {
   "name": "cinnabot",
-  "description": "WhatsApp Bot for Cinnamon College",
+  "description": "Telegram Bot for Cinnamon College",
   "version": "0.0.1",
-  "author": "Varun Patro, Tan Yui Wei",
+  "author": "Varun Patro, Syamil Maulod",
   "dependencies": {
+    "chalk": "^1.1.1",
     "jsonfile": "^2.0.0",
-    "restler": "^3.2.2",
-    "whatsapi": "^1.0.2"
+    "node-telegram-bot-api": "^0.15.0",
+    "restler": "^3.2.2"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
