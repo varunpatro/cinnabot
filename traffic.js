@@ -28,6 +28,12 @@ function busStop(id, callback) {
     return response;
 }
 
+function send(reqUrl, reqOptions, callback) {
+    return rest.get(reqUrl, reqOptions).on('complete', function(data) {
+        processInfo(data, callback);
+    });
+}
+
 function processInfo(data, callback) {
     var processedData = 'Buses in operations:';
     data.Services.forEach(function(bus) {
@@ -40,12 +46,6 @@ function processInfo(data, callback) {
         }
     });
     callback(processedData);
-}
-
-function send(reqUrl, reqOptions, callback) {
-    return rest.get(reqUrl, reqOptions).on('complete', function(data) {
-        processInfo(data, callback);
-    });
 }
 
 module.exports = {
