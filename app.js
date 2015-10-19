@@ -22,14 +22,16 @@ console.log(chalk.blue("                            "))
 bot.on('message', function(msg) {
     console.log(msg);
     var chatId = msg.chat.id;
-    if (msg.text.charAt(0) === '/') {
-        var command = msg.text.substr(1);
+    var body = msg.text;
+    if (body.charAt(0) === '/') {
+        var command = body.split(' ')[0].substr(1);
+        var args = body.split(' ')[1];
     }
     switch(command) {
         case "psi":
             return psi(chatId);
         case "bus":
-            var busstop = msg.text.split(' ')[1];
+            var busstop = args;
             return bus(chatId, busstop);
         default:
             return default_msg(chatId);
