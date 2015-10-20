@@ -107,6 +107,7 @@ function done_dining_feedback(body, chatId) {
     DiningFeedback.how = body.length / 2;
     inThread.status = false;
     feedback.dining_feedback(DiningFeedback.when, DiningFeedback.where, DiningFeedback.how)
+    bot.sendMessage(chatId, "Thanks!");
 }
 
 function psi(chatId) {

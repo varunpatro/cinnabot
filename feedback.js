@@ -11,8 +11,6 @@ function dining_feedback(eatingPeriod, stall, rating) {
 
     rest.get(feedbackURL).on('complete', function(data) {
     });
-    console.log(feedbackURL);
-    return "Feedback collected."
 }
 
 function ask_when_dining_feedback(chatId, bot) {
