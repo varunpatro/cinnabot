@@ -35,17 +35,20 @@ function send(reqUrl, reqOptions, callback) {
 }
 
 function processInfo(data, callback) {
-    var processedData = 'Buses in operations:';
+    var busTimingsList;
+    var header;
     data.Services.forEach(function(bus) {
         if (bus.Status === 'In Operation') {
             var nextBusTime = new Date(bus.NextBus.EstimatedArrival);
             var subseqBusTime = new Date(bus.SubsequentBus.EstimatedArrival);
-            processedData += '\n' + bus.ServiceNo + ' - ' +
+            busTimingsList = bus.ServiceNo + ' - ' +
                 util.timeLeftMin(nextBusTime) + ', ' +
                 util.timeLeftMin(subseqBusTime);
         }
     });
-    callback(processedData);
+    header = (busTimingsList) ? "Buses in operation: \n" : "Go walk home 😜.\n"
+    busTimingsList = (busTimingsList) ? busTimingsList : "";
+    callback(header + busTimingsList);
 }
 
 module.exports = {
