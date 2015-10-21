@@ -6,6 +6,7 @@ var logger = require('./logger');
 var weather = require('./weather');
 var traffic = require('./traffic');
 var feedback = require('./feedback');
+var do_not_open = require('./do_not_open');
 
 var CREDENTIALS = jf.readFileSync(credentialsFilePath);
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -44,6 +45,8 @@ bot.on('message', function(msg) {
         case "feedback":
             session = sessions[chatId] || new Session(chatId);
             return ask_dining_feedback(chatId);
+        case "cat":
+            return catfact(chatId);
         case "cancel":
             return cancel(chatId);
     }
@@ -64,8 +67,12 @@ bot.on('message', function(msg) {
 });
 
 function cancel(chatId) {
-    inThread.status = false;
+    session = new Session(chatId);
     bot.sendMessage(chatId, "Canceled.");
+}
+
+function catfact(chatId) {
+    return do_not_open.catfact(chatId, bot);
 }
 
 function ask_dining_feedback(chatId) {
