@@ -20,7 +20,10 @@ module.exports = function(grunt) {
         },
         nodemon: {
             dev: {
-                script: 'app.js'
+                script: 'app.js',
+                options: {
+                    nodeArgs: ['--debug']
+                }
             }
         }
     });
@@ -30,7 +33,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-jsbeautifier');
     grunt.loadNpmTasks('grunt-nodemon');
 
-    grunt.registerTask('default', ['jsbeautifier', 'jshint']);
+    grunt.registerTask('default', ['jsbeautifier', 'jshint', 'nodemon']);
     grunt.registerTask('style', ['jscs']);
     grunt.registerTask('start', ['nodemon']);
 };
