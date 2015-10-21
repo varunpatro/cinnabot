@@ -19,13 +19,8 @@ console.log(chalk.blue("                            "));
 console.log(chalk.blue("============================"));
 console.log(chalk.blue("                            "));
 
-// Persistent data
-var inThread = {
-    "status": false,
-    "next": ask_where_dining_feedback
-};
-
-var DiningFeedback = {};
+var sessions = {};
+var session;
 
 // Any kind of message
 bot.on('message', function(msg) {
@@ -47,6 +42,7 @@ bot.on('message', function(msg) {
             var busstop = args;
             return bus(msgId, chatId, busstop);
         case "feedback":
+            session = sessions[chatId] || new Session(chatId);
             return ask_dining_feedback(chatId);
         case "cancel":
             return cancel(chatId);
@@ -59,8 +55,9 @@ bot.on('message', function(msg) {
         case 'I wanna go Clementi':
             return bus(msgId, chatId, 19059);
         default:
-            if (inThread.status) {
-                return inThread.next(body, chatId);
+            session = sessions[chatId] || new Session(chatId);
+            if (session.inThread.status) {
+                return session.inThread.next(body, chatId);
             }
             return default_msg(chatId);
     }
@@ -72,45 +69,63 @@ function cancel(chatId) {
 }
 
 function ask_dining_feedback(chatId) {
-    inThread.status = true;
+    session.inThread.status = true;
     feedback.ask_when_dining_feedback(chatId, bot);
-    inThread.next = ask_where_dining_feedback;
+    session.inThread.next = ask_where_dining_feedback;
 }
 
-function ask_where_dining_feedback(body, chatId) {
+function ask_where_dining_feedback(when, chatId) {
     var validOptions = ["Breakfast", "Dinner"];
-    if (validOptions.indexOf(body) < 0) {
+    if (validOptions.indexOf(when) < 0) {
         return ask_dining_feedback(chatId);
     }
-    DiningFeedback.when = body;
-    feedback.ask_where_dining_feedback(chatId, bot, body);
-    inThread.next = ask_how_dining_feedback;
+    session.diningFeedback.when = when;
+    feedback.ask_where_dining_feedback(chatId, bot, when);
+    session.inThread.next = ask_how_dining_feedback;
 }
 
-function ask_how_dining_feedback(body, chatId) {
+function ask_how_dining_feedback(where, chatId) {
+    var df = session.diningFeedback;
     var validOptions = [];
-    if (DiningFeedback.when === "Breakfast") {
+    if (df.when === "Breakfast") {
         validOptions = ['Asian', 'Western', 'Muslim', 'Toast', 'Other'];
-    } else if (DiningFeedback.when === "Dinner") {
+    } else if (df.when === "Dinner") {
         validOptions = ['Noodle', 'Asian', 'Western - Main Course', 'Western - Panini', 'Indian', 'Malay', 'Late Plate'];
     }
-    if (validOptions.indexOf(body) < 0) {
-        return ask_where_dining_feedback(chatId);
+    if (validOptions.indexOf(where) < 0) {
+        return ask_where_dining_feedback(df.when, chatId);
     }
-    DiningFeedback.where = body;
+    df.where = where;
     feedback.ask_how_dining_feedback(chatId, bot);
-    inThread.next = done_dining_feedback;
+    session.inThread.next = done_dining_feedback;
 }
 
-function done_dining_feedback(body, chatId) {
+function done_dining_feedback(how, chatId) {
+    var df = session.diningFeedback;
     var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
-    if (validOptions.indexOf(body) < 0) {
-        return ask_how_dining_feedback(chatId);
+    if (validOptions.indexOf(how) < 0) {
+        return ask_how_dining_feedback(df.where, chatId);
     }
-    DiningFeedback.how = body.length / 2;
-    inThread.status = false;
-    feedback.dining_feedback(DiningFeedback.when, DiningFeedback.where, DiningFeedback.how);
+    df.how = how.length / 2;
+    feedback.dining_feedback(df.when, df.where, df.how);
     bot.sendMessage(chatId, "Thanks!");
+    session = new Session(chatId);
+}
+
+function Session(chatId) {
+    this.chatId = chatId;
+    this.inThread = {
+        "status": false,
+        "next": ask_where_dining_feedback
+    };
+    this.diningFeedback = new DiningFeedback();
+    sessions[chatId] = this;
+}
+
+function DiningFeedback() {
+    this.when = "";
+    this.where = "";
+    this.how = -1;
 }
 
 function psi(chatId) {
