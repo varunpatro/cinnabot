@@ -6,7 +6,9 @@ function dining_stats(chatId, bot, when, where) {
     statsURL += '&where=' + where;
 
     function callback(data) {
-        var msg = "Avg rating for " + where + " stall at " + when + " is: " + data;
+        var avgRating = parseFloat(data);
+        var roundedAvgRating = Math.round(avgRating * 100) / 100;
+        var msg = "Avg rating for " + where + " stall at " + when + " is: " + roundedAvgRating;
         bot.sendMessage(chatId, msg);
     }
     rest.get(statsURL).on('complete', callback);
