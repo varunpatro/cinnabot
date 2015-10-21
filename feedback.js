@@ -9,8 +9,7 @@ function dining_feedback(eatingPeriod, stall, rating) {
         feedbackURL += "&entry.1929069273=" + stall;
     }
 
-    rest.get(feedbackURL).on('complete', function(data) {
-    });
+    rest.get(feedbackURL).on('complete', function(data) {});
 }
 
 function ask_when_dining_feedback(chatId, bot) {
@@ -26,14 +25,15 @@ function ask_when_dining_feedback(chatId, bot) {
 }
 
 function ask_where_dining_feedback(chatId, bot, when) {
+    var keyboard = [];
     if (when === "Breakfast") {
-        var keyboard = [
+        keyboard = [
             ['Asian', 'Western'],
             ['Muslim', 'Toast'],
             ['Other']
         ];
     } else if (when === "Dinner") {
-    	keyboard = [
+        keyboard = [
             ['Noodle', 'Asian'],
             ['Western - Main Course'],
             ['Western - Panini'],
@@ -52,7 +52,10 @@ function ask_where_dining_feedback(chatId, bot, when) {
 function ask_how_dining_feedback(chatId, bot) {
     var opts = {
         reply_markup: JSON.stringify({
-            keyboard: [['👍', '👍👍', '👍👍👍'], ['👍👍👍👍', '👍👍👍👍👍']],
+            keyboard: [
+                ['👍', '👍👍', '👍👍👍'],
+                ['👍👍👍👍', '👍👍👍👍👍']
+            ],
             one_time_keyboard: true
         })
     };
@@ -60,8 +63,8 @@ function ask_how_dining_feedback(chatId, bot) {
 }
 
 module.exports = {
-	"dining_feedback": dining_feedback,
-	"ask_where_dining_feedback": ask_where_dining_feedback,
+    "dining_feedback": dining_feedback,
+    "ask_where_dining_feedback": ask_where_dining_feedback,
     "ask_when_dining_feedback": ask_when_dining_feedback,
     "ask_how_dining_feedback": ask_how_dining_feedback
 };

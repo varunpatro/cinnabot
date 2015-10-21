@@ -5,9 +5,9 @@ function extractPhoneNumber(phoneString) {
 function timeLeftMin(time) {
     var timeLeft = Math.ceil((time - new Date()) / 1000 / 60);
     if (timeLeft < 0) {
-    	return "N.A.";
+        return "N.A.";
     } else {
-    	return timeLeft + ' min';
+        return timeLeft + ' min';
     }
 }
 

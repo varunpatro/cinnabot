@@ -1,23 +1,23 @@
 var jf = require('jsonfile');
 var TelegramBot = require('node-telegram-bot-api');
-var chalk = require('chalk')
+var chalk = require('chalk');
 var credentialsFilePath = './private/telegram_credentials.json';
-var logger = require('./logger')
-var weather = require('./weather')
-var traffic = require('./traffic')
-var feedback = require('./feedback')
+var logger = require('./logger');
+var weather = require('./weather');
+var traffic = require('./traffic');
+var feedback = require('./feedback');
 
 var CREDENTIALS = jf.readFileSync(credentialsFilePath);
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
 });
 
-console.log(chalk.blue("============================"))
-console.log(chalk.blue("                            "))
-console.log(chalk.blue("      CinnaBot Started      "))
-console.log(chalk.blue("                            "))
-console.log(chalk.blue("============================"))
-console.log(chalk.blue("                            "))
+console.log(chalk.blue("============================"));
+console.log(chalk.blue("                            "));
+console.log(chalk.blue("      CinnaBot Started      "));
+console.log(chalk.blue("                            "));
+console.log(chalk.blue("============================"));
+console.log(chalk.blue("                            "));
 
 // Persistent data
 var inThread = {
@@ -33,9 +33,11 @@ bot.on('message', function(msg) {
     var chatId = msg.chat.id;
     var msgId = msg.message_id;
     var body = msg.text;
+    var command = body;
+    var args = body;
     if (body.charAt(0) === '/') {
-        var command = body.split(' ')[0].substr(1);
-        var args = body.split(' ')[1];
+        command = body.split(' ')[0].substr(1);
+        args = body.split(' ')[1];
     }
     // manage commands
     switch (command) {
@@ -86,10 +88,11 @@ function ask_where_dining_feedback(body, chatId) {
 }
 
 function ask_how_dining_feedback(body, chatId) {
+    var validOptions = [];
     if (DiningFeedback.when === "Breakfast") {
-        var validOptions = ['Asian', 'Western', 'Muslim', 'Toast', 'Other'];
+        validOptions = ['Asian', 'Western', 'Muslim', 'Toast', 'Other'];
     } else if (DiningFeedback.when === "Dinner") {
-        var validOptions = ['Noodle', 'Asian', 'Western - Main Course', 'Western - Panini', 'Indian', 'Malay', 'Late Plate'];
+        validOptions = ['Noodle', 'Asian', 'Western - Main Course', 'Western - Panini', 'Indian', 'Malay', 'Late Plate'];
     }
     if (validOptions.indexOf(body) < 0) {
         return ask_where_dining_feedback(chatId);
@@ -106,7 +109,7 @@ function done_dining_feedback(body, chatId) {
     }
     DiningFeedback.how = body.length / 2;
     inThread.status = false;
-    feedback.dining_feedback(DiningFeedback.when, DiningFeedback.where, DiningFeedback.how)
+    feedback.dining_feedback(DiningFeedback.when, DiningFeedback.where, DiningFeedback.how);
     bot.sendMessage(chatId, "Thanks!");
 }
 
@@ -118,6 +121,7 @@ function bus(msgId, chatId, busstop) {
     function basicCallback(data) {
         bot.sendMessage(chatId, data);
     }
+
     function callback(data) {
         var opts = {
             reply_markup: JSON.stringify({
