@@ -92,7 +92,7 @@ function ask_how_dining_feedback(body, chatId) {
         var validOptions = ['Noodle', 'Asian', 'Western - Main Course', 'Western - Panini', 'Indian', 'Malay', 'Late Plate'];
     }
     if (validOptions.indexOf(body) < 0) {
-        return ask_dining_feedback(chatId);
+        return ask_where_dining_feedback(chatId);
     }
     DiningFeedback.where = body;
     feedback.ask_how_dining_feedback(chatId, bot);
@@ -102,7 +102,7 @@ function ask_how_dining_feedback(body, chatId) {
 function done_dining_feedback(body, chatId) {
     var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
     if (validOptions.indexOf(body) < 0) {
-        return ask_dining_feedback(chatId);
+        return ask_how_dining_feedback(chatId);
     }
     DiningFeedback.how = body.length / 2;
     inThread.status = false;
