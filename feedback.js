@@ -1,5 +1,17 @@
 var rest = require('restler');
 
+function dining_stats(chatId, bot, when, where) {
+    var statsURL = 'https://script.google.com/macros/s/AKfycbw22JUY0XVktavbywTQ7z--mTe7CFbL8X-Bgb6fX-JVNcjGBbeA/exec?';
+    statsURL += 'when=' + when;
+    statsURL += '&where=' + where;
+
+    function callback(data) {
+        var msg = "Avg rating for " + where + " stall at " + when + " is: " + data;
+        bot.sendMessage(chatId, msg);
+    }
+    rest.get(statsURL).on('complete', callback);
+}
+
 function dining_feedback(eatingPeriod, stall, rating) {
     var feedbackURL = "https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=" + eatingPeriod + "&entry.385772714=" + rating;
 
@@ -64,6 +76,7 @@ function ask_how_dining_feedback(chatId, bot) {
 
 module.exports = {
     "dining_feedback": dining_feedback,
+    "dining_stats": dining_stats,
     "ask_where_dining_feedback": ask_where_dining_feedback,
     "ask_when_dining_feedback": ask_when_dining_feedback,
     "ask_how_dining_feedback": ask_how_dining_feedback
