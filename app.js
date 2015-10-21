@@ -137,9 +137,7 @@ function done_dining_feedback(how, chatId) {
         return ask_how_dining_feedback(df.where, chatId);
     }
     df.how = how.length / 2;
-    feedback.dining_feedback(df.when, df.where, df.how);
-    bot.sendMessage(chatId, "Thanks!");
-    feedback.dining_stats(chatId, bot, df.when, df.where);
+    feedback.dining_feedback(chatId, bot, df.when, df.where, df.how);
     session = new Session(chatId);
 }
 

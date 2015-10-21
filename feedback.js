@@ -14,7 +14,7 @@ function dining_stats(chatId, bot, when, where) {
     rest.get(statsURL).on('complete', callback);
 }
 
-function dining_feedback(eatingPeriod, stall, rating) {
+function dining_feedback(chatId, bot, when, where, how) {
     var feedbackURL = "https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=" + eatingPeriod + "&entry.385772714=" + rating;
 
     if (eatingPeriod === "Dinner") {
@@ -23,7 +23,10 @@ function dining_feedback(eatingPeriod, stall, rating) {
         feedbackURL += "&entry.1929069273=" + stall;
     }
 
-    rest.get(feedbackURL).on('complete', function(data) {});
+    rest.get(feedbackURL).on('complete', function(data) {
+        bot.sendMessage(chatId, "Thanks!");
+        return dining_stats(chatId, bot, when, where);
+    });
 }
 
 function ask_when_dining_feedback(chatId, bot) {
