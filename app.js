@@ -1,12 +1,14 @@
 var jf = require('jsonfile');
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
+var readline = require('readline');
 var credentialsFilePath = './private/telegram_credentials.json';
 var logger = require('./logger');
 var weather = require('./weather');
 var traffic = require('./traffic');
 var feedback = require('./feedback');
 var do_not_open = require('./do_not_open');
+var broadcast = require('./broadcast');
 
 var CREDENTIALS = jf.readFileSync(credentialsFilePath);
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -22,6 +24,27 @@ console.log(chalk.blue("                            "));
 
 var sessions = {};
 var session;
+
+// start CLI app
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false
+});
+
+rl.on('line', function(line) {
+    parseCommand(line);
+});
+
+function parseCommand(command) {
+    chatIds = [49892469, 102675141];
+    switch (command) {
+        case 'bcast':
+            return broadcast.broadcast_input(chatIds, bot);
+        case 'exit':
+            return process.exit();
+    }
+}
 
 // Any kind of message
 bot.on('message', function(msg) {

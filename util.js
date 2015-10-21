@@ -1,3 +1,19 @@
+var readline = require('readline');
+var chalk = require('chalk');
+
+function readInput(question, callback) {
+    // TODO: input string is printed to output. fix this.
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.question(chalk.red(question + '\n'), function(answer) {
+        callback(answer);
+        rl.close();
+    });
+}
+
 function extractPhoneNumber(phoneString) {
     return phoneString.split('@')[0];
 }
@@ -13,5 +29,6 @@ function timeLeftMin(time) {
 
 module.exports = {
     getPhoneNum: extractPhoneNumber,
-    timeLeftMin: timeLeftMin
+    timeLeftMin: timeLeftMin,
+    readInput: readInput
 };
