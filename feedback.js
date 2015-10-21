@@ -15,12 +15,12 @@ function dining_stats(chatId, bot, when, where) {
 }
 
 function dining_feedback(chatId, bot, when, where, how) {
-    var feedbackURL = "https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=" + eatingPeriod + "&entry.385772714=" + rating;
+    var feedbackURL = "https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=" + when + "&entry.385772714=" + how;
 
-    if (eatingPeriod === "Dinner") {
-        feedbackURL += "&entry.1055773284=" + stall;
-    } else if (eatingPeriod === "Breakfast") {
-        feedbackURL += "&entry.1929069273=" + stall;
+    if (when === "Dinner") {
+        feedbackURL += "&entry.1055773284=" + where;
+    } else if (when === "Breakfast") {
+        feedbackURL += "&entry.1929069273=" + where;
     }
 
     rest.get(feedbackURL).on('complete', function(data) {
