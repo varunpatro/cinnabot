@@ -49,8 +49,7 @@ function ask_where_dining_feedback(chatId, bot, when) {
     } else if (when === "Dinner") {
         keyboard = [
             ['Noodle', 'Asian'],
-            ['Western - Main Course'],
-            ['Western - Panini'],
+            ['Western - Main Course', 'Western - Panini'],
             ['Indian', 'Malay', 'Late Plate']
         ];
     }
