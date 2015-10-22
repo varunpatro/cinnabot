@@ -50,6 +50,9 @@ function parseCommand(command) {
 // Any kind of message
 bot.on('message', function(msg) {
     console.log(msg);
+    if (!msg.hasOwnProperty('text')) {
+        return false;
+    }
     cinnalog(msg);
     var chatId = msg.chat.id;
     var msgId = msg.message_id;
