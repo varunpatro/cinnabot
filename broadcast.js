@@ -1,7 +1,7 @@
 var util = require('./util');
 
 function broadcast(chatIds, bot, message) {
-    message = '[\tThis is a broadcast message\t]\n' + message;
+    message = '[\tThis is a broadcast message\t]\n\n' + message;
     chatIds.forEach(function(chatId) {
         bot.sendMessage(chatId, message);
     });
