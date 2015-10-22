@@ -191,8 +191,8 @@ function bus(msgId, chatId, busstop) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
-                    ['I wanna go Buona Vista'],
-                    ['I wanna go Clementi'],
+                    ['Towards Buona Vista'],
+                    ['Towards Clementi'],
                 ],
                 one_time_keyboard: true
             })

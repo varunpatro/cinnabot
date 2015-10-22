@@ -66,7 +66,7 @@ function ask_where_dining_feedback(chatId, bot, when) {
             one_time_keyboard: true
         })
     };
-    bot.sendMessage(chatId, "Where did you eat?", opts);
+    bot.sendMessage(chatId, "Which stall?", opts);
 }
 
 function ask_how_dining_feedback(chatId, bot) {
