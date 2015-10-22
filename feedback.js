@@ -9,7 +9,11 @@ function dining_stats(chatId, bot, when, where) {
         var avgRating = parseFloat(data);
         var roundedAvgRating = Math.round(avgRating * 100) / 100;
         var msg = "Avg rating for " + where + " stall at " + when + " is: " + roundedAvgRating;
-        bot.sendMessage(chatId, msg);
+        bot.sendMessage(chatId, msg, {
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
     }
     rest.get(statsURL).on('complete', callback);
 }
