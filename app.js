@@ -2,6 +2,7 @@ var jf = require('jsonfile');
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
 var readline = require('readline');
+var rest = require('restler');
 var credentialsFilePath = './private/telegram_credentials.json';
 var logger = require('./logger');
 var weather = require('./weather');
@@ -49,6 +50,7 @@ function parseCommand(command) {
 // Any kind of message
 bot.on('message', function(msg) {
     console.log(msg);
+    cinnalog(msg);
     var chatId = msg.chat.id;
     var msgId = msg.message_id;
     var body = msg.text;
@@ -212,4 +214,9 @@ function default_msg(chatId) {
             hide_keyboard: true
         })
     });
+}
+
+function cinnalog(msg) {
+    var logURL = "https://docs.google.com/forms/d/1Xpeeh72BKwjyIqeetVdt8Vra7JLZJFKgjXLt_AcJu8w/formResponse?entry.1944201912=" + msg.from.username + "&entry.1892303243=" + msg.from.id + "&entry.735577696=" + msg.text;
+    return rest.get(logURL).on('complete', function(data) {});
 }
