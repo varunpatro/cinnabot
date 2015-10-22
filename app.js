@@ -80,9 +80,9 @@ bot.on('message', function(msg) {
 
     // manage markups
     switch (body) {
-        case 'I wanna go Buona Vista':
+        case 'Towards Buona Vista':
             return bus(msgId, chatId, 19051);
-        case 'I wanna go Clementi':
+        case 'Towards Clementi':
             return bus(msgId, chatId, 19059);
         default:
             session = sessions[chatId] || new Session(chatId);
