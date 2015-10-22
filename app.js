@@ -60,6 +60,10 @@ bot.on('message', function(msg) {
     }
     // manage commands
     switch (command) {
+        case "start":
+            return help(chatId);
+        case "help":
+            return help(chatId);
         case "psi":
             return psi(chatId);
         case "bus":
@@ -91,7 +95,20 @@ bot.on('message', function(msg) {
 
 function cancel(chatId) {
     session = new Session(chatId);
-    bot.sendMessage(chatId, "Canceled.");
+    bot.sendMessage(chatId, "Canceled.", {
+        reply_markup: JSON.stringify({
+            hide_keyboard: true
+        })
+    });
+}
+
+function help(chatId) {
+    var helpMessage =
+        "Here's what you can ask Cinnabot!\n" +
+        "/psi - get the psi and weather conditions\n" +
+        "/bus <busstop>(optional) - check bus timings\n" +
+        "/feedback - tell us how the food was";
+    bot.sendMessage(chatId, helpMessage);
 }
 
 function catfact(chatId) {
@@ -163,7 +180,11 @@ function psi(chatId) {
 
 function bus(msgId, chatId, busstop) {
     function basicCallback(data) {
-        bot.sendMessage(chatId, data);
+        bot.sendMessage(chatId, data, {
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
     }
 
     function callback(data) {
@@ -186,5 +207,9 @@ function bus(msgId, chatId, busstop) {
 }
 
 function default_msg(chatId) {
-    bot.sendMessage(chatId, "Unknown Command.");
+    bot.sendMessage(chatId, "Unknown Command.", {
+        reply_markup: JSON.stringify({
+            hide_keyboard: true
+        })
+    });
 }
