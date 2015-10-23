@@ -1,5 +1,6 @@
 var rest = require('restler');
 var jf = require('jsonfile');
+var util = require('./util');
 
 var neaCredentialsPath = './private/nea_credentials.json';
 var neaAuthKey = jf.readFileSync(neaCredentialsPath).key;
@@ -53,7 +54,7 @@ rest.get(pm25URL).on('complete', function(data) {
 });
 
 function getWeather() {
-    return 'Time: ' + getTime(timeStamp) + '\nClementi weather: ' + clementiNowcast + '\n24 Hour PSI: ' +
+    return 'Time: ' + util.formatTime(getTime(timeStamp)) + '\n\nClementi weather: ' + clementiNowcast + '\n24 Hour PSI: ' +
         westPSI24 + '\n3 Hour PSI: ' + westPSI3 + '\n1 Hour PM 2.5: ' + westPM25 + '.';
 }
 

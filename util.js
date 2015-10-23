@@ -27,8 +27,19 @@ function timeLeftMin(time) {
     }
 }
 
+
+function formatDate(date) {
+    return date.toDateString().substr(0, 3) + ', ' + date.toDateString().substr(4, 6);
+}
+
+function formatTime(date) {
+    return date.toTimeString().substr(0, 5);
+}
+
 module.exports = {
     getPhoneNum: extractPhoneNumber,
     timeLeftMin: timeLeftMin,
-    readInput: readInput
+    readInput: readInput,
+    formatTime: formatTime,
+    formatDate: formatDate
 };
