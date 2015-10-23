@@ -112,7 +112,7 @@ function cancel(chatId) {
 
 function help(chatId) {
     var helpMessage =
-        "Here's what you can ask Cinnabot!\n" +
+        "Here's what you can ask Cinnabot!\n\n" +
         "/psi - get the psi and weather conditions\n" +
         "/bus - check bus timings for Dover road bus stop\n" +
         "/bus <busstop> - check bus timings for <busstop>\n" +
