@@ -114,8 +114,10 @@ function help(chatId) {
     var helpMessage =
         "Here's what you can ask Cinnabot!\n" +
         "/psi - get the psi and weather conditions\n" +
-        "/bus <busstop>(optional) - check bus timings\n" +
-        "/feedback - tell us how the food was";
+        "/bus - check bus timings for Dover road bus stop\n" +
+        "/bus <busstop> - check bus timings for <busstop>\n" +
+        "/feedback - tell us how the food was\n" + 
+        "/cal - view upcoming events in USP spaces";
     bot.sendMessage(chatId, helpMessage);
 }
 
