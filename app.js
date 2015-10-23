@@ -116,7 +116,7 @@ function help(chatId) {
         "/psi - get the psi and weather conditions\n" +
         "/bus - check bus timings for Dover road bus stop\n" +
         "/bus <busstop> - check bus timings for <busstop>\n" +
-        "/feedback - tell us how the food was\n" + 
+        "/feedback - tell us how the food was\n" +
         "/cal - view upcoming events in USP spaces";
     bot.sendMessage(chatId, helpMessage);
 }

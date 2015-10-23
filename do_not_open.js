@@ -13,7 +13,7 @@ function random_file_read(chatId, bot, file) {
 }
 
 function catfact(chatId, bot) {
-	return random_file_read(chatId, bot, catFile);
+    return random_file_read(chatId, bot, catFile);
 }
 
 module.exports = {
