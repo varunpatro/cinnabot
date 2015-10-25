@@ -1,7 +1,7 @@
 var rest = require('restler');
 var util = require('./util');
 
-function getEvents(chatId, bot, id) {
+function getSpaces(chatId, bot, id) {
     var spacesURL = 'http://www.nususc.com/FullcalenderwithWebservice.asmx/GetEvents';
     var data = {
         'facilityID': id
@@ -49,5 +49,5 @@ function filter(data) {
 
 
 module.exports = {
-    getEvents: getEvents
+    getSpaces: getSpaces
 };

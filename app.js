@@ -73,11 +73,11 @@ bot.on('message', function(msg) {
         case "bus":
             var busstop = args;
             return bus(chatId, busstop);
-        case "feedback":
+        case "dining":
             session = sessions[chatId] || new Session(chatId);
             return ask_dining_feedback(chatId);
         case "spaces":
-            return spaces(chatId, 1);
+            return spaces(chatId);
         case "cat":
             return catfact(chatId);
         case "cancel":
@@ -114,10 +114,10 @@ function help(chatId) {
     var helpMessage =
         "Here's what you can ask Cinnabot!\n\n" +
         "/psi - get the psi and weather conditions\n" +
-        "/bus - check bus timings for Dover road bus stop\n" +
+        "/bus - check bus timings for UTown and Dover road\n" +
         "/bus <busstop> - check bus timings for <busstop>\n" +
-        "/feedback - tell us how the food was\n" +
-        "/cal - view upcoming events in USP spaces";
+        "/dining - tell us how the food was\n" +
+        "/spaces - view upcoming events in USP spaces";
     bot.sendMessage(chatId, helpMessage);
 }
 
