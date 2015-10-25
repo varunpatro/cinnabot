@@ -58,7 +58,7 @@ function utownBUS(chatId, bot) {
         var $ = cheerio.load(data);
         var d1 = "D1: " + $('#GridView1_ctl02_lblarrivalTime').text() + ', ' + $('#GridView1_ctl02_lblnextArrivalTime').text();
         var d2 = "D2: " + $('#GridView1_ctl03_lblarrivalTime').text() + ', ' + $('#GridView1_ctl03_lblnextArrivalTime').text();
-        var msg = 'UTOWN Bus Timings:\n' + d1 + '\n' + d2;
+        var msg = 'UTown Bus Timings:\n' + d1 + '\n' + d2;
         bot.sendMessage(chatId, msg);
     });
 }

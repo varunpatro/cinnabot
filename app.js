@@ -74,8 +74,6 @@ bot.on('message', function(msg) {
         case "bus":
             var busstop = args;
             return bus(chatId, busstop);
-        case "nusbus":
-            return nusbus(chatId);
         case "feedback":
             session = sessions[chatId] || new Session(chatId);
             return ask_dining_feedback(chatId);
@@ -89,6 +87,8 @@ bot.on('message', function(msg) {
 
     // manage markups
     switch (body) {
+        case 'Show me UTown Buses':
+            return nusbus(chatId);
         case 'Towards Buona Vista':
             return bus(chatId, 19051);
         case 'Towards Clementi':
@@ -212,6 +212,7 @@ function bus(chatId, busstop) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
+                    ['Show me UTown Buses'],
                     ['Towards Buona Vista'],
                     ['Towards Clementi'],
                 ],
