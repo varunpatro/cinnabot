@@ -56,7 +56,6 @@ bot.on('message', function(msg) {
     }
     cinnalog(msg);
     var chatId = msg.chat.id;
-    var msgId = msg.message_id;
     var body = msg.text;
     var command = body;
     var args = body;
@@ -74,12 +73,14 @@ bot.on('message', function(msg) {
             return psi(chatId);
         case "bus":
             var busstop = args;
-            return bus(msgId, chatId, busstop);
+            return bus(chatId, busstop);
+        case "nusbus":
+            return nusbus(chatId);
         case "feedback":
             session = sessions[chatId] || new Session(chatId);
             return ask_dining_feedback(chatId);
         case "cal":
-            return cal(chatId, bot, 1);
+            return cal(chatId, 1);
         case "cat":
             return catfact(chatId);
         case "cancel":
@@ -89,9 +90,9 @@ bot.on('message', function(msg) {
     // manage markups
     switch (body) {
         case 'Towards Buona Vista':
-            return bus(msgId, chatId, 19051);
+            return bus(chatId, 19051);
         case 'Towards Clementi':
-            return bus(msgId, chatId, 19059);
+            return bus(chatId, 19059);
         default:
             session = sessions[chatId] || new Session(chatId);
             if (session.inThread.status) {
@@ -121,11 +122,15 @@ function help(chatId) {
     bot.sendMessage(chatId, helpMessage);
 }
 
+function nusbus(chatId) {
+    traffic.utownBUS(chatId, bot);
+}
+
 function catfact(chatId) {
     return do_not_open.catfact(chatId, bot);
 }
 
-function cal(chatId, bot) {
+function cal(chatId) {
     spaces.getEvents(chatId, bot, 1);
     spaces.getEvents(chatId, bot, 2);
     spaces.getEvents(chatId, bot, 3);
@@ -194,7 +199,7 @@ function psi(chatId) {
     bot.sendMessage(chatId, weather.getWeather());
 }
 
-function bus(msgId, chatId, busstop) {
+function bus(chatId, busstop) {
     function basicCallback(data) {
         bot.sendMessage(chatId, data, {
             reply_markup: JSON.stringify({

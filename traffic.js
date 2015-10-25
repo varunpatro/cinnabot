@@ -1,5 +1,6 @@
 var rest = require('restler');
 var jf = require('jsonfile');
+var cheerio = require('cheerio');
 var util = require('./util');
 
 var ltaCredFile = './private/lta_credentials.json';
@@ -51,7 +52,19 @@ function processInfo(data, callback) {
     callback(header + '\n' + busTimingsList);
 }
 
+function utownBUS(chatId, bot) {
+    var reqURL = 'http://seagame.comfortdelgro.com.sg/shuttle.aspx?caption=University%20Town&name=UTown';
+    rest.get(reqURL).on('complete', function(data) {
+        var $ = cheerio.load(data);
+        var d1 = "D1: " + $('#GridView1_ctl02_lblarrivalTime').text() + ', ' + $('#GridView1_ctl02_lblnextArrivalTime').text();
+        var d2 = "D2: " + $('#GridView1_ctl03_lblarrivalTime').text() + ', ' + $('#GridView1_ctl03_lblnextArrivalTime').text();
+        var msg = 'UTOWN Bus Timings:\n' + d1 + '\n' + d2;
+        bot.sendMessage(chatId, msg);
+    });
+}
+
 module.exports = {
     'busStopQuery': busStop,
-    'defaultBusStop': defaultBusStop
+    'defaultBusStop': defaultBusStop,
+    'utownBUS': utownBUS
 };
