@@ -5,32 +5,15 @@ var util = require('./util');
 var neaCredentialsPath = './private/nea_credentials.json';
 var neaAuthKey = jf.readFileSync(neaCredentialsPath).key;
 
-var nowcastURL = 'http://www.nea.gov.sg/api/WebAPI?dataset=nowcast&keyref=' +
-    neaAuthKey;
+var nowcastURL = 'http://www.nea.gov.sg/api/WebAPI?dataset=nowcast&keyref=' + neaAuthKey;
 var nowcastJSON;
 var clementiNowcast;
 
-var psiURL = 'http://www.nea.gov.sg/api/WebAPI/?dataset=psi_update&keyref=' +
-    neaAuthKey;
-var pm25URL = 'http://www.nea.gov.sg/api/WebAPI/?dataset=pm2.5_update&keyref=' +
-    neaAuthKey;
-var psiJSON;
-var pmJSON;
-var westPSI3;
-var westPSI24;
-var westPM25;
-var timeStamp;
-
-function getTime(timeStr) {
-    var yy = timeStr.substr(0, 4);
-    var MM = timeStr.substr(4, 2);
-    var dd = timeStr.substr(6, 2);
-    var HH = timeStr.substr(8, 2);
-    var mm = timeStr.substr(10, 2);
-    var ss = timeStr.substr(12, 2);
-    var str = MM + ' ' + dd + ' ' + yy + ' ' + HH + ':' + mm + ':' + ss;
-    return new Date(str);
-}
+var psiURL = 'http://sgp.si/now.json';
+var westPSI_3HR;
+var westPSI_24HR;
+var westPM2_5_1HR;
+var time;
 
 rest.get(nowcastURL).on('complete', function(data) {
     nowCastJSON = data.channel.item[0];
@@ -38,24 +21,16 @@ rest.get(nowcastURL).on('complete', function(data) {
 });
 
 rest.get(psiURL).on('complete', function(data) {
-    psiJSON = data.channel.item[0];
-
-    // region[4] is for West Singapore
-    westPSI24 = psiJSON.region[4].record[0].reading[0].$.value;
-    westPSI3 = psiJSON.region[4].record[0].reading[1].$.value;
-});
-
-rest.get(pm25URL).on('complete', function(data) {
-    pmJSON = data.channel.item[0];
-
-    // region[4] is for West Singapore
-    westPM25 = pmJSON.region[3].record[0].reading[0].$.value;
-    timeStamp = pmJSON.region[3].record[0].$.timestamp;
+    time = new Date(data.time);
+    westPSI_24HR = data.west.psi_24h;
+    westPSI_3HR = data.overall.psi_3h;
+    westPM2_5_1HR = data.west.pm2_5_1h;
 });
 
 function getWeather() {
-    return 'Time: ' + util.formatTime(getTime(timeStamp)) + '\n\nClementi weather: ' + clementiNowcast + '\n24 Hour PSI: ' +
-        westPSI24 + '\n3 Hour PSI: ' + westPSI3 + '\n1 Hour PM 2.5: ' + westPM25 + '.';
+    var msg = 'Time: ' + util.formatTime(time) + '\n\nClementi weather: ' + clementiNowcast + '\n24 Hour PSI: ' +
+        westPSI_24HR + '\n3 Hour PSI: ' + westPSI_3HR + '\n1 Hour PM 2.5: ' + westPM2_5_1HR + '.';
+    return msg;
 }
 
 module.exports = {
