@@ -4,13 +4,12 @@ var chalk = require('chalk');
 var readline = require('readline');
 var rest = require('restler');
 var credentialsFilePath = './private/telegram_credentials.json';
-var logger = require('./logger');
 var weather = require('./weather');
-var traffic = require('./traffic');
-var feedback = require('./feedback');
+var travel = require('./travel');
+var dining = require('./dining');
 var do_not_open = require('./do_not_open');
 var broadcast = require('./broadcast');
-var spaces = require('./spaces');
+var cinnamon = require('./cinnamon');
 
 var CREDENTIALS = jf.readFileSync(credentialsFilePath);
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -77,8 +76,8 @@ bot.on('message', function(msg) {
         case "feedback":
             session = sessions[chatId] || new Session(chatId);
             return ask_dining_feedback(chatId);
-        case "cal":
-            return cal(chatId, 1);
+        case "spaces":
+            return spaces(chatId, 1);
         case "cat":
             return catfact(chatId);
         case "cancel":
@@ -123,22 +122,22 @@ function help(chatId) {
 }
 
 function nusbus(chatId) {
-    traffic.utownBUS(chatId, bot);
+    travel.utownBUS(chatId, bot);
 }
 
 function catfact(chatId) {
     return do_not_open.catfact(chatId, bot);
 }
 
-function cal(chatId) {
-    spaces.getEvents(chatId, bot, 1);
-    spaces.getEvents(chatId, bot, 2);
-    spaces.getEvents(chatId, bot, 3);
+function spaces(chatId) {
+    cinnamon.getSpaces(chatId, bot, 1);
+    cinnamon.getSpaces(chatId, bot, 2);
+    cinnamon.getSpaces(chatId, bot, 3);
 }
 
 function ask_dining_feedback(chatId) {
     session.inThread.status = true;
-    feedback.ask_when_dining_feedback(chatId, bot);
+    dining.ask_when_dining_feedback(chatId, bot);
     session.inThread.next = ask_where_dining_feedback;
 }
 
@@ -148,7 +147,7 @@ function ask_where_dining_feedback(when, chatId) {
         return ask_dining_feedback(chatId);
     }
     session.diningFeedback.when = when;
-    feedback.ask_where_dining_feedback(chatId, bot, when);
+    dining.ask_where_dining_feedback(chatId, bot, when);
     session.inThread.next = ask_how_dining_feedback;
 }
 
@@ -164,7 +163,7 @@ function ask_how_dining_feedback(where, chatId) {
         return ask_where_dining_feedback(df.when, chatId);
     }
     df.where = where;
-    feedback.ask_how_dining_feedback(chatId, bot);
+    dining.ask_how_dining_feedback(chatId, bot);
     session.inThread.next = done_dining_feedback;
 }
 
@@ -175,7 +174,7 @@ function done_dining_feedback(how, chatId) {
         return ask_how_dining_feedback(df.where, chatId);
     }
     df.how = how.length / 2;
-    feedback.dining_feedback(chatId, bot, df.when, df.where, df.how);
+    dining.dining_feedback(chatId, bot, df.when, df.where, df.how);
     session = new Session(chatId);
 }
 
@@ -223,9 +222,9 @@ function bus(chatId, busstop) {
     }
 
     if (busstop) {
-        return traffic.busStopQuery(busstop, basicCallback);
+        return travel.busStopQuery(busstop, basicCallback);
     }
-    callback("Choose Direction:");
+    callback("Where do you want to go?");
 }
 
 function default_msg(chatId) {
