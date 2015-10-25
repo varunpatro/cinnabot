@@ -7,11 +7,7 @@ Telegram Bot for Cinnamon College
 
 ## Dev
 
-`grunt` for linting and beautifying
-
-`grunt start` to start the app
-
-`grunt style` for consistent style
+`grunt`
 
 ## ToDo for Bot
 
@@ -21,10 +17,11 @@ Telegram Bot for Cinnamon College
 3. Broadcast Messages
 
 ### Non-PDPA
-1. Weather
-2. Menu Retrieval
-2. Transport timings
-3. Emergency contact details (Your RA, RAs on Duty, Campus Security)
+
+1. Menu Retrieval
+2. Emergency contact details (Your RA, RAs on Duty, Campus Security)
+~~Weather~~
+~~Transport timings~~
 
 
 ## ToDo for Admin Panel
@@ -39,8 +36,8 @@ Telegram Bot for Cinnamon College
 
 ### Features
 
-1. Don't use forward-slash as a trigger - very computerish. Instead connection can be started as a cool command like 'ok cinnabot'
-2. Have cooler phrases as commands instead of one word commands. Like ''.
+1. Have cooler phrases as commands instead of one word commands. Like ''.
+2. Fun error messages (e.g. Chuck Norris Jokes)
 
 ### Misc
 
