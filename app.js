@@ -122,7 +122,14 @@ function help(chatId) {
 }
 
 function nusbus(chatId) {
-    travel.utownBUS(chatId, bot);
+    function callback(data) {
+        bot.sendMessage(chatId, data, {
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    }
+    travel.utownBUS(callback);
 }
 
 function catfact(chatId) {

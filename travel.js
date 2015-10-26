@@ -57,14 +57,14 @@ function processInfo(data, callback) {
     callback(header + '\n' + busTimingsList);
 }
 
-function utownBUS(chatId, bot) {
+function utownBUS(callback) {
     var reqURL = 'http://seagame.comfortdelgro.com.sg/shuttle.aspx?caption=University%20Town&name=UTown';
     rest.get(reqURL).on('complete', function(data) {
         var $ = cheerio.load(data);
         var d1 = "D1: " + $('#GridView1_ctl02_lblarrivalTime').text() + ', ' + $('#GridView1_ctl02_lblnextArrivalTime').text();
         var d2 = "D2: " + $('#GridView1_ctl03_lblarrivalTime').text() + ', ' + $('#GridView1_ctl03_lblnextArrivalTime').text();
         var msg = 'UTown Bus Timings:\n' + d1 + '\n' + d2;
-        bot.sendMessage(chatId, msg);
+        return callback(msg);
     });
 }
 
