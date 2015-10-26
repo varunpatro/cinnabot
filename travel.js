@@ -36,6 +36,11 @@ function send(reqUrl, reqOptions, callback) {
 }
 
 function processInfo(data, callback) {
+    if (data.hasOwnProperty("odata.error")) {
+        return callback("Invalid Bus Stop ID :(\nTry again.");
+        // return callback(data["odata.error"].message.value);
+    }
+
     var busTimingsList = "";
     var header;
     data.Services.forEach(function(bus) {
