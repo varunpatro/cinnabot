@@ -15,11 +15,16 @@ Telegram Bot for Cinnamon College
 1. Meal Credit Checking (bit.ly/hungrycinnamon)
 2. Fault Reporting (post to Cinnamon Fault Form: bit.ly/faultycinnamon)
 3. Broadcast Messages
+4. Logging system (sql - userID,msg,groupTYPE - house/floor/admin)
+5. User mangement DB (userId, userType)
 
 ### Non-PDPA
 
 1. Menu Retrieval
 2. Emergency contact details (Your RA, RAs on Duty, Campus Security)
+3. Cinnamon Sensor Network!
+4. Stats (Most common query,most number of users active in 1 day,number of commands sent since inception)
+5. Api call for stats + transport info + sensor networks
 ~~Weather~~
 ~~Transport timings~~
 
