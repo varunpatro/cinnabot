@@ -4,6 +4,7 @@ var chalk = require('chalk');
 var readline = require('readline');
 var rest = require('restler');
 var credentialsFilePath = './private/telegram_credentials.json';
+var logger = require('./logger');
 var weather = require('./weather');
 var travel = require('./travel');
 var dining = require('./dining');
@@ -54,6 +55,7 @@ bot.on('message', function(msg) {
         return false;
     }
     cinnalog(msg);
+    logger.log(msg);
     var chatId = msg.chat.id;
     var body = msg.text;
     var command = body;
@@ -243,8 +245,9 @@ function default_msg(chatId) {
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
+    }).then(function () {
+        return cnjoke(chatId);    
     });
-    return cnjoke(chatId);
 }
 
 function cinnalog(msg) {
