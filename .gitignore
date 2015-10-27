@@ -1,9 +1,8 @@
 node_modules/
 private/
-logs/
 
 *.swp
 
-test*
+*.db
 
-log*
+test*

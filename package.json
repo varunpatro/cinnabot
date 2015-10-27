@@ -6,9 +6,11 @@
   "dependencies": {
     "chalk": "^1.1.1",
     "cheerio": "^0.19.0",
+    "emoji-strip": "0.0.3",
     "jsonfile": "^2.0.0",
     "node-telegram-bot-api": "^0.15.0",
-    "restler": "^3.2.2"
+    "restler": "^3.2.2",
+    "sqlite3": "^3.1.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
