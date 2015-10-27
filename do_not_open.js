@@ -1,5 +1,6 @@
 var fs = require('fs');
 var catFile = 'catfacts.txt';
+var chuckFile = 'cnjokes.txt';
 
 function random_file_read(chatId, bot, file) {
     fs.readFile(file, 'utf8', function(err, data) {
@@ -16,6 +17,11 @@ function catfact(chatId, bot) {
     return random_file_read(chatId, bot, catFile);
 }
 
+function cnjoke(chatId, bot) {
+    return random_file_read(chatId, bot, chuckFile);
+}
+
 module.exports = {
-    "catfact": catfact
+    "catfact": catfact,
+    "cnjoke": cnjoke
 };

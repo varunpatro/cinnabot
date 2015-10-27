@@ -136,6 +136,10 @@ function catfact(chatId) {
     return do_not_open.catfact(chatId, bot);
 }
 
+function cnjoke(chatId) {
+    return do_not_open.cnjoke(chatId, bot);
+}
+
 function spaces(chatId) {
     cinnamon.getSpaces(chatId, bot, 1);
     cinnamon.getSpaces(chatId, bot, 2);
@@ -235,11 +239,12 @@ function bus(chatId, busstop) {
 }
 
 function default_msg(chatId) {
-    bot.sendMessage(chatId, "Unknown Command.", {
+    bot.sendMessage(chatId, "Hey we didn't understand you! Here's a chuck norris fact instead:\n", {
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
     });
+    return cnjoke(chatId);
 }
 
 function cinnalog(msg) {
