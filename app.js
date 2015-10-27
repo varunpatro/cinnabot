@@ -245,8 +245,8 @@ function default_msg(chatId) {
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
-    }).then(function () {
-        return cnjoke(chatId);    
+    }).then(function() {
+        return cnjoke(chatId);
     });
 }
 
