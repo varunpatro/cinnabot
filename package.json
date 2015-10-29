@@ -3,11 +3,14 @@
   "description": "Telegram Bot for Cinnamon College",
   "version": "0.0.1",
   "author": "Varun Patro, Syamil Maulod",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/varunpatro/cinnabot"
+  },
   "dependencies": {
     "chalk": "^1.1.1",
     "cheerio": "^0.19.0",
     "emoji-strip": "0.0.3",
-    "jsonfile": "^2.0.0",
     "node-telegram-bot-api": "^0.15.0",
     "restler": "^3.2.2",
     "sqlite3": "^3.1.0"
@@ -19,5 +22,6 @@
     "grunt-jsbeautifier": "^0.2.10",
     "grunt-jscs": "^1.8.0",
     "grunt-nodemon": "^0.4.0"
-  }
+  },
+  "license": "MIT"
 }

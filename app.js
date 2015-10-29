@@ -1,9 +1,7 @@
-var jf = require('jsonfile');
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
 var readline = require('readline');
 var rest = require('restler');
-var credentialsFilePath = './private/telegram_credentials.json';
 var logger = require('./logger');
 var weather = require('./weather');
 var travel = require('./travel');
@@ -11,8 +9,8 @@ var dining = require('./dining');
 var do_not_open = require('./do_not_open');
 var broadcast = require('./broadcast');
 var cinnamon = require('./cinnamon');
+var CREDENTIALS = require('./private/telegram_credentials.json');
 
-var CREDENTIALS = jf.readFileSync(credentialsFilePath);
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
 });
