@@ -26,7 +26,6 @@ function formatTime(date) {
 module.exports = {
     getPhoneNum: extractPhoneNumber,
     timeLeftMin: timeLeftMin,
-    readInput: readInput,
     formatTime: formatTime,
     formatDate: formatDate
 };
