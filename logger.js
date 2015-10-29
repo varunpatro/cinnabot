@@ -1,14 +1,6 @@
 var emojiStrip = require('emoji-strip');
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('cinnabot.db');
-
-var LOGSCHEMA = "CREATE TABLE IF NOT EXISTS log (time INTEGER, msg TEXT, userid INTEGER, username TEXT, firstname TEXT, lastname TEXT)";
-var logStmt;
-
-db.serialize(function() {
-    db.run(LOGSCHEMA);
-    logStmt = db.prepare("INSERT INTO log VALUES (?, ?, ?, ?, ?, ?)");
-});
+var db = require('./db');
+var logStmt = db.getLogStmt();
 
 function log(msg) {
     if (logStmt) {
