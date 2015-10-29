@@ -65,7 +65,7 @@ bot.on('message', function(msg) {
         args = body.split(' ')[1];
     }
     // manage commands
-    switch (command) {
+    switch (command.toLowerCase()) {
         case "start":
             return help(chatId);
         case "help":
@@ -87,12 +87,12 @@ bot.on('message', function(msg) {
     }
 
     // manage markups
-    switch (body) {
-        case 'Show me UTown Buses':
+    switch (body.toLowerCase()) {
+        case 'show me utown buses':
             return nusbus(chatId);
-        case 'Towards Buona Vista':
+        case 'towards buona vista':
             return bus(chatId, 19051);
-        case 'Towards Clementi':
+        case 'towards clementi':
             return bus(chatId, 19059);
         default:
             session = sessions[chatId] || new Session(chatId);
