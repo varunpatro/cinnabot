@@ -2,6 +2,7 @@ var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
 var readline = require('readline');
 var rest = require('restler');
+var Promise = require('bluebird');
 var logger = require('./logger');
 var weather = require('./weather');
 var travel = require('./travel');
@@ -9,6 +10,7 @@ var dining = require('./dining');
 var do_not_open = require('./do_not_open');
 var broadcast = require('./broadcast');
 var cinnamon = require('./cinnamon');
+var db = require('./db');
 var CREDENTIALS = require('./private/telegram_credentials.json');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -26,25 +28,24 @@ var sessions = {};
 var session;
 
 // start CLI app
-var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false
-});
-
+var rl = readline.createInterface(process.stdin, process.stdout);
+rl.prompt();
 rl.on('line', function(line) {
-    parseCommand(line);
-});
-
-function parseCommand(command) {
-    chatIds = [49892469, 102675141];
-    switch (command) {
+    switch (line.trim()) {
         case 'bcast':
-            return broadcast.broadcast_input(chatIds, bot);
+            broadcast.broadcast(bot);
+            break;
         case 'exit':
-            return process.exit();
+            process.exit(0);
+        case 'hello':
+            console.log('world!');
+            break;
+        default:
+            console.log("Didn't catch that!");
+            break;
     }
-}
+    rl.prompt();
+});
 
 // Any kind of message
 bot.on('message', function(msg) {

@@ -8,6 +8,7 @@
     "url": "https://github.com/varunpatro/cinnabot"
   },
   "dependencies": {
+    "bluebird": "^3.0.2",
     "chalk": "^1.1.1",
     "cheerio": "^0.19.0",
     "emoji-strip": "0.0.3",
