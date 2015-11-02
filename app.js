@@ -208,7 +208,7 @@ function DiningFeedback() {
 
 function psi(chatId) {
     function callback(msg) {
-        bot.sendMessage(chatId, message);
+        bot.sendMessage(chatId, msg);
     }
     weather.getWeather(callback);
 }
