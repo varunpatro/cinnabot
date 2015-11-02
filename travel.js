@@ -52,7 +52,7 @@ function processInfo(data, callback) {
                 util.timeLeftMin(subseqBusTime) + '\n';
         }
     });
-    header = (busTimingsList === "") ? "Go walk home 😜." : "Buses in operation:";
+    header = (busTimingsList === "") ? "Go walk home 😜" : "Buses in operation:";
     busTimingsList = (busTimingsList) ? busTimingsList : "";
     callback(header + '\n' + busTimingsList);
 }
