@@ -207,7 +207,10 @@ function DiningFeedback() {
 }
 
 function psi(chatId) {
-    bot.sendMessage(chatId, weather.getWeather());
+    function callback(msg) {
+        bot.sendMessage(chatId, message);
+    }
+    weather.getWeather(callback);
 }
 
 function bus(chatId, busstop) {
