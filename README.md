@@ -41,6 +41,8 @@ Telegram Bot for Cinnamon College
 
 ## Suggestions
 
+1. Caching of PSI and Bus data for faster response
+
 ### Features
 
 1. Have cooler phrases as commands instead of one word commands. Like ''.
