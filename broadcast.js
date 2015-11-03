@@ -17,7 +17,8 @@ function file_read(callback) {
 }
 
 function broadcast(bot) {
-    var header = '[\tThis is a broadcast message\t]\n\n';
+    var header = 'BROADCAST MESSAGE\n';
+    header += '=================\n\n';
 
     function callback(data) {
         if (data !== "Meow.") {

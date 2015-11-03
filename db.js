@@ -22,8 +22,13 @@ function getFeebackStmt() {
     return feedbackStmt;
 }
 
+function getLogTable(callback) {
+    return db.all("SELECT * FROM log", callback);
+}
+
 module.exports = {
     "getAllUsers": getAllUsers,
     "getLogStmt": getLogStmt,
-    "getFeebackStmt": getFeebackStmt
+    "getFeebackStmt": getFeebackStmt,
+    "getLogTable": getLogTable
 };
