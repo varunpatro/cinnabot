@@ -11,6 +11,7 @@ var do_not_open = require('./do_not_open');
 var broadcast = require('./broadcast');
 var cinnamon = require('./cinnamon');
 var db = require('./db');
+var statistics = require('./statistics');
 var CREDENTIALS = require('./private/telegram_credentials.json');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -85,6 +86,8 @@ bot.on('message', function(msg) {
                 return catfact(chatId);
             case "feedback":
                 return feedback(chatId);
+            case "stats":
+                return stats(chatId);
             case "cancel":
                 return cancel(chatId);
         }
@@ -137,6 +140,13 @@ function help(chatId) {
         "/spaces - view upcoming events in USP spaces\n" + 
         "/feedback - send suggestions and complains";
     bot.sendMessage(chatId, helpMessage);
+}
+
+function stats(chatId) {
+    function callback(data) {
+        bot.sendMessage(chatId, data);
+    }
+    statistics.getAllSummary(callback);
 }
 
 function done_feedback(chatId, msg) {
