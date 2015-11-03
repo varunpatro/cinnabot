@@ -24,7 +24,7 @@ Telegram Bot for Cinnamon College
 1. Menu Retrieval
 2. Emergency contact details (Your RA, RAs on Duty, Campus Security)
 3. Cinnamon Sensor Network!
-4. Stats (Most common query,most number of users active in 1 day,number of commands sent since inception)
+~~4. Stats (Most common query,most number of users active in 1 day,number of commands sent since inception) ~~
 5. Api call for stats + transport info + sensor networks
 6. Test against big list of naughty strings
 ~~Weather~~
