@@ -24,8 +24,10 @@ console.log(chalk.blue("                            "));
 console.log(chalk.blue("============================"));
 console.log(chalk.blue("                            "));
 
-var sessions = {};
-var session;
+var diningSessions = {};
+var feedbackSessions = {};
+var feedbackSession;
+var diningSession;
 
 // start CLI app
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -36,7 +38,7 @@ rl.on('line', function(line) {
             broadcast.broadcast(bot);
             break;
         case 'exit':
-            process.exit(0);
+            return process.exit(0);
         case 'hello':
             console.log('world!');
             break;
@@ -49,61 +51,75 @@ rl.on('line', function(line) {
 
 // Any kind of message
 bot.on('message', function(msg) {
-    console.log(msg);
-    if (!msg.hasOwnProperty('text')) {
-        return false;
-    }
-    cinnalog(msg);
-    logger.log(msg);
-    var chatId = msg.chat.id;
-    var body = msg.text;
-    var command = body;
-    var args = body;
-    if (body.charAt(0) === '/') {
-        command = body.split(' ')[0].substr(1);
-        args = body.split(' ')[1];
-    }
-    // manage commands
-    switch (command.toLowerCase()) {
-        case "start":
-            return help(chatId);
-        case "help":
-            return help(chatId);
-        case "psi":
-            return psi(chatId);
-        case "bus":
-            var busstop = args;
-            return bus(chatId, busstop);
-        case "dining":
-            session = sessions[chatId] || new Session(chatId);
-            return ask_dining_feedback(chatId);
-        case "spaces":
-            return spaces(chatId);
-        case "cat":
-            return catfact(chatId);
-        case "cancel":
-            return cancel(chatId);
-    }
+    try {
+        console.log(msg);
+        if (!msg.hasOwnProperty('text')) {
+            return false;
+        }
+        logger.log(msg);
+        var chatId = msg.chat.id;
+        var body = msg.text;
+        var command = body;
+        var args = body;
+        if (body.charAt(0) === '/') {
+            command = body.split(' ')[0].substr(1);
+            args = body.split(' ')[1];
+        }
+        // manage commands
+        switch (command.toLowerCase()) {
+            case "start":
+                return help(chatId);
+            case "help":
+                return help(chatId);
+            case "psi":
+                return psi(chatId);
+            case "bus":
+                var busstop = args;
+                return bus(chatId, busstop);
+            case "dining":
+                diningSession = diningSessions[chatId] || new DiningSession(chatId);
+                return ask_dining_feedback(chatId);
+            case "spaces":
+                return spaces(chatId);
+            case "cat":
+                return catfact(chatId);
+            case "feedback":
+                return feedback(chatId);
+            case "cancel":
+                return cancel(chatId);
+        }
 
-    // manage markups
-    switch (body.toLowerCase()) {
-        case 'show me utown buses':
-            return nusbus(chatId);
-        case 'towards buona vista':
-            return bus(chatId, 19051);
-        case 'towards clementi':
-            return bus(chatId, 19059);
-        default:
-            session = sessions[chatId] || new Session(chatId);
-            if (session.inThread.status) {
-                return session.inThread.next(body, chatId);
-            }
-            return default_msg(chatId);
+        // manage markups
+        switch (body.toLowerCase()) {
+            case 'show me utown buses':
+                return nusbus(chatId);
+            case 'towards buona vista':
+                return bus(chatId, 19051);
+            case 'towards clementi':
+                return bus(chatId, 19059);
+            default:
+                diningSession = diningSessions[chatId] || new DiningSession(chatId);
+                if (diningSession.inThread.status) {
+                    return diningSession.inThread.next(body, chatId);
+                }
+                feedbackSession = feedbackSessions[chatId] || new FeedbackSession(chatId);
+                if (feedbackSession.onGoing) {
+                    return continue_feedback(body, chatId, msg);
+                }
+                return default_msg(chatId);
+        }
+    } catch (e) {
+        bot.sendMessage(msg.chat.id, "Cinnabot is sleeping right now 😴 Wake him up later.").then(function() {
+            bot.sendMessage(msg.chat.id, "Here's a catfact instead:").then(function() {
+                catfact(msg.chat.id);
+            });
+        });
+        bot.sendMessage('102675141', e.toString());
     }
 });
 
 function cancel(chatId) {
-    session = new Session(chatId);
+    diningSession = new DiningSession(chatId);
     bot.sendMessage(chatId, "Canceled.", {
         reply_markup: JSON.stringify({
             hide_keyboard: true
@@ -118,8 +134,36 @@ function help(chatId) {
         "/bus - check bus timings for UTown and Dover road\n" +
         "/bus <busstop> - check bus timings for <busstop>\n" +
         "/dining - tell us how the food was\n" +
-        "/spaces - view upcoming events in USP spaces";
+        "/spaces - view upcoming events in USP spaces\n" + 
+        "/feedback - send suggestions and complains";
     bot.sendMessage(chatId, helpMessage);
+}
+
+function done_feedback(chatId, msg) {
+    var feedbackSession = feedbackSessions[chatId];
+    var feedbackMsg = feedbackSession.feedbackMsg;
+    feedbackMsg = feedbackMsg.substring(0, feedbackMsg.length - 6);
+    logger.feedback(bot, feedbackMsg, msg);
+    feedbackSessions[chatId] = new FeedbackSession(chatId);
+    var doneMsg = "Thanks for the feedback. :)";
+    return bot.sendMessage(chatId, doneMsg);
+}
+
+function continue_feedback(body, chatId, msg) {
+    feedbackSession = feedbackSessions[chatId];
+    feedbackSession.feedbackMsg += body + "\n";
+    if (body.endsWith("/done")) {
+        return done_feedback(chatId, msg);
+    }
+    return;
+}
+
+function feedback(chatId) {
+    var feedbackMsg = "Thanks for using Cinnabot 😁 Feel free to tell us how cinnabot can be improved.\nType /done to end the feedback session.";
+    var feedbackSession = new FeedbackSession();
+    feedbackSession.onGoing = true;
+    feedbackSessions[chatId] = feedbackSession;
+    return bot.sendMessage(chatId, feedbackMsg);
 }
 
 function nusbus(chatId) {
@@ -148,9 +192,9 @@ function spaces(chatId) {
 }
 
 function ask_dining_feedback(chatId) {
-    session.inThread.status = true;
+    diningSession.inThread.status = true;
     dining.ask_when_dining_feedback(chatId, bot);
-    session.inThread.next = ask_where_dining_feedback;
+    diningSession.inThread.next = ask_where_dining_feedback;
 }
 
 function ask_where_dining_feedback(when, chatId) {
@@ -158,13 +202,13 @@ function ask_where_dining_feedback(when, chatId) {
     if (validOptions.indexOf(when) < 0) {
         return ask_dining_feedback(chatId);
     }
-    session.diningFeedback.when = when;
+    diningSession.diningFeedback.when = when;
     dining.ask_where_dining_feedback(chatId, bot, when);
-    session.inThread.next = ask_how_dining_feedback;
+    diningSession.inThread.next = ask_how_dining_feedback;
 }
 
 function ask_how_dining_feedback(where, chatId) {
-    var df = session.diningFeedback;
+    var df = diningSession.diningFeedback;
     var validOptions = [];
     if (df.when === "Breakfast") {
         validOptions = ['Asian', 'Western', 'Muslim', 'Toast', 'Other'];
@@ -176,28 +220,28 @@ function ask_how_dining_feedback(where, chatId) {
     }
     df.where = where;
     dining.ask_how_dining_feedback(chatId, bot);
-    session.inThread.next = done_dining_feedback;
+    diningSession.inThread.next = done_dining_feedback;
 }
 
 function done_dining_feedback(how, chatId) {
-    var df = session.diningFeedback;
+    var df = diningSession.diningFeedback;
     var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
     if (validOptions.indexOf(how) < 0) {
         return ask_how_dining_feedback(df.where, chatId);
     }
     df.how = how.length / 2;
     dining.dining_feedback(chatId, bot, df.when, df.where, df.how);
-    session = new Session(chatId);
+    diningSession = new DiningSession(chatId);
 }
 
-function Session(chatId) {
+function DiningSession(chatId) {
     this.chatId = chatId;
     this.inThread = {
         "status": false,
         "next": ask_where_dining_feedback
     };
     this.diningFeedback = new DiningFeedback();
-    sessions[chatId] = this;
+    diningSessions[chatId] = this;
 }
 
 function DiningFeedback() {
@@ -206,8 +250,18 @@ function DiningFeedback() {
     this.how = -1;
 }
 
+function FeedbackSession(chatId) {
+    this.chatId = chatId;
+    this.onGoing = false;
+    this.feedbackMsg = "";
+    feedbackSessions[chatId] = this;
+}
+
 function psi(chatId) {
-    bot.sendMessage(chatId, weather.getWeather());
+    function callback(msg) {
+        bot.sendMessage(chatId, msg);
+    }
+    weather.getWeather(callback);
 }
 
 function bus(chatId, busstop) {
@@ -247,9 +301,4 @@ function default_msg(chatId) {
     }).then(function() {
         return cnjoke(chatId);
     });
-}
-
-function cinnalog(msg) {
-    var logURL = "https://docs.google.com/forms/d/1Xpeeh72BKwjyIqeetVdt8Vra7JLZJFKgjXLt_AcJu8w/formResponse?entry.1944201912=" + msg.from.username + "&entry.1892303243=" + msg.from.id + "&entry.735577696=" + msg.text + "&entry.1541043242=" + msg.from.first_name + "&entry.439602784=" + msg.from.last_name;
-    return rest.get(logURL).on('complete', function(data) {});
 }
