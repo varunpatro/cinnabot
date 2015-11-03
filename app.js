@@ -138,7 +138,8 @@ function help(chatId) {
         "/bus <busstop> - check bus timings for <busstop>\n" +
         "/dining - tell us how the food was\n" +
         "/spaces - view upcoming events in USP spaces\n" + 
-        "/feedback - send suggestions and complains";
+        "/feedback - send suggestions and complains\n" + 
+        "/stats - view key statistics\n";
     bot.sendMessage(chatId, helpMessage);
 }
 
