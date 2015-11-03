@@ -199,6 +199,8 @@ function spaces(chatId) {
     cinnamon.getSpaces(chatId, bot, 1);
     cinnamon.getSpaces(chatId, bot, 2);
     cinnamon.getSpaces(chatId, bot, 3);
+    cinnamon.getSpaces(chatId, bot, 4);
+    cinnamon.getSpaces(chatId, bot, 6);
 }
 
 function ask_dining_feedback(chatId) {

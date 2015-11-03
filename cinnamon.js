@@ -18,6 +18,12 @@ function getSpaces(chatId, bot, id) {
             case 3:
                 header = "CTPH:\n";
                 break;
+            case 4:
+                header = "Amphitheatre:\n";
+                break;
+            case 6:
+                header = "Chatterbox:\n";
+                break;
         }
         header += "==============\n\n";
 
