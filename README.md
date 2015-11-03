@@ -42,7 +42,7 @@ Telegram Bot for Cinnamon College
 
 ## Suggestions
 
-1. Caching of PSI and Bus data for faster response
+1. Caching of PSI data for faster response
 
 ### Features
 
