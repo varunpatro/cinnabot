@@ -47,11 +47,7 @@ function getSpaces(chatId, bot, id) {
     var data = {
         'facilityID': id
     };
-    rest.postJson(spacesURL, data, {
-        timeout: Infinity
-    }).on('timeout', function() {
-        bot.sendMessage(chatId, "USC website is taking too long to respond. Please try again later 😊");
-    }).on('complete', function(data, response) {
+    rest.postJson(spacesURL, data).on('complete', function(data, response) {
         var header;
         switch (id) {
             case 1:
