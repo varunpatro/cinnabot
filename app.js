@@ -82,6 +82,8 @@ bot.on('message', function(msg) {
                 return ask_dining_feedback(chatId);
             case "spaces":
                 return spaces(chatId);
+            case "events":
+                return events(chatId);
             case "cat":
                 return catfact(chatId);
             case "feedback":
@@ -137,8 +139,9 @@ function help(chatId) {
         "/bus - check bus timings for UTown and Dover road\n" +
         "/bus <busstop> - check bus timings for <busstop>\n" +
         "/dining - tell us how the food was\n" +
-        "/spaces - view upcoming events in USP spaces\n" + 
-        "/feedback - send suggestions and complains\n" + 
+        "/spaces - view upcoming activities in USP spaces\n" +
+        "/events - view upcoming USP events\n" +
+        "/feedback - send suggestions and complains\n" +
         "/stats - view key statistics\n";
     bot.sendMessage(chatId, helpMessage);
 }
@@ -196,12 +199,12 @@ function cnjoke(chatId) {
     return do_not_open.cnjoke(chatId, bot);
 }
 
+function events(chatId) {
+    cinnamon.getEvents(chatId, bot);
+}
+
 function spaces(chatId) {
-    cinnamon.getSpaces(chatId, bot, 1);
-    cinnamon.getSpaces(chatId, bot, 2);
-    cinnamon.getSpaces(chatId, bot, 3);
-    cinnamon.getSpaces(chatId, bot, 4);
-    cinnamon.getSpaces(chatId, bot, 6);
+    cinnamon.getAllSpaces(chatId, bot);
 }
 
 function ask_dining_feedback(chatId) {

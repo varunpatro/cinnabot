@@ -23,14 +23,17 @@ function busStop(id, callback) {
     }
     var reqUrl = busStopUrl + id.toString();
     var reqOptions = {
-        'headers': busStopHeaders
+        'headers': busStopHeaders,
+        'timeout': 5000
     };
     var response = send(reqUrl, reqOptions, callback);
     return response;
 }
 
 function send(reqUrl, reqOptions, callback) {
-    return rest.get(reqUrl, reqOptions).on('complete', function(data) {
+    return rest.get(reqUrl, reqOptions).on('timeout', function() {
+        callback("LTA service is busy at the moment. Please try again in a few minutes 😊");
+    }).on('complete', function(data) {
         processInfo(data, callback);
     });
 }
@@ -59,7 +62,11 @@ function processInfo(data, callback) {
 
 function utownBUS(callback) {
     var reqURL = 'http://seagame.comfortdelgro.com.sg/shuttle.aspx?caption=University%20Town&name=UTown';
-    rest.get(reqURL).on('complete', function(data) {
+    rest.get(reqURL, {
+        timeout: 5000
+    }).on('timeout', function() {
+        callback("NUS Bus Service is busy at the moment. Please try again in a few minutes 😊");
+    }).on('complete', function(data) {
         var $ = cheerio.load(data);
         var d1 = "D1: " + $('#GridView1_ctl02_lblarrivalTime').text() + ', ' + $('#GridView1_ctl02_lblnextArrivalTime').text();
         var d2 = "D2: " + $('#GridView1_ctl03_lblarrivalTime').text() + ', ' + $('#GridView1_ctl03_lblnextArrivalTime').text();
