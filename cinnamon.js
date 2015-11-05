@@ -2,7 +2,7 @@ var rest = require('restler');
 var util = require('./util');
 
 function getSpaces(chatId, bot, id) {
-    var spacesURL = 'http://www.nususc.com/FullcalenderwithWebservice.asmx/GetEvents';
+    var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetSpacesBookingRecord';
     var data = {
         'facilityID': id
     };
