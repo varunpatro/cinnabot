@@ -175,7 +175,7 @@ function done_feedback(chatId, msg) {
     feedbackMsg = feedbackMsg.substring(0, feedbackMsg.length - 6);
     logger.feedback(bot, feedbackMsg, msg);
     feedbackSessions[chatId] = new FeedbackSession(chatId);
-    var doneMsg = "Thanks for the feedback. :)";
+    var doneMsg = "Thanks for the feedback 😁";
     return bot.sendMessage(chatId, doneMsg);
 }
 
