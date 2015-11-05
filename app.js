@@ -154,11 +154,11 @@ function links(chatId) {
         "USEFUL LINKS:\n" +
         "==============\n\n" +
         "Check your meal credits:\n" +
-        "bit.ly/hungrycinnamon\n\n" +
+        "http://bit.ly/hungrycinnamon\n\n" +
         "Report faults in Cinnamon:\n" +
-        "bit.ly/faultycinnamon\n\n" +
+        "http://bit.ly/faultycinnamon\n\n" +
         "Check your air-con credits:\n" +
-        "nus-utown.evs.com.sg/";
+        "https://nus-utown.evs.com.sg/";
     bot.sendMessage(chatId, linkText);
 }
 
