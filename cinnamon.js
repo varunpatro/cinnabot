@@ -11,7 +11,6 @@ function getEvents(chatId, bot) {
     }).on('timeout', function() {
         bot.sendMessage("USC website is taking too long to respond. Please try again later 😊");
     }).on('complete', function(data, response) {
-        console.log(data);
         var header = "Upcoming Events:\n";
         header += "==============\n\n";
         var msg = filterEvents(data);

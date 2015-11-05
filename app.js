@@ -90,6 +90,8 @@ bot.on('message', function(msg) {
                 return feedback(chatId);
             case "stats":
                 return stats(chatId);
+            case "links":
+                return links(chatId);
             case "cancel":
                 return cancel(chatId);
         }
@@ -135,15 +137,29 @@ function cancel(chatId) {
 function help(chatId) {
     var helpMessage =
         "Here's what you can ask Cinnabot!\n\n" +
-        "/psi - get the psi and weather conditions\n" +
-        "/bus - check bus timings for UTown and Dover road\n" +
-        "/bus <busstop> - check bus timings for <busstop>\n" +
-        "/dining - tell us how the food was\n" +
-        "/spaces - view upcoming activities in USP spaces\n" +
-        "/events - view upcoming USP events\n" +
-        "/feedback - send suggestions and complains\n" +
-        "/stats - view key statistics\n";
+        "/psi            - get the psi and weather conditions\n" +
+        "/bus            - check bus timings for UTown and Dover road\n" +
+        "/bus <busstop>  - check bus timings for <busstop>\n" +
+        "/dining         - tell us how the food was\n" +
+        "/spaces         - view upcoming activities in USP spaces\n" +
+        "/events         - view upcoming USP events\n" +
+        "/links          - view useful links\n" +
+        "/feedback       - send suggestions and complains\n" +
+        "/stats          - view key statistics\n";
     bot.sendMessage(chatId, helpMessage);
+}
+
+function links(chatId) {
+    var linkText =
+        "USEFUL LINKS:\n" +
+        "==============\n\n" +
+        "Check your meal credits:\n" +
+        "bit.ly/hungrycinnamon\n\n" +
+        "Report faults in Cinnamon:\n" +
+        "bit.ly/faultycinnamon\n\n" +
+        "Check your air-con credits:\n" +
+        "nus-utown.evs.com.sg/";
+    bot.sendMessage(chatId, linkText);
 }
 
 function stats(chatId) {
