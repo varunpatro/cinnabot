@@ -1,4 +1,5 @@
 var rest = require('restler');
+var MSG_CANCEL = "Type /cancel to cancel feedback.";
 
 function dining_stats(chatId, bot, when, where) {
     var statsURL = 'https://script.google.com/macros/s/AKfycbw22JUY0XVktavbywTQ7z--mTe7CFbL8X-Bgb6fX-JVNcjGBbeA/exec?';
@@ -42,7 +43,8 @@ function ask_when_dining_feedback(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    bot.sendMessage(chatId, "When did you eat?", opts);
+    msg = "When did you eat?\n" + MSG_CANCEL;
+    bot.sendMessage(chatId, msg, opts);
 }
 
 function ask_where_dining_feedback(chatId, bot, when) {
@@ -66,7 +68,8 @@ function ask_where_dining_feedback(chatId, bot, when) {
             one_time_keyboard: true
         })
     };
-    bot.sendMessage(chatId, "Which stall?", opts);
+    msg = "Which stall?\n" + MSG_CANCEL;
+    bot.sendMessage(chatId, msg, opts);
 }
 
 function ask_how_dining_feedback(chatId, bot) {
@@ -79,7 +82,8 @@ function ask_how_dining_feedback(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    bot.sendMessage(chatId, "How was it?", opts);
+    msg = "How was it?\n" + MSG_CANCEL;
+    bot.sendMessage(chatId, msg, opts);
 }
 
 module.exports = {

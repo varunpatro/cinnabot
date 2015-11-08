@@ -126,7 +126,8 @@ bot.on('message', function(msg) {
 });
 
 function cancel(chatId) {
-    diningSession = new DiningSession(chatId);
+    diningSessions[chatId] = new DiningSession(chatId);
+    feedbackSessions[chatId] = new FeedbackSession(chatId);
     bot.sendMessage(chatId, "Canceled.", {
         reply_markup: JSON.stringify({
             hide_keyboard: true
@@ -154,12 +155,14 @@ function links(chatId) {
         "USEFUL LINKS:\n" +
         "==============\n\n" +
         "Check your meal credits:\n" +
-        "http://bit.ly/hungrycinnamon\n\n" +
+        "https://bit.ly/hungrycinnamon\n\n" +
         "Report faults in Cinnamon:\n" +
-        "http://bit.ly/faultycinnamon\n\n" +
+        "https://bit.ly/faultycinnamon\n\n" +
         "Check your air-con credits:\n" +
         "https://nus-utown.evs.com.sg/";
-    bot.sendMessage(chatId, linkText);
+    bot.sendMessage(chatId, linkText, {
+        disable_web_page_preview: true
+    });
 }
 
 function stats(chatId) {
@@ -189,7 +192,10 @@ function continue_feedback(body, chatId, msg) {
 }
 
 function feedback(chatId) {
-    var feedbackMsg = "Thanks for using Cinnabot 😁 Feel free to tell us how cinnabot can be improved.\nType /done to end the feedback session.";
+    var feedbackMsg = "Thanks for using Cinnabot 😁\n";
+    feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
+    feedbackMsg += "Type /done to end the feedback session.\n";
+    feedbackMsg += "Type /cancel to cancel feedback";
     var feedbackSession = new FeedbackSession();
     feedbackSession.onGoing = true;
     feedbackSessions[chatId] = feedbackSession;
