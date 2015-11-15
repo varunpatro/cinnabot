@@ -39,6 +39,27 @@ function broadcast(bot) {
     return file_read(callback);
 }
 
+function broadcastMessage(bot, data) {
+    var header = 'BROADCAST MESSAGE\n';
+    header += '=================\n\n';
+
+    var message = header + data;
+    Promise.promisify(db.getAllUsers)().then(function(rows) {
+        var users = [];
+        rows.forEach(function(row) {
+            users.push(row.userid);
+        });
+        return Promise.resolve(users);
+    }).then(function(userIds) {
+        userIds.forEach(function(userId) {
+            bot.sendMessage(userId, message);
+        });
+    });
+
+    return;
+}
+
 module.exports = {
-    broadcast: broadcast
+    broadcast: broadcast,
+    broadcastMessage: broadcastMessage
 };

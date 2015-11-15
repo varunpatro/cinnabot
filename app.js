@@ -13,6 +13,7 @@ var cinnamon = require('./cinnamon');
 var db = require('./db');
 var statistics = require('./statistics');
 var CREDENTIALS = require('./private/telegram_credentials.json');
+var admin = require('./frontend/admin');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
@@ -25,10 +26,17 @@ console.log(chalk.blue("                            "));
 console.log(chalk.blue("============================"));
 console.log(chalk.blue("                            "));
 
+admin.startServer(bot);
+
+console.log(chalk.green("============================"));
+console.log(chalk.green("                            "));
+console.log(chalk.green("     CinnaAdmin Started     "));
+console.log(chalk.green("                            "));
+console.log(chalk.green("============================"));
+console.log(chalk.green("                            "));
+
 var diningSessions = {};
 var feedbackSessions = {};
-var feedbackSession;
-var diningSession;
 
 // start CLI app
 var rl = readline.createInterface(process.stdin, process.stdout);
