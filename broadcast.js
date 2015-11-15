@@ -1,19 +1,44 @@
+var fs = require('fs');
+var Promise = require('bluebird');
 var util = require('./util');
+var db = require('./db');
+var bcastfile = "bcast.txt";
 
-function broadcast(chatIds, bot, message) {
-    message = '[\tThis is a broadcast message\t]\n\n' + message;
-    chatIds.forEach(function(chatId) {
-        bot.sendMessage(chatId, message);
+function file_read(callback) {
+    fs.readFile(bcastfile, 'utf8', function(err, data) {
+        if (err) {
+            return callback("Meow.");
+        }
+        callback(data);
+        var today = new Date();
+        var newFileName = "broadcast_logs/bcast " + today.toLocaleTimeString() + ' ' + today.toDateString() + ".txt";
+        fs.rename(bcastfile, newFileName);
     });
 }
 
-function broadcast_input(chatIds, bot) {
+function broadcast(bot) {
+    var header = 'BROADCAST MESSAGE\n';
+    header += '=================\n\n';
+
     function callback(data) {
-        return broadcast(chatIds, bot, data);
+        if (data !== "Meow.") {
+            var message = header + data;
+            Promise.promisify(db.getAllUsers)().then(function(rows) {
+                var users = [];
+                rows.forEach(function(row) {
+                    users.push(row.userid);
+                });
+                return Promise.resolve(users);
+            }).then(function(userIds) {
+                userIds.forEach(function(userId) {
+                    bot.sendMessage(userId, message);
+                });
+            });
+        }
     }
-    return util.readInput("Message to broadcast?", callback);
+    return file_read(callback);
 }
 
 module.exports = {
-    broadcast_input: broadcast_input
+    broadcast: broadcast
 };

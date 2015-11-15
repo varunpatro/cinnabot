@@ -23,19 +23,27 @@ function busStop(id, callback) {
     }
     var reqUrl = busStopUrl + id.toString();
     var reqOptions = {
-        'headers': busStopHeaders
+        'headers': busStopHeaders,
+        'timeout': 5000
     };
     var response = send(reqUrl, reqOptions, callback);
     return response;
 }
 
 function send(reqUrl, reqOptions, callback) {
-    return rest.get(reqUrl, reqOptions).on('complete', function(data) {
+    return rest.get(reqUrl, reqOptions).on('timeout', function() {
+        callback("LTA service is busy at the moment. Please try again in a few minutes 😊");
+    }).on('complete', function(data) {
         processInfo(data, callback);
     });
 }
 
 function processInfo(data, callback) {
+    if (data.hasOwnProperty("odata.error")) {
+        return callback("Invalid Bus Stop ID :(\nTry again.");
+        // return callback(data["odata.error"].message.value);
+    }
+
     var busTimingsList = "";
     var header;
     data.Services.forEach(function(bus) {
@@ -47,19 +55,23 @@ function processInfo(data, callback) {
                 util.timeLeftMin(subseqBusTime) + '\n';
         }
     });
-    header = (busTimingsList === "") ? "Go walk home 😜." : "Buses in operation:";
+    header = (busTimingsList === "") ? "Go walk home 😜" : "Buses in operation:";
     busTimingsList = (busTimingsList) ? busTimingsList : "";
     callback(header + '\n' + busTimingsList);
 }
 
-function utownBUS(chatId, bot) {
+function utownBUS(callback) {
     var reqURL = 'http://seagame.comfortdelgro.com.sg/shuttle.aspx?caption=University%20Town&name=UTown';
-    rest.get(reqURL).on('complete', function(data) {
+    rest.get(reqURL, {
+        timeout: 5000
+    }).on('timeout', function() {
+        callback("NUS Bus Service is busy at the moment. Please try again in a few minutes 😊");
+    }).on('complete', function(data) {
         var $ = cheerio.load(data);
         var d1 = "D1: " + $('#GridView1_ctl02_lblarrivalTime').text() + ', ' + $('#GridView1_ctl02_lblnextArrivalTime').text();
         var d2 = "D2: " + $('#GridView1_ctl03_lblarrivalTime').text() + ', ' + $('#GridView1_ctl03_lblnextArrivalTime').text();
         var msg = 'UTown Bus Timings:\n' + d1 + '\n' + d2;
-        bot.sendMessage(chatId, msg);
+        return callback(msg);
     });
 }
 

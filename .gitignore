@@ -1,9 +1,11 @@
 node_modules/
 private/
-logs/
+broadcast_logs/
+
+bcast.txt
 
 *.swp
 
-test*
+*.db
 
-log*
+test*

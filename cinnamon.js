@@ -1,8 +1,49 @@
 var rest = require('restler');
 var util = require('./util');
 
+function getEvents(chatId, bot) {
+    var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetAllEvents';
+    var data = {
+        authenticationCode: "USC$2016DevTool"
+    };
+    rest.postJson(spacesURL, data, {
+        timeout: 5000
+    }).on('timeout', function() {
+        bot.sendMessage("USC website is taking too long to respond. Please try again later 😊");
+    }).on('complete', function(data, response) {
+        var header = "Upcoming Events:\n";
+        header += "==============\n\n";
+        var msg = filterEvents(data);
+        if (msg !== "") {
+            bot.sendMessage(chatId, header + msg);
+        }
+    }).on('error', function(err) {
+        console.log(error);
+    });
+}
+
+function filterEvents(data) {
+    var filteredMsg = "";
+    for (var i = 0; i < Math.min(data.d.length, 10); i++) {
+        var event = data.d[i];
+        filteredMsg += event.EventName + '\n';
+        filteredMsg += event.Venue + '\n';
+        filteredMsg += event.Date + ' ' + event.StartTime + ' to ' + event.EndTime + '\n';
+        filteredMsg += "http://www.nususc.com/EventRegistration.aspx?id=" + event.ID + '\n\n';
+    }
+    return filteredMsg;
+}
+
+function getAllSpaces(chatId, bot) {
+    getSpaces(chatId, bot, 1);
+    getSpaces(chatId, bot, 2);
+    getSpaces(chatId, bot, 3);
+    getSpaces(chatId, bot, 5);
+    getSpaces(chatId, bot, 6);
+}
+
 function getSpaces(chatId, bot, id) {
-    var spacesURL = 'http://www.nususc.com/FullcalenderwithWebservice.asmx/GetEvents';
+    var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetSpacesBookingRecord';
     var data = {
         'facilityID': id
     };
@@ -18,10 +59,16 @@ function getSpaces(chatId, bot, id) {
             case 3:
                 header = "CTPH:\n";
                 break;
+            case 4:
+                header = "Amphitheatre:\n";
+                break;
+            case 6:
+                header = "Chatterbox:\n";
+                break;
         }
         header += "==============\n\n";
 
-        var msg = filter(data);
+        var msg = filterSpaces(data);
         if (msg !== "") {
             bot.sendMessage(chatId, header + msg);
         }
@@ -29,7 +76,7 @@ function getSpaces(chatId, bot, id) {
     });
 }
 
-function filter(data) {
+function filterSpaces(data) {
     var filteredMsg = "";
 
     var today = new Date();
@@ -49,5 +96,6 @@ function filter(data) {
 
 
 module.exports = {
-    getSpaces: getSpaces
+    getAllSpaces: getAllSpaces,
+    getEvents: getEvents
 };
