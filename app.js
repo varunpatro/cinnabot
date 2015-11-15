@@ -12,6 +12,7 @@ var broadcast = require('./broadcast');
 var cinnamon = require('./cinnamon');
 var db = require('./db');
 var statistics = require('./statistics');
+var auth = require('./auth');
 var CREDENTIALS = require('./private/telegram_credentials.json');
 var admin = require('./frontend/admin');
 
@@ -37,6 +38,7 @@ console.log(chalk.green("                            "));
 
 var diningSessions = {};
 var feedbackSessions = {};
+var registerSessions = {};
 
 // start CLI app
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -100,6 +102,10 @@ bot.on('message', function(msg) {
                 return stats(chatId);
             case "links":
                 return links(chatId);
+            case "register":
+                return register(chatId);
+            case "agree":
+                return agree(msg.from.id);
             case "cancel":
                 return cancel(chatId);
         }
@@ -156,6 +162,21 @@ function help(chatId) {
         "/feedback       - send suggestions and complains\n" +
         "/stats          - view key statistics\n";
     bot.sendMessage(chatId, helpMessage);
+}
+
+function register(chatId) {
+    registerSessions[chatId] = new RegisterSession();
+    registerSessions[chatId].hasPrompt = true;
+    return auth.register(bot, chatId);
+}
+
+function agree(userId) {
+    var registerSession = registerSessions[userId];
+    if (!registerSession || !registerSession.hasPrompt) {
+        return default_msg(userId);
+    }
+    registerSessions[userId] = new RegisterSession();
+    return auth.agree(bot, userId);
 }
 
 function links(chatId) {
@@ -301,6 +322,12 @@ function FeedbackSession(chatId) {
     this.onGoing = false;
     this.feedbackMsg = "";
     feedbackSessions[chatId] = this;
+}
+
+function RegisterSession(chatId) {
+    this.chatId = chatId;
+    this.hasPrompt = false;
+    registerSessions[chatId] = this;
 }
 
 function psi(chatId) {
