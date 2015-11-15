@@ -27,8 +27,6 @@ console.log(chalk.blue("                            "));
 
 var diningSessions = {};
 var feedbackSessions = {};
-var feedbackSession;
-var diningSession;
 
 // start CLI app
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -78,7 +76,7 @@ bot.on('message', function(msg) {
                 var busstop = args;
                 return bus(chatId, busstop);
             case "dining":
-                diningSession = diningSessions[chatId] || new DiningSession(chatId);
+                diningSessions[chatId] = diningSessions[chatId] || new DiningSession(chatId);
                 return ask_dining_feedback(chatId);
             case "spaces":
                 return spaces(chatId);
@@ -105,11 +103,11 @@ bot.on('message', function(msg) {
             case 'towards clementi':
                 return bus(chatId, 19059);
             default:
-                diningSession = diningSessions[chatId] || new DiningSession(chatId);
+                var diningSession = diningSessions[chatId] || new DiningSession(chatId);
                 if (diningSession.inThread.status) {
                     return diningSession.inThread.next(body, chatId);
                 }
-                feedbackSession = feedbackSessions[chatId] || new FeedbackSession(chatId);
+                var feedbackSession = feedbackSessions[chatId] || new FeedbackSession(chatId);
                 if (feedbackSession.onGoing) {
                     return continue_feedback(body, chatId, msg);
                 }
@@ -183,7 +181,7 @@ function done_feedback(chatId, msg) {
 }
 
 function continue_feedback(body, chatId, msg) {
-    feedbackSession = feedbackSessions[chatId];
+    var feedbackSession = feedbackSessions[chatId];
     feedbackSession.feedbackMsg += body + "\n";
     if (body.endsWith("/done")) {
         return done_feedback(chatId, msg);
@@ -230,6 +228,7 @@ function spaces(chatId) {
 }
 
 function ask_dining_feedback(chatId) {
+    var diningSession = diningSessions[chatId];
     diningSession.inThread.status = true;
     dining.ask_when_dining_feedback(chatId, bot);
     diningSession.inThread.next = ask_where_dining_feedback;
@@ -240,12 +239,14 @@ function ask_where_dining_feedback(when, chatId) {
     if (validOptions.indexOf(when) < 0) {
         return ask_dining_feedback(chatId);
     }
+    var diningSession = diningSessions[chatId];
     diningSession.diningFeedback.when = when;
     dining.ask_where_dining_feedback(chatId, bot, when);
     diningSession.inThread.next = ask_how_dining_feedback;
 }
 
 function ask_how_dining_feedback(where, chatId) {
+    var diningSession = diningSessions[chatId];
     var df = diningSession.diningFeedback;
     var validOptions = [];
     if (df.when === "Breakfast") {
@@ -262,6 +263,7 @@ function ask_how_dining_feedback(where, chatId) {
 }
 
 function done_dining_feedback(how, chatId) {
+    var diningSession = diningSessions[chatId];
     var df = diningSession.diningFeedback;
     var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
     if (validOptions.indexOf(how) < 0) {
@@ -269,7 +271,7 @@ function done_dining_feedback(how, chatId) {
     }
     df.how = how.length / 2;
     dining.dining_feedback(chatId, bot, df.when, df.where, df.how);
-    diningSession = new DiningSession(chatId);
+    diningSessions[chatId] = new DiningSession(chatId);
 }
 
 function DiningSession(chatId) {
