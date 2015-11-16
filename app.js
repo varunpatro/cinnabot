@@ -255,13 +255,31 @@ function events(chatId) {
 }
 
 function spaces(chatId) {
-    cinnamon.getAllSpaces(chatId, bot);
+    function callback(row) {
+        if (!row) {
+            bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else if (!row.isCinnamonResident) {
+            bot.sendMessage(chatId, "Sorry you must be a cinnamon resident to use this feature :(");
+        } else {
+            cinnamon.getAllSpaces(chatId, bot);
+        }
+    }
+    auth.isCinnamonResident(chatId, callback);
 }
 
 function ask_dining_feedback(chatId) {
-    diningSession.inThread.status = true;
-    dining.ask_when_dining_feedback(chatId, bot);
-    diningSession.inThread.next = ask_where_dining_feedback;
+    function callback(row) {
+        if (!row) {
+            bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else if (!row.isCinnamonResident) {
+            bot.sendMessage(chatId, "Sorry you must be a cinnamon resident to use this feature :(");
+        } else {
+            diningSession.inThread.status = true;
+            dining.ask_when_dining_feedback(chatId, bot);
+            diningSession.inThread.next = ask_where_dining_feedback;
+        }
+    }
+    auth.isCinnamonResident(chatId, callback);
 }
 
 function ask_where_dining_feedback(when, chatId) {

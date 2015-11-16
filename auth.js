@@ -1,4 +1,5 @@
 var IVLE_CREDENTIALS = require('./private/ivle_credentials.json');
+var db = require('./db');
 
 function register(bot, chatId) {
     var msg = "In order to enjoy more functions of Cinnabot,";
@@ -16,12 +17,22 @@ function register(bot, chatId) {
 }
 
 function agree(bot, userId) {
-    var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=http://localhost:3000/ivle_register?userId=" + userId;
+    var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=http://172.18.13.189:3000/ivle_register?userId=" + userId;
     var msg = "Login to IVLE to register:\n";
     bot.sendMessage(userId, msg + link);
 }
 
+function isCinnamonResident(userId, finalCallback) {
+    function callback(err, row) {
+        if (!err) {
+            finalCallback(row);
+        }
+    }
+    return db.getUser(userId, callback);
+}
+
 module.exports = {
     register: register,
-    agree: agree
+    agree: agree,
+    isCinnamonResident: isCinnamonResident
 };
