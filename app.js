@@ -143,7 +143,7 @@ function help(chatId) {
         "/spaces         - view upcoming activities in USP spaces\n" +
         "/events         - view upcoming USP events\n" +
         "/links          - view useful links\n" +
-        "/feedback       - send suggestions and complains\n" +
+        "/feedback       - send suggestions and complaints\n" +
         "/stats          - view key statistics\n";
     bot.sendMessage(chatId, helpMessage);
 }
@@ -157,7 +157,7 @@ function links(chatId) {
         "Report faults in Cinnamon:\n" +
         "https://bit.ly/faultycinnamon\n\n" +
         "Check your air-con credits:\n" +
-        "https://nus-utown.evs.com.sg/";
+        "bit.ly/chillycinnamon";
     bot.sendMessage(chatId, linkText, {
         disable_web_page_preview: true
     });
