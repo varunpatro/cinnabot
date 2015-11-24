@@ -15,7 +15,7 @@ function getEvents(chatId, bot) {
         header += "==============\n\n";
         var msg = filterEvents(data);
         if (msg !== "") {
-            bot.sendMessage(chatId, header + msg);
+            return bot.sendMessage(chatId, header + msg);
         }
         bot.sendMessage(chatId, "No Upcoming Events");
     }).on('error', function(err) {
