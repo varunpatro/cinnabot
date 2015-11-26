@@ -157,7 +157,7 @@ function links(chatId) {
         "Report faults in Cinnamon:\n" +
         "https://bit.ly/faultycinnamon\n\n" +
         "Check your air-con credits:\n" +
-        "bit.ly/chillycinnamon";
+        "https://bit.ly/chillycinnamon";
     bot.sendMessage(chatId, linkText, {
         disable_web_page_preview: true
     });
