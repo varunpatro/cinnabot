@@ -28,6 +28,7 @@ console.log(chalk.blue("                            "));
 
 var diningSessions = {};
 var feedbackSessions = {};
+var nusbusSessions = {};
 
 // start CLI app
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -53,10 +54,15 @@ rl.on('line', function(line) {
 bot.on('message', function(msg) {
     try {
         console.log(msg);
-        if (!msg.hasOwnProperty('text')) {
+        if (!msg.hasOwnProperty('text') && !msg.hasOwnProperty('location')) {
             return false;
         }
         logger.log(msg);
+
+        if (msg.hasOwnProperty('location')) {
+            return processLocation(msg);
+        }
+
         var chatId = msg.chat.id;
         var body = msg.text;
         var command = body;
@@ -76,6 +82,9 @@ bot.on('message', function(msg) {
             case "bus":
                 var busstop = args;
                 return bus(chatId, busstop);
+            case "nusbus":
+                var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
+                return nusbus_ask(chatId);
             case "dining":
                 diningSessions[chatId] = diningSessions[chatId] || new DiningSession(chatId);
                 return ask_dining_feedback(chatId);
@@ -98,7 +107,7 @@ bot.on('message', function(msg) {
         // manage markups
         switch (body.toLowerCase()) {
             case 'show me utown buses':
-                return nusbus(chatId);
+                return nusbus_query(chatId, "utown", null);
             case 'towards buona vista':
                 return bus(chatId, 19051);
             case 'towards clementi':
@@ -112,6 +121,10 @@ bot.on('message', function(msg) {
                 if (feedbackSession.onGoing) {
                     return continue_feedback(body, chatId, msg);
                 }
+                nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
+                if (nusbusSession.onGoing) {
+                    return nusbus_query(chatId, body.toLowerCase(), msg.location);
+                }
                 return default_msg(chatId);
         }
     } catch (e) {
@@ -123,6 +136,17 @@ bot.on('message', function(msg) {
         bot.sendMessage('102675141', e.toString());
     }
 });
+
+function processLocation(msg) {
+    console.log('eneterd process Location');
+    var chatId = msg.chat.id;
+    var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
+    console.log(nusbusSession);
+    if (nusbusSession.onGoing) {
+        return nusbus_query(chatId, msg.text, msg.location);
+    }
+    return default_msg(chatId);
+}
 
 function cancel(chatId) {
     diningSessions[chatId] = new DiningSession(chatId);
@@ -201,15 +225,50 @@ function feedback(chatId) {
     return bot.sendMessage(chatId, feedbackMsg);
 }
 
-function nusbus(chatId) {
-    function callback(data) {
-        bot.sendMessage(chatId, data, {
+function nusbus_ask(chatId) {
+    var opts = {
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ['Nearest Bustop'],
+                ['UTown', 'Computing'],
+                ['Central Library', 'Computer Centre'],
+                ['Science', 'Business'],
+                ['Kent Ridge MRT', 'Bukit Timah Campus']
+            ],
+            one_time_keyboard: true
+        })
+    };
+    var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
+    bot.sendMessage(chatId, greeting, opts);
+    nusbusSessions[chatId] = new NusBusSession(chatId);
+    nusbusSessions[chatId].onGoing = true;
+}
+
+function nusbus_query(chatId, busstop_name, location) {
+    if (busstop_name === "nearest bustop") {
+        return bot.sendMessage(chatId, "Send us your location to find bus timings for the nearest bus stop.", {
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
         });
     }
-    travel.utownBUS(callback);
+
+    function callback(err, data) {
+        if (err) {
+            return bot.sendMessage(chatId, err, {
+                reply_markup: JSON.stringify({
+                    hide_keyboard: true
+                })
+            });
+        }
+        bot.sendMessage(chatId, data, {
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+        nusbusSessions[chatId] = new NusBusSession(chatId);
+    }
+    travel.nusbus(callback, busstop_name, location);
 }
 
 function catfact(chatId) {
@@ -296,6 +355,12 @@ function FeedbackSession(chatId) {
     this.onGoing = false;
     this.feedbackMsg = "";
     feedbackSessions[chatId] = this;
+}
+
+function NusBusSession(chatId) {
+    this.chatId = chatId;
+    this.onGoing = false;
+    nusbusSessions[chatId] = this;
 }
 
 function psi(chatId) {
