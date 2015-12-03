@@ -12,6 +12,7 @@ var broadcast = require('./broadcast');
 var cinnamon = require('./cinnamon');
 var db = require('./db');
 var statistics = require('./statistics');
+var util = require('./util');
 var CREDENTIALS = require('./private/telegram_credentials.json');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -330,7 +331,8 @@ function bus(chatId, busstop) {
     if (busstop) {
         return travel.busStopQuery(busstop, basicCallback);
     }
-    callback("Where do you want to go?");
+    var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
+    callback(greeting);
 }
 
 function default_msg(chatId) {
