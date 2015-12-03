@@ -125,6 +125,9 @@ bot.on('message', function(msg) {
                 if (nusbusSession.onGoing) {
                     return nusbus_query(chatId, body.toLowerCase(), msg.location);
                 }
+                if (body.toLowerCase().indexOf("thanks") > -1) {
+                    return welcome_msg(chatId);
+                }
                 return default_msg(chatId);
         }
     } catch (e) {
@@ -398,6 +401,14 @@ function bus(chatId, busstop) {
     }
     var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
     callback(greeting);
+}
+
+function welcome_msg(chatId) {
+    bot.sendMessage(chatId, "You're welcome 😚", {
+        reply_markup: JSON.stringify({
+            hide_keyboard: true
+        })
+    });
 }
 
 function default_msg(chatId) {
