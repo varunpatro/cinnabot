@@ -1,5 +1,4 @@
 var rest = require('restler');
-var jf = require('jsonfile');
 var cheerio = require('cheerio');
 var geolib = require('geolib');
 var parseString = require('xml2js').parseString;
