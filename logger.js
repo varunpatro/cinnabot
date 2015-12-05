@@ -7,7 +7,13 @@ var feedbackStmt = db.getFeebackStmt();
 function log(msg) {
     cinnalog(msg);
     if (logStmt) {
-        logStmt.run(new Date(), emojiStrip(msg.text), msg.from.id, msg.from.username, msg.from.first_name, msg.from.last_name);
+        var text = msg.text ? msg.text : "";
+        var location = msg.location ? msg.location : {};
+        if (!msg.location) {
+            location.latitude = null;
+            location.longitude = null;
+        }
+        logStmt.run(new Date(), emojiStrip(text), msg.from.id, msg.from.username, msg.from.first_name, msg.from.last_name, location.latitude, location.longitude);
     }
 }
 

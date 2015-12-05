@@ -1,10 +1,10 @@
 var rest = require('restler');
-var jf = require('jsonfile');
 var cheerio = require('cheerio');
+var geolib = require('geolib');
+var parseString = require('xml2js').parseString;
 var util = require('./util');
-
-var ltaCredFile = './private/lta_credentials.json';
-var ltaCredentials = jf.readFileSync(ltaCredFile);
+var nusbusstops = require('./nusbusstops.json');
+var ltaCredentials = require('./private/lta_credentials.json');
 
 var busStops = [19059, 19051, 17099, 17091];
 var defaultBusStop = 19059;
@@ -60,23 +60,63 @@ function processInfo(data, callback) {
     callback(header + '\n' + busTimingsList);
 }
 
-function utownBUS(callback) {
-    var reqURL = 'http://seagame.comfortdelgro.com.sg/shuttle.aspx?caption=University%20Town&name=UTown';
+function nusbus(callback, busstop_name, location) {
+    var busstopMap = {
+        "utown": "UTown",
+        "computing": "COM2",
+        "central library": "CENLIB",
+        "computer centre": "COMCEN",
+        "science": "LT29",
+        "business": "HSSML-OPP",
+        "kent ridge mrt": "KR-MRT",
+        "bukit timah campus": "BUKITTIMAH-BTC2",
+        "pgp terminal": "PGPT"
+    };
+
+    var busstop;
+    if (location) {
+        busstop = nearestNUSBustop(location);
+    } else {
+        busstop = busstopMap[busstop_name];
+    }
+    if (!busstop) {
+        return callback("Invalid Bus Stop Chosen. Send location or choose again.", null);
+    }
+
+    var reqURL = "http://nextbus.comfortdelgro.com.sg//testMethod.asmx/GetShuttleService?busstopname=" + busstop;
     rest.get(reqURL, {
         timeout: 5000
     }).on('timeout', function() {
         callback("NUS Bus Service is busy at the moment. Please try again in a few minutes 😊");
     }).on('complete', function(data) {
-        var $ = cheerio.load(data);
-        var d1 = "D1: " + $('#GridView1_ctl02_lblarrivalTime').text() + ', ' + $('#GridView1_ctl02_lblnextArrivalTime').text();
-        var d2 = "D2: " + $('#GridView1_ctl03_lblarrivalTime').text() + ', ' + $('#GridView1_ctl03_lblnextArrivalTime').text();
-        var msg = 'UTown Bus Timings:\n' + d1 + '\n' + d2;
-        return callback(msg);
+        parseString(data, function(err, result) {
+            if (!err) {
+                var busdata = JSON.parse(result.string._);
+                var list = busstop + "\n";
+                busdata.ShuttleServiceResult.shuttles.forEach(function(shuttle) {
+                    list += shuttle.name + ": " + shuttle.arrivalTime + ", " + shuttle.nextArrivalTime + '\n';
+                });
+                return callback(null, list);
+            }
+        });
     });
+}
+
+function nearestNUSBustop(start) {
+    var minDist = Infinity;
+    var minLoc = "UTown";
+    for (var i = 0; i < nusbusstops.length; i++) {
+        var dist = geolib.getDistance(start, nusbusstops[i]);
+        if (dist < minDist) {
+            minDist = dist;
+            minLoc = nusbusstops[i].name;
+        }
+    }
+    return minLoc;
 }
 
 module.exports = {
     'busStopQuery': busStop,
     'defaultBusStop': defaultBusStop,
-    'utownBUS': utownBUS
+    'nusbus': nusbus
 };
