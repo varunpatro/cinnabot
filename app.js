@@ -241,15 +241,19 @@ function nusbus_ask(chatId) {
             one_time_keyboard: true
         })
     };
-    var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
+    var greeting = "Good " + util.currentTimeGreeting() + ", where would you like NUS bus timings for?";
     bot.sendMessage(chatId, greeting, opts);
     nusbusSessions[chatId] = new NusBusSession(chatId);
     nusbusSessions[chatId].onGoing = true;
 }
 
 function nusbus_query(chatId, busstop_name, location) {
+    var locResponse = "Please send me your location to find NUS bus timings for the nearest bus stop\n\n";
+    locResponse += "You can do this by selecting the paperclip icon 📎";
+    locResponse += "and attach your location 📌";
+
     if (busstop_name === "nearest bustop") {
-        return bot.sendMessage(chatId, "Send us your location to find bus timings for the nearest bus stop.", {
+        return bot.sendMessage(chatId, locResponse, {
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
