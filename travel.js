@@ -80,7 +80,7 @@ function nusbus(callback, busstop_name, location) {
         busstop = busstopMap[busstop_name];
     }
     if (!busstop) {
-        return callback("Invalid Bus Stop Chosen. Send location or choose again.", null);
+        return callback("❗️ Invalid Bus Stop Chosen. Send location or choose again ", null);
     }
 
     var reqURL = "http://nextbus.comfortdelgro.com.sg//testMethod.asmx/GetShuttleService?busstopname=" + busstop;
@@ -92,10 +92,32 @@ function nusbus(callback, busstop_name, location) {
         parseString(data, function(err, result) {
             if (!err) {
                 var busdata = JSON.parse(result.string._);
-                var list = "From your location, I have identified: "+ "**" + busstop + "**" + " as the nearest bus stop\n\n";
-                list += "Here are the Buses and Timings:\n"
+                var list = "";
+                if (location) {
+                    list = "From your location, I have identified: "+ "_" + busstop + "_" + " as the nearest bus stop\n\n";
+                }
+                else {
+                    list = "Your selected location is "+ "_" + busstop + "_" + "\n\n";
+                }
+                list += "Here are the Buses and the respective timings:\n"
                 busdata.ShuttleServiceResult.shuttles.forEach(function(shuttle) {
-                    list += shuttle.name + ": " + shuttle.arrivalTime + "mins" + ", " + shuttle.nextArrivalTime + "mins" + '\n';
+                    var shuttleMessage = "";
+                    var shuttleNextMessage = "";
+                    if  ((shuttle.arrivalTime === "-") || (shuttle.arrivalTime === "N.A"))  {
+                        if ((shuttle.nextArrivalTime === "-") || (shuttle.nextArrivalTime === "N.A")) {
+                            shuttleMessage += " 🚫 The Service is *Not* Available "; 
+                        } else {
+                            shuttleNextMessage += shuttle.nextArrivalTime + " min";
+                        }
+                    }   else {
+                        shuttleMessage += shuttle.arrivalTime + " min, ";
+                        shuttleNextMessage += shuttle.nextArrivalTime + " min";
+                    }
+
+
+                    list += "*" + shuttle.name + "*" + ": " ;
+                    list += shuttleMessage;
+                    list += shuttleNextMessage + "\n";
                 });
                 return callback(null, list);
             }
