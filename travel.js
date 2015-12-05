@@ -92,9 +92,10 @@ function nusbus(callback, busstop_name, location) {
         parseString(data, function(err, result) {
             if (!err) {
                 var busdata = JSON.parse(result.string._);
-                var list = busstop + "\n";
+                var list = "From your location, I have identified: "+ "**" + busstop + "**" + " as the nearest bus stop\n\n";
+                list += "Here are the Buses and Timings:\n"
                 busdata.ShuttleServiceResult.shuttles.forEach(function(shuttle) {
-                    list += shuttle.name + ": " + shuttle.arrivalTime + ", " + shuttle.nextArrivalTime + '\n';
+                    list += shuttle.name + ": " + shuttle.arrivalTime + "mins" + ", " + shuttle.nextArrivalTime + "mins" + '\n';
                 });
                 return callback(null, list);
             }
