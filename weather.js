@@ -1,6 +1,6 @@
 var rest = require('restler');
 var util = require('./util');
-var neaAuthKey = require('./private/nea_credentials.json');
+var neaAuthKey = require('./private/nea_credentials.json').key;
 
 var nowcastURL = 'http://www.nea.gov.sg/api/WebAPI?dataset=nowcast&keyref=' + neaAuthKey;
 var psiURL = 'http://sgp.si/now.json';
