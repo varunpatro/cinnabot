@@ -167,6 +167,7 @@ function help(chatId) {
         "/psi            - get the psi and weather conditions\n" +
         "/bus            - check bus timings for UTown and Dover road\n" +
         "/bus <busstop>  - check bus timings for <busstop>\n" +
+        "/nusbus         - check bus timings for NUS buses\n" +
         "/dining         - tell us how the food was\n" +
         "/spaces         - view upcoming activities in USP spaces\n" +
         "/events         - view upcoming USP events\n" +
@@ -248,9 +249,9 @@ function nusbus_ask(chatId) {
 }
 
 function nusbus_query(chatId, busstop_name, location) {
-    var locResponse = "Please send me your location to find NUS bus timings for the nearest bus stop\n\n";
-    locResponse += "You can do this by selecting the paperclip icon 📎";
-    locResponse += "and attach your location 📌";
+    var locResponse = "Please send me your location to find NUS bus timings for the nearest bus stop:\n\n";
+    locResponse += "You can do this by selecting the paperclip icon (📎)";
+    locResponse += "followed by attaching your location (📌).";
 
     if (busstop_name === "nearest bustop") {
         return bot.sendMessage(chatId, locResponse, {
