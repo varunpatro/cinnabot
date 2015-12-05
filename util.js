@@ -37,7 +37,7 @@ function formatTime(date) {
 }
 
 function formatDigit(n) {
-    return n > 9 ? "" + n : "0" + n;
+    return n > 9 ? "" + n : n;
 }
 
 module.exports = {
