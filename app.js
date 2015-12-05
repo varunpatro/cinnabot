@@ -167,6 +167,7 @@ function help(chatId) {
         "/psi            - get the psi and weather conditions\n" +
         "/bus            - check bus timings for UTown and Dover road\n" +
         "/bus <busstop>  - check bus timings for <busstop>\n" +
+        "/nusbus         - check bus timings for NUS buses\n" +
         "/dining         - tell us how the food was\n" +
         "/spaces         - view upcoming activities in USP spaces\n" +
         "/events         - view upcoming USP events\n" +
