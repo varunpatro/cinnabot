@@ -33,10 +33,11 @@ function formatDate(date) {
 
 function formatTime(date) {
     var median = (date.getHours() < 12) ? "AM" : "PM";
+    return (formatDigit(date.getHours() % 12)) + ":" + formatDigit(date.getMinutes()) + " " + median;
 }
 
 function formatDigit(n) {
-    return n > 9 ? "" + n : n;
+    return n > 9 ? "" + n : "0" + n;
 }
 
 module.exports = {
