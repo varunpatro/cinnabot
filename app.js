@@ -250,7 +250,7 @@ function nusbus_ask(chatId) {
 
 function nusbus_query(chatId, busstop_name, location) {
     var locResponse = "Please send me your location to find NUS bus timings for the nearest bus stop:\n\n";
-    locResponse += "You can do this by selecting the paperclip icon (📎)";
+    locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
 
     if (busstop_name === "nearest bustop") {
@@ -264,12 +264,14 @@ function nusbus_query(chatId, busstop_name, location) {
     function callback(err, data) {
         if (err) {
             return bot.sendMessage(chatId, err, {
+                parse_mode : "Markdown",
                 reply_markup: JSON.stringify({
                     hide_keyboard: true
                 })
             });
         }
         bot.sendMessage(chatId, data, {
+            parse_mode : "Markdown",
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
