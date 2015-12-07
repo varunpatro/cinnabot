@@ -1,5 +1,6 @@
 var cache = require('memory-cache');
 var IVLE_CREDENTIALS = require('./private/ivle_credentials.json');
+var APP_CREDENTIALS = require('./private/app_credentials.json');
 var db = require('./db');
 
 function getOTP(key) {
@@ -34,9 +35,11 @@ function register(bot, chatId) {
 
 function agree(bot, userId) {
     var OTP = getOTP(userId);
-    var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=http://localhost:3000/ivle_register/" + userId + "?OTP=" + OTP;
-    var msg = "Login to IVLE to register:\n";
-    bot.sendMessage(userId, msg + link);
+    var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=" + APP_CREDENTIALS.url + "/ivle_register/" + userId + "?OTP=" + OTP;
+    var msg = "Press [here](" + link + ") to register via IVLE.";
+    bot.sendMessage(userId, msg, {
+        parse_mode: "Markdown"
+    });
 }
 
 function isCinnamonResident(userId, finalCallback) {

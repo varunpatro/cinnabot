@@ -157,10 +157,8 @@ bot.on('message', function(msg) {
 });
 
 function processLocation(msg) {
-    console.log('eneterd process Location');
     var chatId = msg.chat.id;
     var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
-    console.log(nusbusSession);
     if (nusbusSession.onGoing) {
         return nusbus_query(chatId, msg.text, msg.location);
     }
@@ -211,16 +209,34 @@ function agree(userId) {
 function links(chatId) {
     var linkText =
         "USEFUL LINKS:\n" +
-        "==============\n\n" +
-        "Check your meal credits:\n" +
-        "https://bit.ly/hungrycinnamon\n\n" +
-        "Report faults in Cinnamon:\n" +
-        "https://bit.ly/faultycinnamon\n\n" +
-        "Check your air-con credits:\n" +
-        "https://bit.ly/chillycinnamon";
-    bot.sendMessage(chatId, linkText, {
-        disable_web_page_preview: true
-    });
+        "==============\n\n";
+
+    function callback(row) {
+        if (!row) {
+            return bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else {
+            if (!row.isCinnamonResident) {
+                linkText +=
+                    "Check your NUS library account:\n" +
+                    "https://linc.nus.edu.sg/patroninfo/\n\n";
+            }
+            if (row.isCinnamonResident) {
+                linkText +=
+                    "Check the USP reading room catalogue:\n" +
+                    "https://myaces.nus.edu.sg/libms_isis/login.jsp\n\n" +
+                    "Check your meal credits:\n" +
+                    "https://bit.ly/hungrycinnamon\n\n" +
+                    "Report faults in Cinnamon:\n" +
+                    "https://bit.ly/faultycinnamon\n\n" +
+                    "Check your air-con credits:\n" +
+                    "https://bit.ly/chillycinnamon";
+            }
+        }
+        bot.sendMessage(chatId, linkText, {
+            disable_web_page_preview: true
+        });
+    }
+    auth.isCinnamonResident(chatId, callback);
 }
 
 function stats(chatId) {
