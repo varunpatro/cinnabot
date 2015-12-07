@@ -164,8 +164,8 @@ function submit(chatId, bot, faultFeedback) {
     var feedbackURL = "https://docs.google.com/forms/d/1mh5jD1RfstgrbJPefjyPoM2OyLqsZt6C87g1suQ1TuI/formResponse?";
     feedbackURL +=
         'entry.2132193706=' + faultFeedback.category +
-    // '&entry.2132193706.other_option_response=' + faultFeedback.category +
-    '&entry.749088216=' + faultFeedback.urgency +
+        // '&entry.2132193706.other_option_response=' + faultFeedback.category +
+        '&entry.749088216=' + faultFeedback.urgency +
         '&entry.2133800720=' + faultFeedback.location +
         '&entry.787536878=' + faultFeedback.name +
         '&entry.1813223989=' + faultFeedback.room +

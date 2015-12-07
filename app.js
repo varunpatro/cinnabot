@@ -517,11 +517,11 @@ function FaultSession(chatId) {
 function FaultFeedback() {
     this.category = "New";
     this.urgency = "Urgent";
-    this.location = "asfd";
-    this.name = "asdf";
-    this.room = "asfd";
-    this.matric = "asdf";
-    this.email = "syamil@u.nus.edu";
+    this.location = "";
+    this.name = "";
+    this.room = "";
+    this.matric = "";
+    this.email = "";
     this.phone = "";
     this.description = "";
 }
