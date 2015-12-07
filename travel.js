@@ -109,6 +109,9 @@ function nusbus(callback, busstop_name, location) {
                         } else {
                             shuttleNextMessage += shuttle.nextArrivalTime + " min";
                         }
+                    }   else if (shuttle.arrivalTime === "Arr") || (shuttle.nextArrivalTime === "Arr")) {
+                        shuttleMessage += shuttle.arrivalTime + " , ";
+                        shuttleNextMessage += shuttle.nextArrivalTime + " ";
                     }   else {
                         shuttleMessage += shuttle.arrivalTime + " min, ";
                         shuttleNextMessage += shuttle.nextArrivalTime + " min";
