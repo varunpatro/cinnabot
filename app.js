@@ -264,14 +264,14 @@ function nusbus_query(chatId, busstop_name, location) {
     function callback(err, data) {
         if (err) {
             return bot.sendMessage(chatId, err, {
-                parse_mode : "Markdown",
+                parse_mode: "Markdown",
                 reply_markup: JSON.stringify({
                     hide_keyboard: true
                 })
             });
         }
         bot.sendMessage(chatId, data, {
-            parse_mode : "Markdown",
+            parse_mode: "Markdown",
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
