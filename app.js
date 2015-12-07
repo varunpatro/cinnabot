@@ -375,7 +375,9 @@ function NusBusSession(chatId) {
 
 function psi(chatId) {
     function callback(msg) {
-        bot.sendMessage(chatId, msg);
+        bot.sendMessage(chatId, msg, {
+            parse_mode: "Markdown"
+        });
     }
     weather.getWeather(callback);
 }
