@@ -1,5 +1,21 @@
+var cache = require('memory-cache');
 var IVLE_CREDENTIALS = require('./private/ivle_credentials.json');
 var db = require('./db');
+
+function getOTP(key) {
+    var randomOTP = "" + Math.floor(Math.random() * 1000000);
+    cache.put(key, randomOTP, 2 * 60 * 1000);
+    return randomOTP;
+}
+
+function validateOTP(key, OTP) {
+    var storedOTP = cache.get(key);
+    if (storedOTP === OTP) {
+        cache.del(key);
+        return true;
+    }
+    return false;
+}
 
 function register(bot, chatId) {
     var msg = "In order to enjoy more functions of Cinnabot,";
@@ -17,7 +33,8 @@ function register(bot, chatId) {
 }
 
 function agree(bot, userId) {
-    var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=http://172.18.13.189:3000/ivle_register?userId=" + userId;
+    var OTP = getOTP(userId);
+    var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=http://localhost:3000/ivle_register/" + userId + "?OTP=" + OTP;
     var msg = "Login to IVLE to register:\n";
     bot.sendMessage(userId, msg + link);
 }
@@ -34,5 +51,6 @@ function isCinnamonResident(userId, finalCallback) {
 module.exports = {
     register: register,
     agree: agree,
-    isCinnamonResident: isCinnamonResident
+    isCinnamonResident: isCinnamonResident,
+    validateOTP: validateOTP
 };
