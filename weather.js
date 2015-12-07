@@ -8,7 +8,7 @@ var psiURL = 'http://sgp.si/now.json';
 function getWeather(callback) {
     rest.get(nowcastURL).on('complete', function(data) {
         var nowCastJSON = data.channel.item[0];
-        var clementiNowcast = nowCastJSON.weatherForecast[0].area[9].$.forecast; // area[9] is Clementi
+        var clementiNowcast = nowCastJSON.weatherForecast[0].area[9].$.forecast.trim(); // area[9] is Clementi
         var clementiNowcastCode = nowCastJSON.weatherForecast[0].area[9].$.icon; // area[9] is Clementi
         rest.get(psiURL).on('complete', function(data) {
             var time = new Date();
