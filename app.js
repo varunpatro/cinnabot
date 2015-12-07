@@ -118,9 +118,9 @@ bot.on('message', function(msg) {
                 return register(chatId);
             case "agree":
                 return agree(msg.from.id);
-            case "fault":
-                faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
-                return ask_fault_feedback(chatId);
+            // case "fault":
+            //     faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
+            //     return ask_fault_feedback(chatId);
             case "back":
                 if (faultSessions[chatId]) {
                     return faultSessions[chatId].back(chatId, bot, faultSessions[chatId]);
@@ -480,16 +480,18 @@ function continue_fault_feedback(chatId, body) {
     var faultSession = faultSessions[chatId];
     if (faultSession.key === "phone") {
         if ((body.length !== 8) || isNaN(parseInt(body))) {
-            bot.sendMessage(chatId, "Phone number must be 8 numerical digits.");
-            return fault.ask_phone(chatId, bot, faultSession);
+            return bot.sendMessage(chatId, "Phone number must be 8 numerical digits.").then(function() {
+                fault.ask_phone(chatId, bot, faultSession);
+            });
         }
     }
     if (faultSession.key === "description") {
         if (body.endsWith("/done")) {
             faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
             if (faultSession.faultFeedback.description.length < 24) {
-                bot.sendMessage(chatId, "Description should be at least 23 characters.");
-                return fault.ask_continue_description(chatId, bot, faultSession);
+                return bot.sendMessage(chatId, "Description should be at least 23 characters.").then(function() {
+                    fault.ask_continue_description(chatId, bot, faultSession);
+                });
             }
             return done_fault(chatId);
         }
