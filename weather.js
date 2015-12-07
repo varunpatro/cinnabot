@@ -11,7 +11,7 @@ function getWeather(callback) {
         var clementiNowcast = nowCastJSON.weatherForecast[0].area[9].$.forecast.trim(); // area[9] is Clementi
         var clementiNowcastCode = nowCastJSON.weatherForecast[0].area[9].$.icon; // area[9] is Clementi
         rest.get(psiURL).on('complete', function(data) {
-            var time = new Date();
+            var time = new Date(data.time);
             var westPSI_24HR = data.west.psi_24h;
             var westPSI_3HR = data.overall.psi_3h;
             var westPM2_5_1HR = data.west.pm2_5_1h;

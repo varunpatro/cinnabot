@@ -9,11 +9,15 @@
   },
   "dependencies": {
     "bluebird": "^3.0.2",
+    "body-parser": "^1.14.1",
     "chalk": "^1.1.1",
     "cheerio": "^0.19.0",
+    "ejs": "^2.3.4",
     "emoji-strip": "0.0.3",
+    "express": "^4.13.3",
     "geolib": "^2.0.18",
     "lodash": "^3.10.1",
+    "memory-cache": "^0.1.4",
     "node-telegram-bot-api": "^0.15.0",
     "restler": "^3.2.2",
     "sqlite3": "^3.1.0"

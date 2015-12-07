@@ -7,13 +7,16 @@ var logger = require('./logger');
 var weather = require('./weather');
 var travel = require('./travel');
 var dining = require('./dining');
+var fault = require('./fault');
 var do_not_open = require('./do_not_open');
 var broadcast = require('./broadcast');
 var cinnamon = require('./cinnamon');
 var db = require('./db');
 var statistics = require('./statistics');
+var auth = require('./auth');
 var util = require('./util');
 var CREDENTIALS = require('./private/telegram_credentials.json');
+var admin = require('./frontend/admin');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
@@ -26,8 +29,19 @@ console.log(chalk.blue("                            "));
 console.log(chalk.blue("============================"));
 console.log(chalk.blue("                            "));
 
+admin.startServer(bot);
+
+console.log(chalk.green("============================"));
+console.log(chalk.green("                            "));
+console.log(chalk.green("     CinnaAdmin Started     "));
+console.log(chalk.green("                            "));
+console.log(chalk.green("============================"));
+console.log(chalk.green("                            "));
+
 var diningSessions = {};
 var feedbackSessions = {};
+var registerSessions = {};
+var faultSessions = {};
 var nusbusSessions = {};
 
 // start CLI app
@@ -100,6 +114,18 @@ bot.on('message', function(msg) {
                 return stats(chatId);
             case "links":
                 return links(chatId);
+            case "register":
+                return register(chatId);
+            case "agree":
+                return agree(msg.from.id);
+            // case "fault":
+            //     faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
+            //     return ask_fault_feedback(chatId);
+            case "back":
+                if (faultSessions[chatId]) {
+                    return faultSessions[chatId].back(chatId, bot, faultSessions[chatId]);
+                }
+                return default_msg(chatId);
             case "cancel":
                 return cancel(chatId);
         }
@@ -125,11 +151,15 @@ bot.on('message', function(msg) {
                 if (nusbusSession.onGoing) {
                     return nusbus_query(chatId, body.toLowerCase(), msg.location);
                 }
-                if (body.toLowerCase().indexOf("thanks") > -1) {
-                    return welcome_msg(chatId);
+                var faultSession = faultSessions[chatId] || new FaultSession(chatId);
+                if (faultSession.onGoing) {
+                    return continue_fault_feedback(chatId, body);
                 }
-                return default_msg(chatId);
         }
+        if (body.toLowerCase().indexOf("thanks") > -1) {
+            return welcome_msg(chatId);
+        }
+        return default_msg(chatId);
     } catch (e) {
         bot.sendMessage(msg.chat.id, "Cinnabot is sleeping right now 😴 Wake him up later.").then(function() {
             bot.sendMessage(msg.chat.id, "Here's a catfact instead:").then(function() {
@@ -141,10 +171,8 @@ bot.on('message', function(msg) {
 });
 
 function processLocation(msg) {
-    console.log('eneterd process Location');
     var chatId = msg.chat.id;
     var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
-    console.log(nusbusSession);
     if (nusbusSession.onGoing) {
         return nusbus_query(chatId, msg.text, msg.location);
     }
@@ -154,6 +182,9 @@ function processLocation(msg) {
 function cancel(chatId) {
     diningSessions[chatId] = new DiningSession(chatId);
     feedbackSessions[chatId] = new FeedbackSession(chatId);
+    registerSessions[chatId] = new RegisterSession(chatId);
+    nusbusSessions[chatId] = new NusBusSession(chatId);
+    faultSessions[chatId] = new FaultSession(chatId);
     bot.sendMessage(chatId, "Canceled.", {
         reply_markup: JSON.stringify({
             hide_keyboard: true
@@ -177,19 +208,52 @@ function help(chatId) {
     bot.sendMessage(chatId, helpMessage);
 }
 
+function register(chatId) {
+    registerSessions[chatId] = new RegisterSession();
+    registerSessions[chatId].hasPrompt = true;
+    return auth.register(bot, chatId);
+}
+
+function agree(userId) {
+    var registerSession = registerSessions[userId];
+    if (!registerSession || !registerSession.hasPrompt) {
+        return default_msg(userId);
+    }
+    registerSessions[userId] = new RegisterSession();
+    return auth.agree(bot, userId);
+}
+
 function links(chatId) {
     var linkText =
         "USEFUL LINKS:\n" +
-        "==============\n\n" +
-        "Check your meal credits:\n" +
-        "https://bit.ly/hungrycinnamon\n\n" +
-        "Report faults in Cinnamon:\n" +
-        "https://bit.ly/faultycinnamon\n\n" +
-        "Check your air-con credits:\n" +
-        "https://bit.ly/chillycinnamon";
-    bot.sendMessage(chatId, linkText, {
-        disable_web_page_preview: true
-    });
+        "==============\n\n";
+
+    function callback(row) {
+        if (!row) {
+            return bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else {
+            if (!row.isCinnamonResident) {
+                linkText +=
+                    "Check your NUS library account:\n" +
+                    "https://linc.nus.edu.sg/patroninfo/\n\n";
+            }
+            if (row.isCinnamonResident) {
+                linkText +=
+                    "Check the USP reading room catalogue:\n" +
+                    "https://myaces.nus.edu.sg/libms_isis/login.jsp\n\n" +
+                    "Check your meal credits:\n" +
+                    "https://bit.ly/hungrycinnamon\n\n" +
+                    "Report faults in Cinnamon:\n" +
+                    "https://bit.ly/faultycinnamon\n\n" +
+                    "Check your air-con credits:\n" +
+                    "https://bit.ly/chillycinnamon";
+            }
+        }
+        bot.sendMessage(chatId, linkText, {
+            disable_web_page_preview: true
+        });
+    }
+    auth.isCinnamonResident(chatId, callback);
 }
 
 function stats(chatId) {
@@ -294,14 +358,32 @@ function events(chatId) {
 }
 
 function spaces(chatId) {
-    cinnamon.getAllSpaces(chatId, bot);
+    function callback(row) {
+        if (!row) {
+            bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else if (!row.isCinnamonResident) {
+            bot.sendMessage(chatId, "Sorry you must be a cinnamon resident to use this feature :(");
+        } else {
+            cinnamon.getAllSpaces(chatId, bot);
+        }
+    }
+    auth.isCinnamonResident(chatId, callback);
 }
 
 function ask_dining_feedback(chatId) {
-    var diningSession = diningSessions[chatId];
-    diningSession.inThread.status = true;
-    dining.ask_when_dining_feedback(chatId, bot);
-    diningSession.inThread.next = ask_where_dining_feedback;
+    function callback(row) {
+        if (!row) {
+            bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else if (!row.isCinnamonResident) {
+            bot.sendMessage(chatId, "Sorry you must be a cinnamon resident to use this feature :(");
+        } else {
+            var diningSession = diningSessions[chatId];
+            diningSession.inThread.status = true;
+            dining.ask_when_dining_feedback(chatId, bot);
+            diningSession.inThread.next = ask_where_dining_feedback;
+        }
+    }
+    auth.isCinnamonResident(chatId, callback);
 }
 
 function ask_where_dining_feedback(when, chatId) {
@@ -367,10 +449,83 @@ function FeedbackSession(chatId) {
     feedbackSessions[chatId] = this;
 }
 
+function RegisterSession(chatId) {
+    this.chatId = chatId;
+    this.hasPrompt = false;
+    registerSessions[chatId] = this;
+}
+
 function NusBusSession(chatId) {
     this.chatId = chatId;
     this.onGoing = false;
     nusbusSessions[chatId] = this;
+}
+
+function ask_fault_feedback(chatId) {
+    function callback(row) {
+        if (!row) {
+            bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+        } else if (!row.isCinnamonResident) {
+            bot.sendMessage(chatId, "Sorry you must be a cinnamon resident to use this feature :(");
+        } else {
+            var faultSession = faultSessions[chatId];
+            faultSession.onGoing = true;
+            fault.ask_category(chatId, bot, faultSession);
+        }
+    }
+    auth.isCinnamonResident(chatId, callback);
+}
+
+function continue_fault_feedback(chatId, body) {
+    var faultSession = faultSessions[chatId];
+    if (faultSession.key === "phone") {
+        if ((body.length !== 8) || isNaN(parseInt(body))) {
+            return bot.sendMessage(chatId, "Phone number must be 8 numerical digits.").then(function() {
+                fault.ask_phone(chatId, bot, faultSession);
+            });
+        }
+    }
+    if (faultSession.key === "description") {
+        if (body.endsWith("/done")) {
+            faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
+            if (faultSession.faultFeedback.description.length < 24) {
+                return bot.sendMessage(chatId, "Description should be at least 23 characters.").then(function() {
+                    fault.ask_continue_description(chatId, bot, faultSession);
+                });
+            }
+            return done_fault(chatId);
+        }
+        faultSession.faultFeedback[faultSession.key] += body;
+    }
+    faultSession.faultFeedback[faultSession.key] = body;
+    return faultSession.next(chatId, bot, faultSession);
+}
+
+function done_fault(chatId) {
+    var faultSession = faultSessions[chatId];
+    bot.sendMessage(chatId, JSON.stringify(faultSession.faultFeedback));
+    fault.submit(chatId, bot, faultSession.faultFeedback);
+}
+
+function FaultSession(chatId) {
+    this.chatId = chatId;
+    this.onGoing = false;
+    this.key = "category";
+    this.next = ask_fault_feedback;
+    this.faultFeedback = new FaultFeedback();
+    faultSessions[chatId] = this;
+}
+
+function FaultFeedback() {
+    this.category = "New";
+    this.urgency = "Urgent";
+    this.location = "";
+    this.name = "";
+    this.room = "";
+    this.matric = "";
+    this.email = "";
+    this.phone = "";
+    this.description = "";
 }
 
 function psi(chatId) {
