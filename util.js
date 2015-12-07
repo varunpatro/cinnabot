@@ -14,18 +14,36 @@ function timeLeftMin(time) {
     }
 }
 
+function currentTimeGreeting() {
+    var hours = new Date().getHours();
+    if (hours < 12) {
+        return "morning";
+    } else if (hours >= 12 && hours < 18) {
+        return "afternoon";
+    } else if (hours >= 18) {
+        return "evening";
+    } else {
+        return "";
+    }
+}
 
 function formatDate(date) {
     return date.toDateString().substr(0, 3) + ', ' + date.toDateString().substr(4, 6);
 }
 
 function formatTime(date) {
-    return date.toTimeString().substr(0, 5);
+    var median = (date.getHours() < 12) ? "AM" : "PM";
+    return (formatDigit(date.getHours() % 12)) + ":" + formatDigit(date.getMinutes()) + " " + median;
+}
+
+function formatDigit(n) {
+    return n > 9 ? "" + n : "0" + n;
 }
 
 module.exports = {
     getPhoneNum: extractPhoneNumber,
     timeLeftMin: timeLeftMin,
     formatTime: formatTime,
-    formatDate: formatDate
+    formatDate: formatDate,
+    currentTimeGreeting: currentTimeGreeting
 };

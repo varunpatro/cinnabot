@@ -1,7 +1,7 @@
 var rest = require('restler');
 var MSG_CANCEL = "Type /cancel to cancel feedback.";
 
-function dining_stats(chatId, bot, when, where) {
+function dining_stats(chatId, bot, when, where, how) {
     var statsURL = 'https://script.google.com/macros/s/AKfycbw22JUY0XVktavbywTQ7z--mTe7CFbL8X-Bgb6fX-JVNcjGBbeA/exec?';
     statsURL += 'when=' + when;
     statsURL += '&where=' + where;
@@ -9,6 +9,7 @@ function dining_stats(chatId, bot, when, where) {
     function callback(data) {
         var avgRating = parseFloat(data);
         var roundedAvgRating = Math.round(avgRating * 100) / 100;
+        roundedAvgRating = (isNaN(roundedAvgRating) ? how : roundedAvgRating);
         var msg = "Avg rating for " + where + " stall at " + when + " is: " + roundedAvgRating;
         bot.sendMessage(chatId, msg, {
             reply_markup: JSON.stringify({
@@ -30,7 +31,7 @@ function dining_feedback(chatId, bot, when, where, how) {
 
     rest.get(feedbackURL).on('complete', function(data) {
         bot.sendMessage(chatId, "Thanks!");
-        return dining_stats(chatId, bot, when, where);
+        return dining_stats(chatId, bot, when, where, how);
     });
 }
 
