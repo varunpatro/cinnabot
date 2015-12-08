@@ -19,13 +19,16 @@ function validateOTP(key, OTP) {
 }
 
 function register(bot, chatId) {
-    var msg = "In order to enjoy more functions of Cinnabot, ";
+    var msg = "*Cinnabot Registration*\n\n";
+    msg += "In order to enjoy more functions of Cinnabot, ";
     msg += "you have to register via IVLE for us to confirm ";
     msg += "that you are a resident of Cinnamon College.\n\n";
     msg += "Please type or press /agree to initiate the authentication process.\n\n";
     msg += "Type /cancel to cancel the request.";
 
-    return bot.sendMessage(chatId, msg);
+    return bot.sendMessage(chatId, msg, {
+        parse_mode: "Markdown"
+    });
 }
 
 function agree(bot, userId) {

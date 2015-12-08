@@ -27,7 +27,9 @@ router.get('/ivle_register/:userId', function(req, res) {
         });
     }
     register.registerUser(userId, token);
-    req.app.bot.sendMessage(userId, "Hey there, you have successfully registered with Cinnabot!");
+    req.app.bot.sendMessage(userId, "Hey there, you have *successfully* registered with Cinnabot!",{
+        parse_mode : "Markdown"
+    });
     return res.render('pages/register_success', {
         title: 'Home'
     });

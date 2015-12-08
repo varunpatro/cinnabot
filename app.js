@@ -204,8 +204,8 @@ function help(chatId) {
         "/events         - view upcoming USP events\n" +
         "/links          - view useful links\n" +
         "/feedback       - send suggestions and complaints\n" +
-        "/stats          - view key statistics\n";
-        "/register       - register your NUS account with Cinnabot!"
+        "/stats          - view key statistics\n" +
+        "/register       - register your NUS account with Cinnabot!";
     bot.sendMessage(chatId, helpMessage);
 }
 
