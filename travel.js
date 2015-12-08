@@ -80,7 +80,7 @@ function nusbus(callback, busstop_name, location) {
         busstop = busstopMap[busstop_name];
     }
     if (!busstop) {
-        return callback("❗️ Invalid Bus Stop Chosen. Send location or choose again ", null);
+        return callback("Invalid Bus Stop Chosen. Send location or choose again", null);
     }
 
     var reqURL = "http://nextbus.comfortdelgro.com.sg//testMethod.asmx/GetShuttleService?busstopname=" + busstop;
