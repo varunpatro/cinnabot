@@ -573,6 +573,7 @@ function bus(chatId, busstop, location) {
                 hide_keyboard: true
             })
         });
+        publicbusSessions[chatId] = new PublicBusSession(chatId);
     }
 
     function callback(data) {
