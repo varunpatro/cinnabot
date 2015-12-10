@@ -43,6 +43,7 @@ var feedbackSessions = {};
 var registerSessions = {};
 var faultSessions = {};
 var nusbusSessions = {};
+var publicbusSessions = {};
 
 // start CLI app
 var rl = readline.createInterface(process.stdin, process.stdout);
@@ -97,7 +98,6 @@ bot.on('message', function(msg) {
                 var busstop = args;
                 return bus(chatId, busstop);
             case "nusbus":
-                var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
                 return nusbus_ask(chatId);
             case "dining":
                 diningSessions[chatId] = diningSessions[chatId] || new DiningSession(chatId);
@@ -118,9 +118,9 @@ bot.on('message', function(msg) {
                 return register(chatId);
             case "agree":
                 return agree(msg.from.id);
-            // case "fault":
-            //     faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
-            //     return ask_fault_feedback(chatId);
+                // case "fault":
+                //     faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
+                //     return ask_fault_feedback(chatId);
             case "back":
                 if (faultSessions[chatId]) {
                     return faultSessions[chatId].back(chatId, bot, faultSessions[chatId]);
@@ -132,8 +132,6 @@ bot.on('message', function(msg) {
 
         // manage markups
         switch (body.toLowerCase()) {
-            case 'show me utown buses':
-                return nusbus_query(chatId, "utown", null);
             case 'towards buona vista':
                 return bus(chatId, 19051);
             case 'towards clementi':
@@ -147,9 +145,13 @@ bot.on('message', function(msg) {
                 if (feedbackSession.onGoing) {
                     return continue_feedback(body, chatId, msg);
                 }
-                nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
+                var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
                 if (nusbusSession.onGoing) {
                     return nusbus_query(chatId, body.toLowerCase(), msg.location);
+                }
+                var publicbusSession = publicbusSessions[chatId] || new PublicBusSession(chatId);
+                if (publicbusSession.onGoing) {
+                    return bus(chatId, body.toLowerCase(), msg.location);
                 }
                 var faultSession = faultSessions[chatId] || new FaultSession(chatId);
                 if (faultSession.onGoing) {
@@ -176,6 +178,10 @@ function processLocation(msg) {
     if (nusbusSession.onGoing) {
         return nusbus_query(chatId, msg.text, msg.location);
     }
+    var publicbusSession = publicbusSessions[chatId] || new PublicBusSession(chatId);
+    if (publicbusSession.onGoing) {
+        return bus(chatId, msg.text, msg.location);
+    }
     return default_msg(chatId);
 }
 
@@ -184,6 +190,7 @@ function cancel(chatId) {
     feedbackSessions[chatId] = new FeedbackSession(chatId);
     registerSessions[chatId] = new RegisterSession(chatId);
     nusbusSessions[chatId] = new NusBusSession(chatId);
+    publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
     bot.sendMessage(chatId, "Canceled.", {
         reply_markup: JSON.stringify({
@@ -298,7 +305,7 @@ function nusbus_ask(chatId) {
     var opts = {
         reply_markup: JSON.stringify({
             keyboard: [
-                ['Nearest Bustop'],
+                ['Nearest Bus Stop'],
                 ['UTown', 'Computing'],
                 ['Central Library', 'Computer Centre'],
                 ['Science', 'Business'],
@@ -318,7 +325,7 @@ function nusbus_query(chatId, busstop_name, location) {
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
 
-    if (busstop_name === "nearest bustop") {
+    if (busstop_name === "nearest bus stop") {
         return bot.sendMessage(chatId, locResponse, {
             reply_markup: JSON.stringify({
                 hide_keyboard: true
@@ -462,6 +469,12 @@ function NusBusSession(chatId) {
     nusbusSessions[chatId] = this;
 }
 
+function PublicBusSession(chatId) {
+    this.chatId = chatId;
+    this.onGoing = false;
+    publicbusSessions[chatId] = this;
+}
+
 function ask_fault_feedback(chatId) {
     function callback(row) {
         if (!row) {
@@ -538,9 +551,24 @@ function psi(chatId) {
     weather.getWeather(callback);
 }
 
-function bus(chatId, busstop) {
+function bus(chatId, busstop, location) {
+    var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
+    locResponse += "You can do this by selecting the paperclip icon (📎) ";
+    locResponse += "followed by attaching your location (📌).";
+
+    if (busstop === "nearest bus stop") {
+        return bot.sendMessage(chatId, locResponse, {
+            parse_mode: "Markdown",
+            reply_markup: JSON.stringify({
+                hide_keyboard: true,
+            })
+        });
+    }
+
     function basicCallback(data) {
         bot.sendMessage(chatId, data, {
+            parse_mode: "Markdown",
+            disable_web_page_preview: true,
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
@@ -551,7 +579,7 @@ function bus(chatId, busstop) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
-                    ['Show me UTown Buses'],
+                    ['Nearest Bus Stop'],
                     ['Towards Buona Vista'],
                     ['Towards Clementi'],
                 ],
@@ -559,10 +587,12 @@ function bus(chatId, busstop) {
             })
         };
         bot.sendMessage(chatId, data, opts);
+        publicbusSessions[chatId] = new PublicBusSession(chatId);
+        publicbusSessions[chatId].onGoing = true;
     }
 
-    if (busstop) {
-        return travel.busStopQuery(busstop, basicCallback);
+    if (busstop || location) {
+        return travel.busStopQuery(busstop, basicCallback, location);
     }
     var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
     callback(greeting);
