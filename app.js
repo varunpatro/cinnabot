@@ -204,7 +204,8 @@ function help(chatId) {
         "/events         - view upcoming USP events\n" +
         "/links          - view useful links\n" +
         "/feedback       - send suggestions and complaints\n" +
-        "/stats          - view key statistics\n";
+        "/stats          - view key statistics\n" +
+        "/register       - register your NUS account with Cinnabot!";
     bot.sendMessage(chatId, helpMessage);
 }
 
@@ -530,7 +531,9 @@ function FaultFeedback() {
 
 function psi(chatId) {
     function callback(msg) {
-        bot.sendMessage(chatId, msg);
+        bot.sendMessage(chatId, msg, {
+            parse_mode: "Markdown"
+        });
     }
     weather.getWeather(callback);
 }
