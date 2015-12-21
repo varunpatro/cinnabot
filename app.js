@@ -55,9 +55,6 @@ rl.on('line', function(line) {
             break;
         case 'exit':
             return process.exit(0);
-        case 'hello':
-            console.log('world!');
-            break;
         default:
             console.log("Didn't catch that!");
             break;
@@ -223,7 +220,8 @@ function cancel(chatId) {
     nusbusSessions[chatId] = new NusBusSession(chatId);
     publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
-    bot.sendMessage(chatId, "Canceled.", {
+    bot.sendMessage(chatId, "Your command has been *canceled*", {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
@@ -298,7 +296,9 @@ function links(chatId) {
 
 function stats(chatId) {
     function callback(data) {
-        bot.sendMessage(chatId, data);
+        bot.sendMessage(chatId, data, {
+            parse_mode: "Markdown"
+        });
     }
     statistics.getAllSummary(callback);
 }

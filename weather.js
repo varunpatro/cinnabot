@@ -15,7 +15,8 @@ function getWeather(callback) {
             var westPSI_24HR = data.west.psi_24h;
             var westPSI_3HR = data.overall.psi_3h;
             var westPM2_5_1HR = data.west.pm2_5_1h;
-            var msg = "Good " + util.currentTimeGreeting() + ", the weather in *Clementi* at " + util.formatTime(time) + ' is: _' + clementiNowcast + "_ " + getWeatherEmoji(clementiNowcastCode) + " " + '\n\nHere are the PSI readings:\n*24 Hour PSI:* ' +
+            var msg = "*Cinnabot Weather Service*\n";
+            msg += "Good " + util.currentTimeGreeting() + ", the weather in *Clementi* at " + util.formatTime(time) + ' is: _' + clementiNowcast + "_ " + getWeatherEmoji(clementiNowcastCode) + " " + '\n\nHere are the PSI readings:\n*24 Hour PSI:* ' +
                 westPSI_24HR + '\n*3 Hour PSI*: ' + westPSI_3HR + '\n*1 Hour PM 2.5*: ' + westPM2_5_1HR + '.';
             callback(msg);
         });

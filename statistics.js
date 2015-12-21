@@ -27,8 +27,8 @@ function getAllSummary(callback) {
             }
         });
     }).then(function() {
-        var header = 'STATISTICS SUMMARY\n';
-        header += '=================\n\n';
+        var header = '*STATISTICS SUMMARY\n';
+        header += '=================*\n\n';
 
         var data = "Number of users: " + numUniqueUsers + '\n';
         data += "Number of commands today: " + numQueriesToday + '\n';

@@ -8,6 +8,7 @@ var MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
 
 function ask_category(chatId, bot, faultSession) {
     var opts = {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             keyboard: [
                 ['New'],
@@ -17,7 +18,10 @@ function ask_category(chatId, bot, faultSession) {
             one_time_keyboard: true
         })
     };
-    msg = "Problem Category?\n\nFor other categories, please write.\n" + MSG_INFO;
+    bot.sendMessage(chatId, "*Welcome to Cinnabot's Fault Reporting System*", {
+        parse_mode: "Markdown"
+    });
+    msg = "What is your *Problem Category*?\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "category";
     faultSession.next = ask_urgency;
@@ -26,6 +30,7 @@ function ask_category(chatId, bot, faultSession) {
 
 function ask_urgency(chatId, bot, faultSession) {
     var opts = {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             keyboard: [
                 ['Very Urgent', 'Urgent'],
@@ -34,7 +39,7 @@ function ask_urgency(chatId, bot, faultSession) {
             one_time_keyboard: true
         })
     };
-    msg = "Problem Urgency?\n" + MSG_INFO;
+    msg = "How *urgent* is your problem?\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "urgency";
     faultSession.next = ask_location;
@@ -43,11 +48,12 @@ function ask_urgency(chatId, bot, faultSession) {
 
 function ask_location(chatId, bot, faultSession) {
     var opts = {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
     };
-    msg = "Please enter your problem location:\n" + MSG_INFO;
+    msg = "Where is the problem *located*?:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "location";
     faultSession.next = ask_name;
@@ -59,6 +65,7 @@ function ask_name(chatId, bot, faultSession) {
 
     function callback(err, row) {
         var opts = {
+            parse_mode: "Markdown",
             reply_markup: JSON.stringify({
                 keyboard: [
                     [row.name],
@@ -66,7 +73,7 @@ function ask_name(chatId, bot, faultSession) {
                 one_time_keyboard: true
             })
         };
-        msg = "Click your name below:\n\nOr write your name if it doesn't match.\n" + MSG_INFO;
+        msg = "Select your *name* below:\n\nOr write your name if it doesn't match.\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
         faultSession.key = "name";
         faultSession.next = ask_room;
@@ -76,11 +83,12 @@ function ask_name(chatId, bot, faultSession) {
 
 function ask_room(chatId, bot, faultSession) {
     var opts = {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
     };
-    msg = "Enter your room no:\n" + MSG_INFO;
+    msg = "Please enter your *room number*:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "room";
     faultSession.next = ask_matric;
@@ -92,6 +100,7 @@ function ask_matric(chatId, bot, faultSession) {
 
     function callback(err, row) {
         var opts = {
+            parse_mode: "Markdown",
             reply_markup: JSON.stringify({
                 keyboard: [
                     [util.calculateNUSMatricNumber(row.matric)],
@@ -99,7 +108,7 @@ function ask_matric(chatId, bot, faultSession) {
                 one_time_keyboard: true
             })
         };
-        msg = "Click your matric no. below:\n\nOr write your matric no. if it doesn't match.\n" + MSG_INFO;
+        msg = "Select your *matric no.* below:\n\nOr write your matric no. if it doesn't match.\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
         faultSession.key = "matric";
         faultSession.next = ask_email;
@@ -112,6 +121,7 @@ function ask_email(chatId, bot, faultSession) {
 
     function callback(err, row) {
         var opts = {
+            parse_mode: "Markdown",
             reply_markup: JSON.stringify({
                 keyboard: [
                     [row.email],
@@ -119,7 +129,7 @@ function ask_email(chatId, bot, faultSession) {
                 one_time_keyboard: true
             })
         };
-        msg = "Click your email below:\n\nOr write your email if it doesn't match.\n" + MSG_INFO;
+        msg = "Select your *email* below:\n\nOr write your email if it doesn't match.\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
         faultSession.key = "email";
         faultSession.next = ask_phone;
@@ -129,11 +139,12 @@ function ask_email(chatId, bot, faultSession) {
 
 function ask_phone(chatId, bot, faultSession) {
     var opts = {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
     };
-    msg = "Enter your phone number:\n" + MSG_INFO;
+    msg = "Please enter your *phone number*:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "phone";
     faultSession.next = ask_description;
@@ -142,6 +153,7 @@ function ask_phone(chatId, bot, faultSession) {
 
 function ask_description(chatId, bot, faultSession) {
     var opts = {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
