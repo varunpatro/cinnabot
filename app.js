@@ -135,9 +135,9 @@ bot.on('message', function(msg) {
         // manage markups
         switch (body.toLowerCase()) {
             case 'towards buona vista':
-                return bus(chatId, 19051);
+                return bus(chatId, "19051");
             case 'towards clementi':
-                return bus(chatId, 19059);
+                return bus(chatId, "19059");
             default:
                 var diningSession = diningSessions[chatId] || new DiningSession(chatId);
                 if (diningSession.inThread.status) {

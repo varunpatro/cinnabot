@@ -35,7 +35,7 @@ router.get('/ivle_register/:userId', function(req, res) {
     });
 });
 
-router.get('/:id', function(req, res) {
+router.get(['/', '/:id'], function(req, res) {
     res.status(404).send("404 Not Found");
 });
 

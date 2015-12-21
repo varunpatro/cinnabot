@@ -18,9 +18,10 @@ function ask_category(chatId, bot, faultSession) {
     };
     bot.sendMessage(chatId, "*Welcome to Cinnabot's Fault Reporting System*\nThis will send an email to OHS, Cinnamon so please do not abuse it.", {
         parse_mode: "Markdown"
+    }).then(function() {
+        msg = "What is your *Problem Category*?\n" + MSG_INFO;
+        bot.sendMessage(chatId, msg, opts);
     });
-    msg = "What is your *Problem Category*?\n" + MSG_INFO;
-    bot.sendMessage(chatId, msg, opts);
     faultSession.key = "category";
     faultSession.next = ask_urgency;
     faultSession.back = ask_category;
