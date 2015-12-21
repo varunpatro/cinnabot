@@ -1,6 +1,7 @@
 var emojiStrip = require('emoji-strip');
 var rest = require('restler');
 var db = require('./db');
+var admins = require('./private/config.json').admins;
 var logStmt = db.getLogStmt();
 var feedbackStmt = db.getFeebackStmt();
 
@@ -27,8 +28,9 @@ function feedback(bot, feedbackMsg, msg) {
     msgToSend += "User Id: " + msg.from.id + "\n";
     msgToSend += "From: " + msg.from.first_name + " " + msg.from.last_name + " (" + msg.from.username + ")\n";
     msgToSend += "Message: " + feedbackMsg;
-    bot.sendMessage('49892469', msgToSend);
-    bot.sendMessage('102675141', msgToSend);
+    admins.forEach(function(admin) {
+        bot.sendMessage(admin, msgToSend);
+    });
 }
 
 function cinnalog(msg) {

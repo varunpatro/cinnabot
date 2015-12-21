@@ -16,6 +16,7 @@ var statistics = require('./statistics');
 var auth = require('./auth');
 var util = require('./util');
 var CREDENTIALS = require('./private/telegram_credentials.json');
+var admins = require('./private/config.json').admins;
 var admin = require('./frontend/admin');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
@@ -75,7 +76,7 @@ bot.on('message', function(msg) {
             return processLocation(msg);
         }
 
-        if (msg.hasOwnProperty('reply_to_message') && [49892469, 102675141].indexOf(msg.from.id) > -1) {
+        if (msg.hasOwnProperty('reply_to_message') && admins.indexOf(msg.from.id) > -1) {
             return processFeedbackReply(msg);
         }
 
