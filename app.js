@@ -273,7 +273,9 @@ function links(chatId) {
 
 function stats(chatId) {
     function callback(data) {
-        bot.sendMessage(chatId, data);
+        bot.sendMessage(chatId, data, {
+            parse_mode: "Markdown"
+        });
     }
     statistics.getAllSummary(callback);
 }
