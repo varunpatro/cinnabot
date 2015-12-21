@@ -219,7 +219,16 @@ function help(chatId) {
 function register(chatId) {
     registerSessions[chatId] = new RegisterSession();
     registerSessions[chatId].hasPrompt = true;
-    return auth.register(bot, chatId);
+    function callback(row) {
+        if (!row) {
+            return auth.register(bot, chatId);
+        }
+        else {
+            return bot.sendMessage(chatId, "You have already registered!");
+        }
+    }
+    auth.isCinnamonResident(chatId, callback);
+    
 }
 
 function agree(userId) {
