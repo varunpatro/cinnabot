@@ -187,7 +187,7 @@ function submit(chatId, bot, faultFeedback) {
         '&entry.113024073=' + faultFeedback.description;
 
     rest.get(feedbackURL).on('complete', function(data) {
-        bot.sendMessage(chatId, "Thanks!");
+        bot.sendMessage(chatId, "Fault has been reported. Please check your email!");
     });
 }
 

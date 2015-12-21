@@ -550,7 +550,6 @@ function continue_fault_feedback(chatId, body) {
 
 function done_fault(chatId) {
     var faultSession = faultSessions[chatId];
-    bot.sendMessage(chatId, JSON.stringify(faultSession.faultFeedback));
     fault.submit(chatId, bot, faultSession.faultFeedback);
 }
 
