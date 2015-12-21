@@ -25,7 +25,7 @@ function getEvents(chatId, bot) {
 
 function filterEvents(data) {
     var filteredMsg = "";
-    for (var i = 0; i < Math.min(data.d.length, 5); i++) {
+    for (var i = 0; i < Math.min(data.d.length, 4); i++) {
         var event = data.d[i];
         filteredMsg += event.EventName + '\n';
         filteredMsg += event.Venue + '\n';
