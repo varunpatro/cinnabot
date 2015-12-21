@@ -189,7 +189,8 @@ function cancel(chatId) {
     nusbusSessions[chatId] = new NusBusSession(chatId);
     publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
-    bot.sendMessage(chatId, "Canceled.", {
+    bot.sendMessage(chatId, "Your command has been *canceled*", {
+        parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
         })
