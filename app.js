@@ -55,9 +55,6 @@ rl.on('line', function(line) {
             break;
         case 'exit':
             return process.exit(0);
-        case 'hello':
-            console.log('world!');
-            break;
         default:
             console.log("Didn't catch that!");
             break;
