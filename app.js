@@ -1,6 +1,5 @@
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
-var readline = require('readline');
 var rest = require('restler');
 var Promise = require('bluebird');
 var logger = require('./logger');
@@ -45,23 +44,6 @@ var registerSessions = {};
 var faultSessions = {};
 var nusbusSessions = {};
 var publicbusSessions = {};
-
-// start CLI app
-var rl = readline.createInterface(process.stdin, process.stdout);
-rl.prompt();
-rl.on('line', function(line) {
-    switch (line.trim()) {
-        case 'bcast':
-            broadcast.broadcast(bot);
-            break;
-        case 'exit':
-            return process.exit(0);
-        default:
-            console.log("Didn't catch that!");
-            break;
-    }
-    rl.prompt();
-});
 
 // Any kind of message
 bot.on('message', function(msg) {
@@ -221,7 +203,7 @@ function cancel(chatId) {
     nusbusSessions[chatId] = new NusBusSession(chatId);
     publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
-    bot.sendMessage(chatId, "Your command has been *canceled*", {
+    bot.sendMessage(chatId, "Your command has been *canceled*.", {
         parse_mode: "Markdown",
         reply_markup: JSON.stringify({
             hide_keyboard: true
