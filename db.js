@@ -37,11 +37,16 @@ function getUser(userId, callback) {
     return db.get("SELECT * FROM user where userid=" + userId, callback);
 }
 
+function getFeedbackMsg(time, callback) {
+    return db.get("SELECT msg FROM feedback where time=" + time, callback);
+}
+
 module.exports = {
     "getAllUsers": getAllUsers,
     "getLogStmt": getLogStmt,
     "getFeebackStmt": getFeebackStmt,
     "getLogTable": getLogTable,
     "getUserStmt": getUserStmt,
-    "getUser": getUser
+    "getUser": getUser,
+    "getFeedbackMsg": getFeedbackMsg
 };
