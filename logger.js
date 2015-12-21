@@ -18,10 +18,13 @@ function log(msg) {
 }
 
 function feedback(bot, feedbackMsg, msg) {
+    var now = new Date();
     if (feedbackStmt) {
-        feedbackStmt.run(new Date(), emojiStrip(feedbackMsg), msg.from.id, msg.from.username, msg.from.first_name, msg.from.last_name);
+        feedbackStmt.run(now, emojiStrip(feedbackMsg), msg.from.id, msg.from.username, msg.from.first_name, msg.from.last_name);
     }
     var msgToSend = "FEEDBACK MESSAGE\n==============\n";
+    msgToSend += "Time: " + now.getTime() + "\n";
+    msgToSend += "User Id: " + msg.from.id + "\n";
     msgToSend += "From: " + msg.from.first_name + " " + msg.from.last_name + " (" + msg.from.username + ")\n";
     msgToSend += "Message: " + feedbackMsg;
     bot.sendMessage('49892469', msgToSend);

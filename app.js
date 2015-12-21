@@ -75,6 +75,10 @@ bot.on('message', function(msg) {
             return processLocation(msg);
         }
 
+        if (msg.hasOwnProperty('reply_to_message') && [49892469, 102675141].indexOf(msg.from.id) > -1) {
+            return processFeedbackReply(msg);
+        }
+
         var chatId = msg.chat.id;
         var body = msg.text;
         var command = body;
@@ -115,9 +119,9 @@ bot.on('message', function(msg) {
                 return register(chatId);
             case "agree":
                 return agree(msg.from.id);
-                // case "fault":
-                //     faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
-                //     return ask_fault_feedback(chatId);
+            case "fault":
+                faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
+                return ask_fault_feedback(chatId);
             case "back":
                 if (faultSessions[chatId]) {
                     return faultSessions[chatId].back(chatId, bot, faultSessions[chatId]);
@@ -168,6 +172,33 @@ bot.on('message', function(msg) {
         bot.sendMessage('102675141', e.toString());
     }
 });
+
+function processFeedbackReply(msg) {
+    var fullMsg = msg.reply_to_message.text;
+    for (var useridStr = "", useridIndex = fullMsg.indexOf("User Id: ") + 9; fullMsg[useridIndex] !== "\n"; useridIndex++) {
+        useridStr += fullMsg[useridIndex];
+    }
+    for (var timeStr = "", timeIndex = fullMsg.indexOf("Time: ") + 6; fullMsg[timeIndex] !== "\n"; timeIndex++) {
+        timeStr += fullMsg[timeIndex];
+    }
+    var time = parseInt(timeStr);
+    var replyId = parseInt(useridStr);
+    var replyMsg = msg.text;
+    db.getFeedbackMsg(time, callback);
+
+    function callback(err, feedbackEntry) {
+        if (err) {
+            return bot.sendMessage(msg.from.id, "Something went wrong in accessing the feedback table.");
+        }
+        var msgToSend = "FEEDBACK REPLY\n==============\n";
+        msgToSend += "We refer to the your message:\n";
+        msgToSend += "\"_" + feedbackEntry.msg.trim() + "_\"\n\n";
+        msgToSend += replyMsg;
+        bot.sendMessage(replyId, msgToSend, {
+            parse_mode: "Markdown"
+        });
+    }
+}
 
 function processLocation(msg) {
     var chatId = msg.chat.id;
