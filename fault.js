@@ -2,8 +2,6 @@ var rest = require('restler');
 var db = require('./db');
 var util = require('./util');
 
-//var postURL = "https://docs.google.com/forms/d/1mh5jD1RfstgrbJPefjyPoM2OyLqsZt6C87g1suQ1TuI/formResponse";
-var postURL = "http://localhost"; // Use this in dev mode
 var MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
 
 function ask_category(chatId, bot, faultSession) {
@@ -18,7 +16,7 @@ function ask_category(chatId, bot, faultSession) {
             one_time_keyboard: true
         })
     };
-    bot.sendMessage(chatId, "*Welcome to Cinnabot's Fault Reporting System*", {
+    bot.sendMessage(chatId, "*Welcome to Cinnabot's Fault Reporting System*\nThis will send an email to OHS, Cinnamon so please do not abuse it.", {
         parse_mode: "Markdown"
     });
     msg = "What is your *Problem Category*?\n" + MSG_INFO;

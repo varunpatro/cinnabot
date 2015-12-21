@@ -192,7 +192,7 @@ function processFeedbackReply(msg) {
             return bot.sendMessage(msg.from.id, "Something went wrong in accessing the feedback table.");
         }
         var msgToSend = "FEEDBACK REPLY\n==============\n";
-        msgToSend += "We refer to the your message:\n";
+        msgToSend += "We refer to your message:\n";
         msgToSend += "\"_" + feedbackEntry.msg.trim() + "_\"\n\n";
         msgToSend += replyMsg;
         bot.sendMessage(replyId, msgToSend, {

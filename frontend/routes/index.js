@@ -5,16 +5,16 @@ var auth = require('../../auth');
 var router = express.Router();
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-    res.render('pages/index', {
-        title: 'Home'
-    });
-});
+// router.get('/', function(req, res, next) {
+//     res.render('pages/index', {
+//         title: 'Home'
+//     });
+// });
 
-router.get('/broadcast', function(req, res) {
-    broadcast.broadcastMessage(req.app.bot, req.query.bcastmsg);
-    res.send("ok");
-});
+// router.get('/broadcast', function(req, res) {
+//     broadcast.broadcastMessage(req.app.bot, req.query.bcastmsg);
+//     res.send("ok");
+// });
 
 router.get('/ivle_register/:userId', function(req, res) {
     var userId = req.params.userId;
@@ -33,6 +33,10 @@ router.get('/ivle_register/:userId', function(req, res) {
     return res.render('pages/register_success', {
         title: 'Home'
     });
+});
+
+router.get('/:id', function(req, res) {
+    res.status(404).send("404 Not Found");
 });
 
 module.exports = router;
