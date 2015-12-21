@@ -272,20 +272,20 @@ function links(chatId) {
             return bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
         } else {
             // if (!row.isCinnamonResident) {
-                linkText +=
-                    "Check your NUS library account:\n" +
-                    "https://linc.nus.edu.sg/patroninfo/\n\n";
+            linkText +=
+                "Check your NUS library account:\n" +
+                "https://linc.nus.edu.sg/patroninfo/\n\n";
             // }
             // if (row.isCinnamonResident) {
-                linkText +=
-                    "Check the USP reading room catalogue:\n" +
-                    "https://myaces.nus.edu.sg/libms_isis/login.jsp\n\n" +
-                    "Check your meal credits:\n" +
-                    "https://bit.ly/hungrycinnamon\n\n" +
-                    "Report faults in Cinnamon:\n" +
-                    "https://bit.ly/faultycinnamon\n\n" +
-                    "Check your air-con credits:\n" +
-                    "https://bit.ly/chillycinnamon";
+            linkText +=
+                "Check the USP reading room catalogue:\n" +
+                "https://myaces.nus.edu.sg/libms_isis/login.jsp\n\n" +
+                "Check your meal credits:\n" +
+                "https://bit.ly/hungrycinnamon\n\n" +
+                "Report faults in Cinnamon:\n" +
+                "https://bit.ly/faultycinnamon\n\n" +
+                "Check your air-con credits:\n" +
+                "https://bit.ly/chillycinnamon";
             // }
         }
         bot.sendMessage(chatId, linkText, {
@@ -402,7 +402,7 @@ function spaces(chatId) {
     function callback(row) {
         if (!row) {
             bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
-        // } else if (!row.isCinnamonResident) {
+            // } else if (!row.isCinnamonResident) {
             // bot.sendMessage(chatId, "Sorry you must be a Cinnamon resident to use this feature :(");
         } else {
             cinnamon.getAllSpaces(chatId, bot);
@@ -415,8 +415,8 @@ function ask_dining_feedback(chatId) {
     function callback(row) {
         if (!row) {
             bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
-        // } else if (!row.isCinnamonResident) {
-        //     bot.sendMessage(chatId, "Sorry you must be a Cinnamon resident to use this feature :(");
+            // } else if (!row.isCinnamonResident) {
+            //     bot.sendMessage(chatId, "Sorry you must be a Cinnamon resident to use this feature :(");
         } else {
             var diningSession = diningSessions[chatId];
             diningSession.inThread.status = true;
@@ -512,8 +512,8 @@ function ask_fault_feedback(chatId) {
     function callback(row) {
         if (!row) {
             bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
-        // } else if (!row.isCinnamonResident) {
-        //     bot.sendMessage(chatId, "Sorry you must be a Cinnamon resident to use this feature :(");
+            // } else if (!row.isCinnamonResident) {
+            //     bot.sendMessage(chatId, "Sorry you must be a Cinnamon resident to use this feature :(");
         } else {
             var faultSession = faultSessions[chatId];
             faultSession.onGoing = true;
