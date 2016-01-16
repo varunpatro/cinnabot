@@ -570,6 +570,8 @@ function bus(chatId, busstop, location) {
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
 
+    var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
+
     if (busstop === "nearest bus stop") {
         return bot.sendMessage(chatId, locResponse, {
             parse_mode: "Markdown",
@@ -606,10 +608,12 @@ function bus(chatId, busstop, location) {
         publicbusSessions[chatId].onGoing = true;
     }
 
-    if (busstop || location) {
-        return travel.busStopQuery(busstop, basicCallback, location);
+    if ((busstop || location)) {
+        if (busstop != "bus") {
+            return travel.busStopQuery(busstop, basicCallback, location);
+        }
     }
-    var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
+    
     callback(greeting);
 }
 
