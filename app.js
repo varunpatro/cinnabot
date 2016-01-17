@@ -569,8 +569,9 @@ function bus(chatId, busstop, location) {
     var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
+    
 
-    var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
+    var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
 
     if (busstop === "nearest bus stop") {
         return bot.sendMessage(chatId, locResponse, {
