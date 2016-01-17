@@ -64,8 +64,8 @@ bot.on('message', function(msg) {
 
         var chatId = msg.chat.id;
         var body = msg.text;
-        var command = body;
-        var args = body;
+        command = body.split(' ')[0].substr(0);
+        var args = body.split(' ')[1];
         if (body.charAt(0) === '/') {
             command = body.split(' ')[0].substr(1);
             args = body.split(' ')[1];
