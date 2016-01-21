@@ -72,8 +72,8 @@ bot.on('message', function(msg) {
 
         var chatId = msg.chat.id;
         var body = msg.text;
-        var command = body;
-        var args = body;
+        command = body.split(' ')[0].substr(0);
+        var args = body.split(' ')[1];
         if (body.charAt(0) === '/') {
             command = body.split(' ')[0].substr(1);
             args = body.split(' ')[1];
@@ -550,6 +550,9 @@ function bus(chatId, busstop, location) {
     var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
+    
+
+    var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
 
     if (busstop === "nearest bus stop") {
         return bot.sendMessage(chatId, locResponse, {
@@ -587,10 +590,12 @@ function bus(chatId, busstop, location) {
         publicbusSessions[chatId].onGoing = true;
     }
 
-    if (busstop || location) {
-        return travel.busStopQuery(busstop, basicCallback, location);
+    if ((busstop || location)) {
+        if (busstop != "bus") {
+            return travel.busStopQuery(busstop, basicCallback, location);
+        }
     }
-    var greeting = "Good " + util.currentTimeGreeting() + ". Where do you want to go today?";
+    
     callback(greeting);
 }
 
