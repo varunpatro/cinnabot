@@ -83,11 +83,11 @@ bot.on('message', function(msg) {
         // manage commands
         switch (command.toLowerCase()) {
             case "start":
-                return help(chatId);
+                return misc.help(basicCallback);
             case "help":
-                return help(chatId);
+                return misc.help(basicCallback);
             case "psi":
-                return psi(chatId);
+                return weather.getWeather(basicCallback);
             case "bus":
                 var busstop = args;
                 return bus(chatId, busstop);
@@ -232,24 +232,6 @@ function cancel(chatId) {
             hide_keyboard: true
         })
     });
-}
-
-function help(chatId) {
-    var helpMessage =
-        "Here's what you can ask Cinnabot!\n\n" +
-        "/bus                      - check bus timings for UTown and Dover road\n" +
-        "/bus <busstop>   - check bus timings for <busstop>\n" +
-        "/dining                  - tell us how the food was\n" +
-        "/events                 - view upcoming USP events\n" +
-        "/fault                     - report building faults in Cinnamon\n" +
-        "/feedback             - send suggestions and complaints\n" +
-        "/links                     - view useful links\n" +
-        "/nusbus                - check bus timings for NUS buses\n" +
-        "/psi                       - get the psi and weather conditions\n" +
-        "/register               - register your NUS account!\n" +
-        "/spaces                - view upcoming activities in USP spaces\n" +
-        "/stats                    - view key statistics";
-    bot.sendMessage(chatId, helpMessage);
 }
 
 function register(chatId) {
@@ -535,15 +517,6 @@ function FaultFeedback() {
     this.email = "";
     this.phone = "";
     this.description = "";
-}
-
-function psi(chatId) {
-    function callback(msg) {
-        bot.sendMessage(chatId, msg, {
-            parse_mode: "Markdown"
-        });
-    }
-    weather.getWeather(callback);
 }
 
 function bus(chatId, busstop, location) {
