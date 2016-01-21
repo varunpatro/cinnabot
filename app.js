@@ -97,9 +97,9 @@ bot.on('message', function(msg) {
                 diningSessions[chatId] = diningSessions[chatId] || new DiningSession(chatId);
                 return ask_dining_feedback(chatId);
             case "spaces":
-                return spaces(chatId);
+                return cinnamon.getAllSpaces(chatId, basicCallback);
             case "events":
-                return events(chatId);
+                return cinnamon.getEvents(basicCallback);
             case "cat":
                 return catfact(chatId);
             case "feedback":
@@ -337,23 +337,6 @@ function catfact(chatId) {
 
 function cnjoke(chatId) {
     return do_not_open.cnjoke(chatId, bot);
-}
-
-function events(chatId) {
-    cinnamon.getEvents(chatId, bot);
-}
-
-function spaces(chatId) {
-    function callback(row) {
-        if (!row) {
-            bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
-            // } else if (!row.isCinnamonResident) {
-            // bot.sendMessage(chatId, "Sorry you must be a Cinnamon resident to use this feature :(");
-        } else {
-            cinnamon.getAllSpaces(chatId, bot);
-        }
-    }
-    auth.isCinnamonResident(chatId, callback);
 }
 
 function ask_dining_feedback(chatId) {

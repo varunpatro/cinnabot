@@ -35,15 +35,24 @@ function filterEvents(data) {
     return filteredMsg;
 }
 
-function getAllSpaces(chatId, bot) {
-    getSpaces(chatId, bot, 1);
-    getSpaces(chatId, bot, 2);
-    getSpaces(chatId, bot, 3);
-    getSpaces(chatId, bot, 5);
-    getSpaces(chatId, bot, 6);
+function getAllSpaces(chatId, callback) {
+    function authCallback(row) {
+        if (!row) {
+            callback("Sorry you're not registered. Type /register to register.");
+            // } else if (!row.isCinnamonResident) {
+            //     callback("Sorry you must be a Cinnamon resident to use this feature :(");
+        } else {
+            getSpaces(1, callback);
+            getSpaces(2, callback);
+            getSpaces(3, callback);
+            getSpaces(5, callback);
+            getSpaces(6, callback);
+        }
+    }
+    auth.isCinnamonResident(chatId, authCallback);
 }
 
-function getSpaces(chatId, bot, id) {
+function getSpaces(id, callback) {
     var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetSpacesBookingRecord';
     var data = {
         'facilityID': id
@@ -71,9 +80,8 @@ function getSpaces(chatId, bot, id) {
 
         var msg = filterSpaces(data);
         if (msg !== "") {
-            bot.sendMessage(chatId, header + msg);
+            callback(header + msg);
         }
-
     });
 }
 
