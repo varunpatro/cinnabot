@@ -18,7 +18,7 @@ function log(msg) {
     }
 }
 
-function feedback(bot, feedbackMsg, msg) {
+function feedback(feedbackMsg, msg, callback) {
     var now = new Date();
     if (feedbackStmt) {
         feedbackStmt.run(now, emojiStrip(feedbackMsg), msg.from.id, msg.from.username, msg.from.first_name, msg.from.last_name);
@@ -29,7 +29,7 @@ function feedback(bot, feedbackMsg, msg) {
     msgToSend += "From: " + msg.from.first_name + " " + msg.from.last_name + " (" + msg.from.username + ")\n";
     msgToSend += "Message: " + feedbackMsg;
     admins.forEach(function(admin) {
-        bot.sendMessage(admin, msgToSend);
+        callback(msgToSend, admin);
     });
 }
 

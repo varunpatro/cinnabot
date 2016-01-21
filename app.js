@@ -41,18 +41,19 @@ console.log(chalk.green("============================"));
 console.log(chalk.green("                            "));
 
 var diningSessions = {};
-var feedbackSessions = {};
-var registerSessions = {};
 var faultSessions = {};
 var nusbusSessions = {};
 var publicbusSessions = {};
 
 function createBasicCallback(chatId) {
-    return function(msg) {
-        bot.sendMessage(chatId, msg, {
+    return function(msg, sendId) {
+        if (typeof sendId !== 'number') {
+            sendId = chatId;
+        }
+        bot.sendMessage(sendId, msg, {
             parse_mode: "Markdown",
         });
-    }
+    };
 }
 
 bot.on('message', function(msg) {
@@ -104,7 +105,7 @@ bot.on('message', function(msg) {
             case "cat":
                 return catfact(chatId);
             case "feedback":
-                return feedback(chatId);
+                return misc.start_feedback(chatId, basicCallback);
             case "stats":
                 return statistics.getAllSummary(basicCallback);
             case "links":
@@ -149,9 +150,8 @@ bot.on('message', function(msg) {
                 if (diningSession.inThread.status) {
                     return diningSession.inThread.next(body, chatId);
                 }
-                var feedbackSession = feedbackSessions[chatId] || new FeedbackSession(chatId);
-                if (feedbackSession.onGoing) {
-                    return continue_feedback(body, chatId, msg);
+                if (sessions.getFeedbackSession(chatId)) {
+                    return misc.continue_feedback(body, chatId, msg, basicCallback);
                 }
                 var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
                 if (nusbusSession.onGoing) {
@@ -206,7 +206,7 @@ function processFeedbackReply(msg) {
         });
         admins.forEach(function(admin) {
             if (admin !== msg.from.id) {
-                msgToSend = "ADMIN REPLY\n\n" + msgToSend;
+                msgToSend = "==============\nADMIN REPLY\n==============\n" + msgToSend;
                 bot.sendMessage(admin, msgToSend, {
                     parse_mode: "Markdown"
                 });
@@ -230,7 +230,6 @@ function processLocation(msg) {
 
 function cancel(chatId) {
     diningSessions[chatId] = new DiningSession(chatId);
-    feedbackSessions[chatId] = new FeedbackSession(chatId);
     nusbusSessions[chatId] = new NusBusSession(chatId);
     publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
@@ -240,36 +239,6 @@ function cancel(chatId) {
             hide_keyboard: true
         })
     });
-}
-
-function done_feedback(chatId, msg) {
-    var feedbackSession = feedbackSessions[chatId];
-    var feedbackMsg = feedbackSession.feedbackMsg;
-    feedbackMsg = feedbackMsg.substring(0, feedbackMsg.length - 6);
-    logger.feedback(bot, feedbackMsg, msg);
-    feedbackSessions[chatId] = new FeedbackSession(chatId);
-    var doneMsg = "Thanks for the feedback 😁";
-    return bot.sendMessage(chatId, doneMsg);
-}
-
-function continue_feedback(body, chatId, msg) {
-    var feedbackSession = feedbackSessions[chatId];
-    feedbackSession.feedbackMsg += body + "\n";
-    if (body.endsWith("/done")) {
-        return done_feedback(chatId, msg);
-    }
-    return;
-}
-
-function feedback(chatId) {
-    var feedbackMsg = "Thanks for using Cinnabot 😁\n";
-    feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
-    feedbackMsg += "Type /done to end the feedback session.\n";
-    feedbackMsg += "Type /cancel to cancel feedback";
-    var feedbackSession = new FeedbackSession();
-    feedbackSession.onGoing = true;
-    feedbackSessions[chatId] = feedbackSession;
-    return bot.sendMessage(chatId, feedbackMsg);
 }
 
 function nusbus_ask(chatId) {
@@ -402,13 +371,6 @@ function DiningFeedback() {
     this.when = "";
     this.where = "";
     this.how = -1;
-}
-
-function FeedbackSession(chatId) {
-    this.chatId = chatId;
-    this.onGoing = false;
-    this.feedbackMsg = "";
-    feedbackSessions[chatId] = this;
 }
 
 function NusBusSession(chatId) {

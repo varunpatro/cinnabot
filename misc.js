@@ -1,4 +1,37 @@
 var auth = require('./auth');
+var sessions = require('./sessions');
+var logger = require('./logger');
+
+function start_feedback(chatId, callback) {
+    var feedbackMsg = "Thanks for using Cinnabot 😁\n";
+    feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
+    feedbackMsg += "Type /done to end the feedback session.\n";
+    feedbackMsg += "Type /cancel to cancel feedback";
+
+    var feedbackSession = sessions.createFeedbackSession(chatId);
+    return callback(feedbackMsg);
+}
+
+function continue_feedback(body, chatId, msg, callback) {
+    var feedbackSession = sessions.getFeedbackSession(chatId);
+    console.log('bef ' + feedbackSession.feedbackMsg);
+    feedbackSession.feedbackMsg += body + "\n";
+    console.log('aft ' + feedbackSession.feedbackMsg);
+    if (body.endsWith("/done")) {
+        return done_feedback(chatId, msg, callback);
+    }
+    return;
+}
+
+function done_feedback(chatId, msg, callback) {
+    var feedbackSession = sessions.getFeedbackSession(chatId);
+    var feedbackMsg = feedbackSession.feedbackMsg;
+    feedbackMsg = feedbackMsg.substring(0, feedbackMsg.length - 6);
+    logger.feedback(feedbackMsg, msg, callback);
+    sessions.deleteFeedbackSession(chatId);
+    var doneMsg = "Thanks for the feedback 😁";
+    return callback(doneMsg);
+}
 
 function help(callback) {
     var helpMessage =
@@ -51,5 +84,8 @@ function getLinks(chatId, callback) {
 
 module.exports = {
     "getLinks": getLinks,
-    "help": help
-}
+    "help": help,
+    "start_feedback": start_feedback,
+    "continue_feedback": continue_feedback,
+    "done_feedback": done_feedback
+};
