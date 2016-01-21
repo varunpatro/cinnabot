@@ -42,7 +42,6 @@ console.log(chalk.green("                            "));
 
 var diningSessions = {};
 var faultSessions = {};
-var nusbusSessions = {};
 
 function createBasicCallback(chatId) {
     return function(msg, sendId) {
@@ -85,6 +84,37 @@ function createPublicBusOptionsCallback(chatId) {
     };
 }
 
+function createNusBusResponseCallback(chatId) {
+    return function(data) {
+        bot.sendMessage(chatId, data, {
+            parse_mode: "Markdown",
+            disable_web_page_preview: true,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    };
+}
+
+function createNusBusOptionsCallback(chatId) {
+    return function(data) {
+        var opts = {
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Nearest Bus Stop'],
+                    ['UTown', 'Computing'],
+                    ['Central Library', 'Computer Centre'],
+                    ['Science', 'Business'],
+                    ['Kent Ridge MRT', 'Bukit Timah Campus']
+                ],
+                one_time_keyboard: true
+            })
+        };
+        bot.sendMessage(chatId, data, opts);
+        sessions.createNusBusSession(chatId);
+    };
+}
+
 bot.on('message', function(msg) {
     try {
         console.log(msg);
@@ -123,7 +153,8 @@ bot.on('message', function(msg) {
                 var busstop = args;
                 return travel.bus(chatId, busstop, msg.location, createPublicBusOptionsCallback(chatId));
             case "nusbus":
-                return nusbus_ask(chatId);
+                var busstop = args;
+                return travel.nusbus(chatId, busstop, msg.location, createNusBusOptionsCallback(chatId));
             case "dining":
                 diningSessions[chatId] = diningSessions[chatId] || new DiningSession(chatId);
                 return ask_dining_feedback(chatId);
@@ -182,9 +213,8 @@ bot.on('message', function(msg) {
                 if (sessions.getFeedbackSession(chatId)) {
                     return misc.continue_feedback(body, chatId, msg, basicCallback);
                 }
-                var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
-                if (nusbusSession.onGoing) {
-                    return nusbus_query(chatId, body.toLowerCase(), msg.location);
+                if (sessions.getNusBusSession(chatId)) {
+                    return travel.nusbus(chatId, body.toLowerCase(), msg.location, createNusBusResponseCallback(chatId));
                 }
                 if (sessions.getPublicBusSession(chatId)) {
                     return travel.bus(chatId, body.toLowerCase(), msg.location, createPublicBusResponseCallback(chatId));
@@ -246,9 +276,8 @@ function processFeedbackReply(msg) {
 
 function processLocation(msg) {
     var chatId = msg.chat.id;
-    var nusbusSession = nusbusSessions[chatId] || new NusBusSession(chatId);
-    if (nusbusSession.onGoing) {
-        return nusbus_query(chatId, msg.text, msg.location);
+    if (sessions.getNusBusSession(chatId)) {
+        return travel.nusbus(chatId, msg.text, msg.location, createNusBusResponseCallback(chatId));
     }
     if (sessions.getPublicBusSession(chatId)) {
         return travel.bus(chatId, msg.text, msg.location, createPublicBusResponseCallback(chatId));
@@ -258,8 +287,6 @@ function processLocation(msg) {
 
 function cancel(chatId) {
     diningSessions[chatId] = new DiningSession(chatId);
-    nusbusSessions[chatId] = new NusBusSession(chatId);
-    publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
     bot.sendMessage(chatId, "Your command has been *canceled*.", {
         parse_mode: "Markdown",
@@ -267,58 +294,6 @@ function cancel(chatId) {
             hide_keyboard: true
         })
     });
-}
-
-function nusbus_ask(chatId) {
-    var opts = {
-        reply_markup: JSON.stringify({
-            keyboard: [
-                ['Nearest Bus Stop'],
-                ['UTown', 'Computing'],
-                ['Central Library', 'Computer Centre'],
-                ['Science', 'Business'],
-                ['Kent Ridge MRT', 'Bukit Timah Campus']
-            ],
-            one_time_keyboard: true
-        })
-    };
-    var greeting = "Good " + util.currentTimeGreeting() + ", where would you like NUS bus timings for?";
-    bot.sendMessage(chatId, greeting, opts);
-    nusbusSessions[chatId] = new NusBusSession(chatId);
-    nusbusSessions[chatId].onGoing = true;
-}
-
-function nusbus_query(chatId, busstop_name, location) {
-    var locResponse = "Please send me your location to find NUS bus timings for the nearest bus stop:\n\n";
-    locResponse += "You can do this by selecting the paperclip icon (📎) ";
-    locResponse += "followed by attaching your location (📌).";
-
-    if (busstop_name === "nearest bus stop") {
-        return bot.sendMessage(chatId, locResponse, {
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-    }
-
-    function callback(err, data) {
-        if (err) {
-            return bot.sendMessage(chatId, err, {
-                parse_mode: "Markdown",
-                reply_markup: JSON.stringify({
-                    hide_keyboard: true
-                })
-            });
-        }
-        bot.sendMessage(chatId, data, {
-            parse_mode: "Markdown",
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-        nusbusSessions[chatId] = new NusBusSession(chatId);
-    }
-    travel.nusbus(callback, busstop_name, location);
 }
 
 function catfact(chatId) {
@@ -399,12 +374,6 @@ function DiningFeedback() {
     this.when = "";
     this.where = "";
     this.how = -1;
-}
-
-function NusBusSession(chatId) {
-    this.chatId = chatId;
-    this.onGoing = false;
-    nusbusSessions[chatId] = this;
 }
 
 function ask_fault_feedback(chatId) {
