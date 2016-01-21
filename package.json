@@ -18,6 +18,7 @@
     "geolib": "^2.0.18",
     "lodash": "^3.10.1",
     "memory-cache": "^0.1.4",
+    "node-cache": "^3.0.1",
     "node-telegram-bot-api": "^0.15.0",
     "restler": "^3.2.2",
     "sqlite3": "^3.1.0"

@@ -21,7 +21,6 @@ function validateOTP(key, OTP) {
 
 function register(chatId, callback) {
     var regSession = sessions.createRegisterSession(chatId);
-    regSession.hasPrompt = true;
 
     var msg = "*Cinnabot Registration*\n\n";
     msg += "In order to enjoy more functions of Cinnabot, ";
@@ -35,10 +34,10 @@ function register(chatId, callback) {
 
 function agree(userId, callback) {
     var regSession = sessions.getRegisterSession(userId);
-    if (!regSession || !regSession.hasPrompt) {
+
+    if (!regSession) {
         return callback("You have to /register before /agree!");
     }
-    sessions.deleteRegisterSession(userId);
 
     var OTP = getOTP(userId);
     var link = "https://ivle.nus.edu.sg/api/login/?apikey=" + IVLE_CREDENTIALS.APIKey + "&url=" + APP_CREDENTIALS.url + "/ivle_register/" + userId + "?OTP=" + OTP;

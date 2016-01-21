@@ -1,21 +1,23 @@
-var registerSessions = {};
+var NodeCache = require('node-cache');
+var registerSessions = new NodeCache();
+
+var MAX_CACHE_TIME = 30; // seconds
 
 function RegisterSession(chatId) {
     this.chatId = chatId;
-    this.hasPrompt = false;    
 }
 
 function createRegisterSession(chatId) {
-	registerSessions[chatId] = new RegisterSession(chatId);
-	return registerSessions[chatId];
+    registerSessions.set(chatId, new RegisterSession(chatId), MAX_CACHE_TIME);
+    return registerSessions.get(chatId);
 }
 
 function getRegisterSession(chatId) {
-	return registerSessions[chatId];
+    return registerSessions.get(chatId);
 }
 
 function deleteRegisterSession(chatId) {
-	delete registerSessions[chatId];
+    return registerSessions.del(chatId);
 }
 
 function cancel(chatId, callback) {
@@ -30,8 +32,8 @@ function cancel(chatId, callback) {
 }
 
 module.exports = {
-	"cancel": cancel,
-	"createRegisterSession": createRegisterSession,
-	"getRegisterSession": getRegisterSession,
-	"deleteRegisterSession": deleteRegisterSession
-}
+    "cancel": cancel,
+    "createRegisterSession": createRegisterSession,
+    "getRegisterSession": getRegisterSession,
+    "deleteRegisterSession": deleteRegisterSession
+};
