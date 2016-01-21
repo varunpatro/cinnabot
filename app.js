@@ -180,6 +180,14 @@ function processFeedbackReply(msg) {
         bot.sendMessage(replyId, msgToSend, {
             parse_mode: "Markdown"
         });
+        admins.forEach(function(admin) {
+            if (admin !== msg.from.id) {
+                msgToSend = "ADMIN REPLY\n\n" + msgToSend;
+                bot.sendMessage(admin, msgToSend, {
+                    parse_mode: "Markdown"
+                });
+            }
+        });
     }
 }
 
