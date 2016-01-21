@@ -53,7 +53,7 @@ function ask_location(chatId, bot, faultSession) {
             hide_keyboard: true
         })
     };
-    msg = "Where is the problem *located*?:\n" + MSG_INFO;
+    msg = "Where is the problem *located*?\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "location";
     faultSession.next = ask_name;
