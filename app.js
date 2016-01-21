@@ -18,6 +18,7 @@ var CREDENTIALS = require('./private/telegram_credentials.json');
 var admins = require('./private/config.json').admins;
 var admin = require('./frontend/admin');
 var misc = require('./misc');
+var sessions = require('./sessions');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
@@ -114,9 +115,9 @@ bot.on('message', function(msg) {
                 };
                 return misc.getLinks(chatId, cb);
             case "register":
-                return register(chatId);
+                return auth.register(chatId, basicCallback);
             case "agree":
-                return agree(msg.from.id);
+                return auth.agree(msg.from.id, basicCallback);
             case "fault":
                 faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
                 return ask_fault_feedback(chatId);
@@ -126,7 +127,15 @@ bot.on('message', function(msg) {
                 }
                 return default_msg(chatId);
             case "cancel":
-                return cancel(chatId);
+                var cancelCallback = function(msg) {
+                    bot.sendMessage(chatId, msg, {
+                        parse_mode: "Markdown",
+                        reply_markup: JSON.stringify({
+                            hide_keyboard: true
+                        })
+                    });
+                };
+                return sessions.cancel(chatId, cancelCallback);
         }
 
         // manage markups
@@ -222,7 +231,6 @@ function processLocation(msg) {
 function cancel(chatId) {
     diningSessions[chatId] = new DiningSession(chatId);
     feedbackSessions[chatId] = new FeedbackSession(chatId);
-    registerSessions[chatId] = new RegisterSession(chatId);
     nusbusSessions[chatId] = new NusBusSession(chatId);
     publicbusSessions[chatId] = new PublicBusSession(chatId);
     faultSessions[chatId] = new FaultSession(chatId);
@@ -232,21 +240,6 @@ function cancel(chatId) {
             hide_keyboard: true
         })
     });
-}
-
-function register(chatId) {
-    registerSessions[chatId] = new RegisterSession();
-    registerSessions[chatId].hasPrompt = true;
-    return auth.register(bot, chatId);
-}
-
-function agree(userId) {
-    var registerSession = registerSessions[userId];
-    if (!registerSession || !registerSession.hasPrompt) {
-        return default_msg(userId);
-    }
-    registerSessions[userId] = new RegisterSession();
-    return auth.agree(bot, userId);
 }
 
 function done_feedback(chatId, msg) {
@@ -418,12 +411,6 @@ function FeedbackSession(chatId) {
     feedbackSessions[chatId] = this;
 }
 
-function RegisterSession(chatId) {
-    this.chatId = chatId;
-    this.hasPrompt = false;
-    registerSessions[chatId] = this;
-}
-
 function NusBusSession(chatId) {
     this.chatId = chatId;
     this.onGoing = false;
@@ -506,7 +493,7 @@ function bus(chatId, busstop, location) {
     var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
-    
+
 
     var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
 
@@ -551,7 +538,7 @@ function bus(chatId, busstop, location) {
             return travel.busStopQuery(busstop, basicCallback, location);
         }
     }
-    
+
     callback(greeting);
 }
 
