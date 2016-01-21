@@ -104,7 +104,6 @@ bot.on('message', function(msg) {
         var chatId = msg.chat.id;
         var body = msg.text;
         command = body.split(' ')[0].substr(0);
-        var args = body.split(' ')[1];
         if (body.charAt(0) === '/') {
             command = body.split(' ')[0].substr(1);
             args = body.split(' ')[1];
@@ -151,6 +150,7 @@ bot.on('message', function(msg) {
             case "fault":
                 faultSessions[chatId] = faultSessions[chatId] || new FaultSession(chatId);
                 return ask_fault_feedback(chatId);
+                //return unavail_msg(chatId);
             case "back":
                 if (faultSessions[chatId]) {
                     return faultSessions[chatId].back(chatId, bot, faultSessions[chatId]);
@@ -439,10 +439,18 @@ function continue_fault_feedback(chatId, body) {
                     fault.ask_continue_description(chatId, bot, faultSession);
                 });
             }
+            FaultFeedback.complete = true;
             return done_fault(chatId);
         }
         faultSession.faultFeedback[faultSession.key] += body;
+
+        if (!(FaultFeedback.complete)) {
+            setTimeout(function() {
+                bot.sendMessage(chatId, "Please remember to end your description with /done, thank you!");
+            }, 15000);
+        }
     }
+
     faultSession.faultFeedback[faultSession.key] = body;
     return faultSession.next(chatId, bot, faultSession);
 }
@@ -488,5 +496,13 @@ function default_msg(chatId) {
         })
     }).then(function() {
         return cnjoke(chatId);
+    });
+}
+
+function unavail_msg(chatId) {
+    bot.sendMessage(chatId, "Sorry, this function is unavailable at the moment 😅", {
+        reply_markup: JSON.stringify({
+            hide_keyboard: true
+        })
     });
 }

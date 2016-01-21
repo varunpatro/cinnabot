@@ -1,6 +1,7 @@
 var rest = require('restler');
 var db = require('./db');
 var util = require('./util');
+var admins = require('./private/config.json').admins;
 
 var MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
 
@@ -146,8 +147,25 @@ function ask_phone(chatId, bot, faultSession) {
     msg = "Please enter your *phone number*:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "phone";
-    faultSession.next = ask_description;
+    faultSession.next = ask_permission;
     faultSession.back = ask_email;
+}
+
+function ask_permission(chatId, bot, faultSession) {
+    var opts = {
+        parse_mode: "Markdown",
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ['Yes', 'No']
+            ],
+            one_time_keyboard: true
+        })
+    };
+    msg = "*Do you consent to OHS entering your room without your presence to rectify the fault?*\n" + MSG_INFO;
+    bot.sendMessage(chatId, msg, opts);
+    faultSession.key = "permission";
+    faultSession.back = ask_phone;
+    faultSession.next = ask_description;
 }
 
 function ask_description(chatId, bot, faultSession) {
@@ -161,7 +179,7 @@ function ask_description(chatId, bot, faultSession) {
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "description";
     faultSession.next = ask_continue_description;
-    faultSession.back = ask_phone;
+    faultSession.back = ask_permission;
 }
 
 function ask_continue_description(chatId, bot, faultSession) {
@@ -171,8 +189,10 @@ function ask_continue_description(chatId, bot, faultSession) {
     faultSession.back = ask_phone;
 }
 
+
+
 function submit(chatId, bot, faultFeedback) {
-    var feedbackURL = "https://docs.google.com/forms/d/1mh5jD1RfstgrbJPefjyPoM2OyLqsZt6C87g1suQ1TuI/formResponse?";
+    var feedbackURL = 'https://docs.google.com/forms/d/1mh5jD1RfstgrbJPefjyPoM2OyLqsZt6C87g1suQ1TuI/formResponse?';
     feedbackURL +=
         'entry.2132193706=' + faultFeedback.category +
         // '&entry.2132193706.other_option_response=' + faultFeedback.category +
@@ -183,10 +203,20 @@ function submit(chatId, bot, faultFeedback) {
         '&entry.1836226199=' + faultFeedback.matric +
         '&entry.2119962668=' + faultFeedback.email +
         '&entry.858293967=' + faultFeedback.phone +
-        '&entry.113024073=' + faultFeedback.description;
+        '&entry.113024073=' + faultFeedback.description +
+        '&entry.1755718880=' + faultFeedback.permission;
 
+    console.log(feedbackURL);
     rest.get(feedbackURL).on('complete', function(data) {
-        bot.sendMessage(chatId, "Fault has been reported. Please check your email!");
+        if (data instanceof Error) {
+            admins.forEach(function(admin) {
+        bot.sendMessage(admin, msgToSend);
+        });
+            this.retry(1000);
+        } else {
+            bot.sendMessage(chatId, "Fault has been reported. Please check your email!");
+        }
+
     });
 }
 
@@ -200,5 +230,6 @@ module.exports = {
     ask_room: ask_room,
     ask_description: ask_description,
     ask_continue_description: ask_continue_description,
+    ask_permission: ask_permission,
     submit: submit
 };
