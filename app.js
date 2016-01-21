@@ -17,6 +17,7 @@ var util = require('./util');
 var CREDENTIALS = require('./private/telegram_credentials.json');
 var admins = require('./private/config.json').admins;
 var admin = require('./frontend/admin');
+var misc = require('./misc');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
@@ -45,7 +46,14 @@ var faultSessions = {};
 var nusbusSessions = {};
 var publicbusSessions = {};
 
-// Any kind of message
+function createBasicCallback(chatId) {
+    return function(msg) {
+        bot.sendMessage(chatId, msg, {
+            parse_mode: "Markdown",
+        });
+    }
+}
+
 bot.on('message', function(msg) {
     try {
         console.log(msg);
@@ -70,6 +78,8 @@ bot.on('message', function(msg) {
             command = body.split(' ')[0].substr(1);
             args = body.split(' ')[1];
         }
+
+        var basicCallback = createBasicCallback(chatId);
         // manage commands
         switch (command.toLowerCase()) {
             case "start":
@@ -95,9 +105,14 @@ bot.on('message', function(msg) {
             case "feedback":
                 return feedback(chatId);
             case "stats":
-                return stats(chatId);
+                return statistics.getAllSummary(basicCallback);
             case "links":
-                return links(chatId);
+                var cb = function(msg) {
+                    bot.sendMessage(chatId, msg, {
+                        disable_web_page_preview: true
+                    });
+                };
+                return misc.getLinks(chatId, cb);
             case "register":
                 return register(chatId);
             case "agree":
@@ -250,48 +265,6 @@ function agree(userId) {
     }
     registerSessions[userId] = new RegisterSession();
     return auth.agree(bot, userId);
-}
-
-function links(chatId) {
-    var linkText =
-        "USEFUL LINKS:\n" +
-        "==============\n\n";
-
-    function callback(row) {
-        if (!row) {
-            return bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
-        } else {
-            // if (!row.isCinnamonResident) {
-            linkText +=
-                "Check your NUS library account:\n" +
-                "https://linc.nus.edu.sg/patroninfo/\n\n";
-            // }
-            // if (row.isCinnamonResident) {
-            linkText +=
-                "Check the USP reading room catalogue:\n" +
-                "https://myaces.nus.edu.sg/libms_isis/login.jsp\n\n" +
-                "Check your meal credits:\n" +
-                "https://bit.ly/hungrycinnamon\n\n" +
-                "Report faults in Cinnamon:\n" +
-                "https://bit.ly/faultycinnamon\n\n" +
-                "Check your air-con credits:\n" +
-                "https://bit.ly/chillycinnamon";
-            // }
-        }
-        bot.sendMessage(chatId, linkText, {
-            disable_web_page_preview: true
-        });
-    }
-    auth.isCinnamonResident(chatId, callback);
-}
-
-function stats(chatId) {
-    function callback(data) {
-        bot.sendMessage(chatId, data, {
-            parse_mode: "Markdown"
-        });
-    }
-    statistics.getAllSummary(callback);
 }
 
 function done_feedback(chatId, msg) {
