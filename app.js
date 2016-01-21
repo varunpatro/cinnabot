@@ -201,6 +201,7 @@ function processFeedbackReply(msg) {
         msgToSend += "We refer to your message:\n";
         msgToSend += "\"_" + feedbackEntry.msg.trim() + "_\"\n\n";
         msgToSend += replyMsg;
+        msgToSend += "\n-- " + msg.from.first_name;
         bot.sendMessage(replyId, msgToSend, {
             parse_mode: "Markdown"
         });
