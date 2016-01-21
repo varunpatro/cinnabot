@@ -43,7 +43,6 @@ console.log(chalk.green("                            "));
 var diningSessions = {};
 var faultSessions = {};
 var nusbusSessions = {};
-var publicbusSessions = {};
 
 function createBasicCallback(chatId) {
     return function(msg, sendId) {
@@ -53,6 +52,36 @@ function createBasicCallback(chatId) {
         bot.sendMessage(sendId, msg, {
             parse_mode: "Markdown",
         });
+    };
+}
+
+function createPublicBusResponseCallback(chatId) {
+    return function(data) {
+        bot.sendMessage(chatId, data, {
+            parse_mode: "Markdown",
+            disable_web_page_preview: true,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+        sessions.deletePublicBusSession(chatId);
+    };
+}
+
+function createPublicBusOptionsCallback(chatId) {
+    return function(data) {
+        var opts = {
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Nearest Bus Stop'],
+                    ['Towards Buona Vista'],
+                    ['Towards Clementi'],
+                ],
+                one_time_keyboard: true
+            })
+        };
+        bot.sendMessage(chatId, data, opts);
+        sessions.createPublicBusSession(chatId);
     };
 }
 
@@ -92,7 +121,7 @@ bot.on('message', function(msg) {
                 return weather.getWeather(basicCallback);
             case "bus":
                 var busstop = args;
-                return bus(chatId, busstop);
+                return travel.bus(chatId, busstop, msg.location, createPublicBusOptionsCallback(chatId));
             case "nusbus":
                 return nusbus_ask(chatId);
             case "dining":
@@ -157,9 +186,8 @@ bot.on('message', function(msg) {
                 if (nusbusSession.onGoing) {
                     return nusbus_query(chatId, body.toLowerCase(), msg.location);
                 }
-                var publicbusSession = publicbusSessions[chatId] || new PublicBusSession(chatId);
-                if (publicbusSession.onGoing) {
-                    return bus(chatId, body.toLowerCase(), msg.location);
+                if (sessions.getPublicBusSession(chatId)) {
+                    return travel.bus(chatId, body.toLowerCase(), msg.location, createPublicBusResponseCallback(chatId));
                 }
                 var faultSession = faultSessions[chatId] || new FaultSession(chatId);
                 if (faultSession.onGoing) {
@@ -222,9 +250,8 @@ function processLocation(msg) {
     if (nusbusSession.onGoing) {
         return nusbus_query(chatId, msg.text, msg.location);
     }
-    var publicbusSession = publicbusSessions[chatId] || new PublicBusSession(chatId);
-    if (publicbusSession.onGoing) {
-        return bus(chatId, msg.text, msg.location);
+    if (sessions.getPublicBusSession(chatId)) {
+        return travel.bus(chatId, msg.text, msg.location, createPublicBusResponseCallback(chatId));
     }
     return default_msg(chatId);
 }
@@ -380,12 +407,6 @@ function NusBusSession(chatId) {
     nusbusSessions[chatId] = this;
 }
 
-function PublicBusSession(chatId) {
-    this.chatId = chatId;
-    this.onGoing = false;
-    publicbusSessions[chatId] = this;
-}
-
 function ask_fault_feedback(chatId) {
     function callback(row) {
         if (!row) {
@@ -450,59 +471,6 @@ function FaultFeedback() {
     this.email = "";
     this.phone = "";
     this.description = "";
-}
-
-function bus(chatId, busstop, location) {
-    var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
-    locResponse += "You can do this by selecting the paperclip icon (📎) ";
-    locResponse += "followed by attaching your location (📌).";
-
-
-    var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
-
-    if (busstop === "nearest bus stop") {
-        return bot.sendMessage(chatId, locResponse, {
-            parse_mode: "Markdown",
-            reply_markup: JSON.stringify({
-                hide_keyboard: true,
-            })
-        });
-    }
-
-    function basicCallback(data) {
-        bot.sendMessage(chatId, data, {
-            parse_mode: "Markdown",
-            disable_web_page_preview: true,
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-        publicbusSessions[chatId] = new PublicBusSession(chatId);
-    }
-
-    function callback(data) {
-        var opts = {
-            reply_markup: JSON.stringify({
-                keyboard: [
-                    ['Nearest Bus Stop'],
-                    ['Towards Buona Vista'],
-                    ['Towards Clementi'],
-                ],
-                one_time_keyboard: true
-            })
-        };
-        bot.sendMessage(chatId, data, opts);
-        publicbusSessions[chatId] = new PublicBusSession(chatId);
-        publicbusSessions[chatId].onGoing = true;
-    }
-
-    if ((busstop || location)) {
-        if (busstop != "bus") {
-            return travel.busStopQuery(busstop, basicCallback, location);
-        }
-    }
-
-    callback(greeting);
 }
 
 function welcome_msg(chatId) {

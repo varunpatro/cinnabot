@@ -3,6 +3,7 @@ var registerSessions = new NodeCache();
 var feedbackSessions = new NodeCache({
     useClones: false
 });
+var publicBusSessions = new NodeCache();
 
 function RegisterSession(chatId) {
     this.chatId = chatId;
@@ -40,12 +41,29 @@ function deleteFeedbackSession(chatId) {
     return feedbackSessions.del(chatId);
 }
 
+function PublicBusSession(chatId) {
+    this.chatId = chatId;
+}
+
+function createPublicBusSession(chatId) {
+    publicBusSessions.set(chatId, new PublicBusSession(chatId), 30);
+    return publicBusSessions.get(chatId);
+}
+
+function getPublicBusSession(chatId) {
+    return publicBusSessions.get(chatId);
+}
+
+function deletePublicBusSession(chatId) {
+    return publicBusSessions.del(chatId);
+}
+
 function cancel(chatId, callback) {
+    deleteFeedbackSession(chatId);
+    deleteRegisterSession(chatId);
+    deletePublicBusSession(chatId);
     // diningSessions[chatId] = new DiningSession(chatId);
-    // feedbackSessions[chatId] = new FeedbackSession(chatId);
-    registerSessions[chatId] = new RegisterSession(chatId);
     // nusbusSessions[chatId] = new NusBusSession(chatId);
-    // publicbusSessions[chatId] = new PublicBusSession(chatId);
     // faultSessions[chatId] = new FaultSession(chatId);
 
     callback("Your command has been *canceled*.");
@@ -58,5 +76,8 @@ module.exports = {
     "deleteRegisterSession": deleteRegisterSession,
     "createFeedbackSession": createFeedbackSession,
     "getFeedbackSession": getFeedbackSession,
-    "deleteFeedbackSession": deleteFeedbackSession
+    "deleteFeedbackSession": deleteFeedbackSession,
+    "createPublicBusSession": createPublicBusSession,
+    "getPublicBusSession": getPublicBusSession,
+    "deletePublicBusSession": deletePublicBusSession
 };
