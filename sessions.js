@@ -82,7 +82,7 @@ function deleteNusBusSession(chatId) {
 function FaultSession(chatId) {
     this.chatId = chatId;
     this.key = 'category';
-    this.next = ask_fault_feedback;
+    this.next = null;
     this.faultFeedback = {
         category: 'New',
         urgency: 'Urgent',
@@ -120,20 +120,20 @@ function cancel(chatId, callback) {
 }
 
 module.exports = {
-    "cancel": cancel,
-    "createRegisterSession": createRegisterSession,
-    "getRegisterSession": getRegisterSession,
-    "deleteRegisterSession": deleteRegisterSession,
-    "createFeedbackSession": createFeedbackSession,
-    "getFeedbackSession": getFeedbackSession,
-    "deleteFeedbackSession": deleteFeedbackSession,
-    "createPublicBusSession": createPublicBusSession,
-    "getPublicBusSession": getPublicBusSession,
-    "deletePublicBusSession": deletePublicBusSession,
-    "createNusBusSession": createNusBusSession,
-    "getNusBusSession": getNusBusSession,
-    "deleteNusBusSession": deleteNusBusSession,
-    "createFaultSession": createNusBusSession,
-    "getFaultSession": getNusBusSession,
-    "deleteFaultSession": deleteNusBusSession
+    cancel,
+    createRegisterSession,
+    getRegisterSession,
+    deleteRegisterSession,
+    createFeedbackSession,
+    getFeedbackSession,
+    deleteFeedbackSession,
+    createPublicBusSession,
+    getPublicBusSession,
+    deletePublicBusSession,
+    createNusBusSession,
+    getNusBusSession,
+    deleteNusBusSession,
+    createFaultSession,
+    getFaultSession,
+    deleteFaultSession
 };

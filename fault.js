@@ -33,15 +33,16 @@ function continueFeedback(chatId, body, bot) {
         if (body.endsWith('/done')) {
             faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
             if (faultSession.faultFeedback.description.length < 24) {
-                return bot.sendMessage(chatId, 'Description should be at least 23 characters.').then(function() {
+                return bot.sendMessage(chatId, 'You have entered:\n"' + faultSession.faultFeedback.description.trim() + '"\nDescription should be at least 23 characters.').then(function() {
                     ask_continue_description(chatId, bot, faultSession);
                 });
             }
             return submit(chatId, bot, faultSession.faultFeedback);
         }
         faultSession.faultFeedback[faultSession.key] += body;
+    } else {
+        faultSession.faultFeedback[faultSession.key] = body;
     }
-    faultSession.faultFeedback[faultSession.key] = body;
     return faultSession.next(chatId, bot, faultSession);
 }
 
@@ -234,16 +235,16 @@ function submit(chatId, bot, faultFeedback) {
 }
 
 module.exports = {
-    ask_category: ask_category,
-    ask_urgency: ask_urgency,
-    ask_location: ask_location,
-    ask_name: ask_name,
-    ask_matric: ask_matric,
-    ask_phone: ask_phone,
-    ask_room: ask_room,
-    ask_description: ask_description,
-    ask_continue_description: ask_continue_description,
+    ask_category,
+    ask_urgency,
+    ask_location,
+    ask_name,
+    ask_matric,
+    ask_phone,
+    ask_room,
+    ask_description,
+    ask_continue_description,
     start,
     continueFeedback,
-    submit: submit
+    submit
 };
