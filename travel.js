@@ -97,7 +97,7 @@ function nusbus(chatId, busstop, location, callback) {
             return nusBusQuery(busstop, callback, location);
         }
     } else {
-        return callback(greeting);  
+        return callback(greeting);
     }
 }
 

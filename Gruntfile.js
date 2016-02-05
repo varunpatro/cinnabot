@@ -4,6 +4,7 @@ module.exports = function(grunt) {
         jshint: {
             files: ['Gruntfile.js', '*.js'],
             options: {
+                esnext: true,
                 ignores: ['test*']
             }
         },
