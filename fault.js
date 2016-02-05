@@ -1,8 +1,49 @@
 var rest = require('restler');
 var db = require('./db');
 var util = require('./util');
+var auth = require('./auth');
+var sessions = require('./sessions');
 
 var MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
+
+function start(chatId, bot, callback) {
+    function authCallback(row) {
+        if (!row) {
+            callback('Sorry you\'re not registered. Type /register to register.');
+            // } else if (!row.isCinnamonResident) {
+            //     bot.sendMessage(chatId, 'Sorry you must be a Cinnamon resident to use this feature :(');
+        } else {
+            var faultSession = sessions.createFaultSession(chatId);
+            ask_category(chatId, bot, faultSession);
+        }
+    }
+    auth.isCinnamonResident(chatId, authCallback);
+}
+
+function continueFeedback(chatId, body, bot) {
+    var faultSession = sessions.getFaultSession(chatId);
+    if (faultSession.key === 'phone') {
+        if ((body.length !== 8) || isNaN(parseInt(body))) {
+            return bot.sendMessage(chatId, 'Phone number must be 8 numerical digits.').then(function() {
+                ask_phone(chatId, bot, faultSession);
+            });
+        }
+    }
+    if (faultSession.key === 'description') {
+        if (body.endsWith('/done')) {
+            faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
+            if (faultSession.faultFeedback.description.length < 24) {
+                return bot.sendMessage(chatId, 'Description should be at least 23 characters.').then(function() {
+                    ask_continue_description(chatId, bot, faultSession);
+                });
+            }
+            return submit(chatId, bot, faultSession.faultFeedback);
+        }
+        faultSession.faultFeedback[faultSession.key] += body;
+    }
+    faultSession.faultFeedback[faultSession.key] = body;
+    return faultSession.next(chatId, bot, faultSession);
+}
 
 function ask_category(chatId, bot, faultSession) {
     var opts = {
@@ -185,9 +226,11 @@ function submit(chatId, bot, faultFeedback) {
         '&entry.858293967=' + faultFeedback.phone +
         '&entry.113024073=' + faultFeedback.description;
 
-    rest.get(feedbackURL).on('complete', function(data) {
-        bot.sendMessage(chatId, "Fault has been reported. Please check your email!");
-    });
+    // rest.get(feedbackURL).on('complete', function(data) {
+    //     bot.sendMessage(chatId, "Fault has been reported. Please check your email!");
+    // });
+    sessions.deleteFaultSession(chatId);
+    console.log(feedbackURL);
 }
 
 module.exports = {
@@ -200,5 +243,7 @@ module.exports = {
     ask_room: ask_room,
     ask_description: ask_description,
     ask_continue_description: ask_continue_description,
+    start,
+    continueFeedback,
     submit: submit
 };
