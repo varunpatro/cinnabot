@@ -4,6 +4,10 @@ var feedbackSessions = new NodeCache({
     useClones: false
 });
 var publicBusSessions = new NodeCache();
+var nusBusSessions = new NodeCache();
+var faultSessions = new NodeCache({
+    useClones: false
+});
 
 function RegisterSession(chatId) {
     this.chatId = chatId;
@@ -46,7 +50,7 @@ function PublicBusSession(chatId) {
 }
 
 function createPublicBusSession(chatId) {
-    publicBusSessions.set(chatId, new PublicBusSession(chatId), 30);
+    publicBusSessions.set(chatId, new PublicBusSession(chatId));
     return publicBusSessions.get(chatId);
 }
 
@@ -58,26 +62,78 @@ function deletePublicBusSession(chatId) {
     return publicBusSessions.del(chatId);
 }
 
+function NusBusSession(chatId) {
+    this.chatId = chatId;
+}
+
+function createNusBusSession(chatId) {
+    nusBusSessions.set(chatId, new NusBusSession(chatId));
+    return nusBusSessions.get(chatId);
+}
+
+function getNusBusSession(chatId) {
+    return nusBusSessions.get(chatId);
+}
+
+function deleteNusBusSession(chatId) {
+    return nusBusSessions.del(chatId);
+}
+
+function FaultSession(chatId) {
+    this.chatId = chatId;
+    this.key = 'category';
+    this.next = null;
+    this.faultFeedback = {
+        category: 'New',
+        urgency: 'Urgent',
+        location: '',
+        name: '',
+        room: '',
+        matric: '',
+        email: '',
+        phone: '',
+        description: ''
+    };
+}
+
+function createFaultSession(chatId) {
+    faultSessions.set(chatId, new FaultSession(chatId));
+    return faultSessions.get(chatId);
+}
+
+function getFaultSession(chatId) {
+    return faultSessions.get(chatId);
+}
+
+function deleteFaultSession(chatId) {
+    return faultSessions.del(chatId);
+}
+
 function cancel(chatId, callback) {
     deleteFeedbackSession(chatId);
     deleteRegisterSession(chatId);
     deletePublicBusSession(chatId);
+    deleteNusBusSession(chatId);
+    deleteFaultSession(chatId);
     // diningSessions[chatId] = new DiningSession(chatId);
-    // nusbusSessions[chatId] = new NusBusSession(chatId);
-    // faultSessions[chatId] = new FaultSession(chatId);
-
     callback("Your command has been *canceled*.");
 }
 
 module.exports = {
-    "cancel": cancel,
-    "createRegisterSession": createRegisterSession,
-    "getRegisterSession": getRegisterSession,
-    "deleteRegisterSession": deleteRegisterSession,
-    "createFeedbackSession": createFeedbackSession,
-    "getFeedbackSession": getFeedbackSession,
-    "deleteFeedbackSession": deleteFeedbackSession,
-    "createPublicBusSession": createPublicBusSession,
-    "getPublicBusSession": getPublicBusSession,
-    "deletePublicBusSession": deletePublicBusSession
+    cancel,
+    createRegisterSession,
+    getRegisterSession,
+    deleteRegisterSession,
+    createFeedbackSession,
+    getFeedbackSession,
+    deleteFeedbackSession,
+    createPublicBusSession,
+    getPublicBusSession,
+    deletePublicBusSession,
+    createNusBusSession,
+    getNusBusSession,
+    deleteNusBusSession,
+    createFaultSession,
+    getFaultSession,
+    deleteFaultSession
 };

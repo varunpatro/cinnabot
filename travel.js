@@ -28,7 +28,7 @@ function bus(chatId, busstop, location, callback) {
     if (busstop === "nearest bus stop") {
         return callback(locResponse);
     } else if ((busstop || location)) {
-        if (busstop != "bus") {
+        if (busstop !== "bus") {
             return publicBusQuery(busstop, callback, location);
         }
     } else {
@@ -83,7 +83,25 @@ function publicBusQuery(id, callback, location) {
     });
 }
 
-function nusbus(callback, busstop_name, location) {
+function nusbus(chatId, busstop, location, callback) {
+    var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
+    locResponse += "You can do this by selecting the paperclip icon (📎) ";
+    locResponse += "followed by attaching your location (📌).";
+
+    var greeting = "Good " + util.currentTimeGreeting() + ", where would you like NUS bus timings for?";
+
+    if (busstop === "nearest bus stop") {
+        return callback(locResponse);
+    } else if ((busstop || location)) {
+        if (busstop !== "bus") {
+            return nusBusQuery(busstop, callback, location);
+        }
+    } else {
+        return callback(greeting);
+    }
+}
+
+function nusBusQuery(busstop_name, callback, location) {
     var busstopMap = {
         "utown": "UTown",
         "computing": "COM2",
