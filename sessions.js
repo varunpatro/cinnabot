@@ -92,7 +92,8 @@ function FaultSession(chatId) {
         matric: '',
         email: '',
         phone: '',
-        description: ''
+        permission: '',
+        description: '',
     };
 }
 

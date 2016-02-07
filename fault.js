@@ -30,6 +30,11 @@ function continueFeedback(chatId, body, bot) {
         }
     }
     if (faultSession.key === 'description') {
+        var remindDone = function() {
+            bot.sendMessage(chatId, "Please remember to type /done when you are done.");
+            //setTimeout(remindDone, 20 * 1000);
+        };
+        setTimeout(remindDone, 20 * 1000);
         if (body.endsWith('/done')) {
             faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
             if (faultSession.faultFeedback.description.length < 24) {
@@ -188,9 +193,27 @@ function ask_phone(chatId, bot, faultSession) {
     msg = "Please enter your *phone number*:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "phone";
-    faultSession.next = ask_description;
+    faultSession.next = ask_permission;
     faultSession.back = ask_email;
 }
+
+function ask_permission(chatId, bot, faultSession) {
+    var opts = {
+        parse_mode: "Markdown",
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ['Yes', 'No']
+            ],
+            one_time_keyboard: true
+        })
+    };
+    msg = "*Do you consent to OHS entering your room without your presence to rectify the fault?*\n" + MSG_INFO;
+    bot.sendMessage(chatId, msg, opts);
+    faultSession.key = "permission";
+    faultSession.back = ask_phone;
+    faultSession.next = ask_description;
+}
+
 
 function ask_description(chatId, bot, faultSession) {
     var opts = {
@@ -225,11 +248,9 @@ function submit(chatId, bot, faultFeedback) {
         '&entry.1836226199=' + faultFeedback.matric +
         '&entry.2119962668=' + faultFeedback.email +
         '&entry.858293967=' + faultFeedback.phone +
+        '&entry.1755718880=' + faultFeedback.permission +
         '&entry.113024073=' + faultFeedback.description;
 
-    // rest.get(feedbackURL).on('complete', function(data) {
-    //     bot.sendMessage(chatId, "Fault has been reported. Please check your email!");
-    // });
     sessions.deleteFaultSession(chatId);
     console.log(feedbackURL);
 }
@@ -242,6 +263,7 @@ module.exports = {
     ask_matric,
     ask_phone,
     ask_room,
+    ask_permission,
     ask_description,
     ask_continue_description,
     start,
