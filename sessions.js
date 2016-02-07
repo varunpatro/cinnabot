@@ -23,12 +23,12 @@ function getRegisterSession(chatId) {
 }
 
 function deleteRegisterSession(chatId) {
-    return registerSessions.del(chatId);
+    return registerSessions.del(chatId.toString());
 }
 
 function FeedbackSession(chatId) {
     this.chatId = chatId;
-    this.feedbackMsg = "";
+    this.feedbackMsg = '';
     feedbackSessions[chatId] = this;
 }
 
@@ -42,7 +42,7 @@ function getFeedbackSession(chatId) {
 }
 
 function deleteFeedbackSession(chatId) {
-    return feedbackSessions.del(chatId);
+    return feedbackSessions.del(chatId.toString());
 }
 
 function PublicBusSession(chatId) {
@@ -59,7 +59,7 @@ function getPublicBusSession(chatId) {
 }
 
 function deletePublicBusSession(chatId) {
-    return publicBusSessions.del(chatId);
+    return publicBusSessions.del(chatId.toString());
 }
 
 function NusBusSession(chatId) {
@@ -76,7 +76,7 @@ function getNusBusSession(chatId) {
 }
 
 function deleteNusBusSession(chatId) {
-    return nusBusSessions.del(chatId);
+    return nusBusSessions.del(chatId.toString());
 }
 
 function FaultSession(chatId) {
@@ -106,7 +106,7 @@ function getFaultSession(chatId) {
 }
 
 function deleteFaultSession(chatId) {
-    return faultSessions.del(chatId);
+    return faultSessions.del(chatId.toString());
 }
 
 function cancel(chatId, callback) {
@@ -116,7 +116,7 @@ function cancel(chatId, callback) {
     deleteNusBusSession(chatId);
     deleteFaultSession(chatId);
     // diningSessions[chatId] = new DiningSession(chatId);
-    callback("Your command has been *canceled*.");
+    callback('Your command has been *canceled*.');
 }
 
 module.exports = {
