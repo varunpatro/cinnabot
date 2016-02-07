@@ -87,9 +87,9 @@ function getLinks(chatId, callback) {
 }
 
 module.exports = {
- getLinks,
-     help,
-  start_feedback,
+    getLinks,
+    help,
+    start_feedback,
     continue_feedback,
     done_feedback
 };

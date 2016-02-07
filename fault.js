@@ -5,7 +5,7 @@ var auth = require('./auth');
 var sessions = require('./sessions');
 
 const MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
-const timeDelay = 30*1000;
+const timeDelay = 30 * 1000;
 
 function start(chatId, bot, callback) {
     function authCallback(row) {
