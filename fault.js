@@ -4,7 +4,8 @@ var util = require('./util');
 var auth = require('./auth');
 var sessions = require('./sessions');
 
-var MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
+const MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
+const timeDelay = 30*1000;
 
 function start(chatId, bot, callback) {
     function authCallback(row) {
@@ -32,9 +33,9 @@ function continueFeedback(chatId, body, bot) {
     if (faultSession.key === 'description') {
         var remindDone = function() {
             bot.sendMessage(chatId, "Please remember to type /done when you are done.");
-            setTimeout(remindDone, 20 * 1000);
+            setTimeout(remindDone, timeDelay);
         };
-        setTimeout(remindDone, 20 * 1000);
+        setTimeout(remindDone, timeDelay);
         if (body.endsWith('/done')) {
             faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
             if (faultSession.faultFeedback.description.length < 24) {
@@ -255,7 +256,6 @@ function submit(chatId, bot, faultFeedback) {
         bot.sendMessage(chatId, "Fault has been reported. Please check your email 😃");
     });
     sessions.deleteFaultSession(chatId);
-    console.log(feedbackURL);
 }
 
 module.exports = {

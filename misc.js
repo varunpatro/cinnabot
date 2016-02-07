@@ -2,6 +2,8 @@ var auth = require('./auth');
 var sessions = require('./sessions');
 var logger = require('./logger');
 
+const timeDelay = 30 * 1000;
+
 function start_feedback(chatId, callback) {
     var feedbackMsg = "Thanks for using Cinnabot 😁\n";
     feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
@@ -9,18 +11,16 @@ function start_feedback(chatId, callback) {
     feedbackMsg += "Type /cancel to cancel feedback";
     var remindDone = function() {
         callback("Please remember to type /done when you are done.");
-        setTimeout(remindDone, 20 * 1000);
+        setTimeout(remindDone, timeDelay);
     };
-    setTimeout(remindDone, 20 * 1000);
+    setTimeout(remindDone, timeDelay);
     var feedbackSession = sessions.createFeedbackSession(chatId);
     return callback(feedbackMsg);
 }
 
 function continue_feedback(body, chatId, msg, callback) {
     var feedbackSession = sessions.getFeedbackSession(chatId);
-    console.log('bef ' + feedbackSession.feedbackMsg);
     feedbackSession.feedbackMsg += body + "\n";
-    console.log('aft ' + feedbackSession.feedbackMsg);
     if (body.endsWith("/done")) {
         return done_feedback(chatId, msg, callback);
     }
@@ -87,9 +87,9 @@ function getLinks(chatId, callback) {
 }
 
 module.exports = {
-    "getLinks": getLinks,
-    "help": help,
-    "start_feedback": start_feedback,
-    "continue_feedback": continue_feedback,
-    "done_feedback": done_feedback
+ getLinks,
+     help,
+  start_feedback,
+    continue_feedback,
+    done_feedback
 };
