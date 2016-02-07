@@ -142,9 +142,7 @@ function submit(chatId, bot) {
     var diningSession = sessions.getDiningSession(chatId);
     var df = diningSession.diningFeedback;
 
-    logger.dining(chatId, function() {
-        bot.sendMessage(chatId, 'Thanks!');
-    });
+    logger.dining(chatId, bot);
 
     // TODO: Remove remote logging of dining feedback.
     var feedbackURL = 'https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=' + df.when + '&entry.385772714=' + df.how;

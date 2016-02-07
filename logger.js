@@ -35,11 +35,12 @@ function feedback(feedbackMsg, msg, callback) {
     });
 }
 
-function dining(chatId, callback) {
+function dining(chatId, bot) {
     var df = sessions.getDiningSession(chatId).diningFeedback;
     var now = new Date();
     if (diningStmt) {
         diningStmt.run(now, chatId, df.when, df.where, df.how, df.feedbackMsg);
+        bot.sendMessage(chatId, 'Thanks!');
     }
 
     if (df.feedbackMsg.length > 100) {
@@ -49,7 +50,7 @@ function dining(chatId, callback) {
         // msgToSend += "From: " + msg.from.first_name + " " + msg.from.last_name + " (" + msg.from.username + ")\n";
         msgToSend += "Message: " + df.feedbackMsg;
         admins.forEach(function(admin) {
-            callback(msgToSend, admin);
+            bot.sendMessage(admin, msgToSend);
         });
     }
 }
