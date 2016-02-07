@@ -41,6 +41,10 @@ function getLogTable(callback) {
     return db.all('SELECT * FROM log', callback);
 }
 
+function getUserTable(callback) {
+    return db.all('SELECT * FROM user', callback);
+}
+
 function getUser(userId, callback) {
     return db.get('SELECT * FROM user where userid=' + userId, callback);
 }
@@ -54,8 +58,9 @@ module.exports = {
     getLogStmt,
     getFeebackStmt,
     getLogTable,
+    getUserTable,
     getUserStmt,
     getDiningStmt,
     getUser,
-    getFeedbackMsg
+    getFeedbackMsg,
 };
