@@ -251,6 +251,9 @@ function submit(chatId, bot, faultFeedback) {
         '&entry.1755718880=' + faultFeedback.permission +
         '&entry.113024073=' + faultFeedback.description;
 
+    rest.get(feedbackURL).on('complete', function(data) {
+        bot.sendMessage(chatId, "Fault has been reported. Please check your email 😃");
+    });
     sessions.deleteFaultSession(chatId);
     console.log(feedbackURL);
 }
