@@ -1,41 +1,53 @@
 var rest = require('restler');
-var MSG_CANCEL = "Type /cancel to cancel feedback.";
+var auth = require('./auth');
+var logger = require('./logger');
+var sessions = require('./sessions');
 
-function dining_stats(chatId, bot, when, where, how) {
-    var statsURL = 'https://script.google.com/macros/s/AKfycbw22JUY0XVktavbywTQ7z--mTe7CFbL8X-Bgb6fX-JVNcjGBbeA/exec?';
-    statsURL += 'when=' + when;
-    statsURL += '&where=' + where;
+const MSG_CANCEL = 'Type /cancel to cancel feedback.';
 
-    function callback(data) {
-        var avgRating = parseFloat(data);
-        var roundedAvgRating = Math.round(avgRating * 100) / 100;
-        roundedAvgRating = (isNaN(roundedAvgRating) ? how : roundedAvgRating);
-        var msg = "Avg rating for " + where + " stall at " + when + " is: " + roundedAvgRating;
-        bot.sendMessage(chatId, msg, {
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
+function start(chatId, bot) {
+    function authCallback(row) {
+        if (!row) {
+            bot.sendMessage(chatId, 'Sorry you\'re not registered. Type /register to register.');
+            // } else if (!row.isCinnamonResident) {
+            //     bot.sendMessage(chatId, 'Sorry you must be a Cinnamon resident to use this feature :(');
+        } else {
+            var diningSession = sessions.createDiningSession(chatId);
+            choose_option(chatId, bot);
+        }
     }
-    rest.get(statsURL).on('complete', callback);
+    auth.isCinnamonResident(chatId, authCallback);
 }
 
-function dining_feedback(chatId, bot, when, where, how) {
-    var feedbackURL = "https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=" + when + "&entry.385772714=" + how;
-
-    if (when === "Dinner") {
-        feedbackURL += "&entry.1055773284=" + where;
-    } else if (when === "Breakfast") {
-        feedbackURL += "&entry.1929069273=" + where;
-    }
-
-    rest.get(feedbackURL).on('complete', function(data) {
-        bot.sendMessage(chatId, "Thanks!");
-        return dining_stats(chatId, bot, when, where, how);
-    });
+function choose_option(chatId, bot) {
+    var opts = {
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ['Rate Food', 'View Ratings'],
+                ['Give Feedback']
+            ],
+            one_time_keyboard: true
+        })
+    };
+    msg = 'What would you like to do?\n' + MSG_CANCEL;
+    bot.sendMessage(chatId, msg, opts);
+    sessions.getDiningSession(chatId).next = dispatch_option;
 }
 
-function ask_when_dining_feedback(chatId, bot) {
+function dispatch_option(chatId, bot, option) {
+    if (option === 'Rate Food') {
+        ask_when(chatId, bot);
+    } else if (option === 'View Ratings') {
+        view_ratings();
+    } else if (option === 'Give Feedback') {
+        ask_feedback(chatId, bot);
+    } else {
+        bot.sendMessage(chatId, 'Hey we didn\'t understand that option! Try again.\n' + MSG_CANCEL);
+        choose_option(chatId, bot);
+    }
+}
+
+function ask_when(chatId, bot) {
     var opts = {
         reply_markup: JSON.stringify({
             keyboard: [
@@ -44,19 +56,23 @@ function ask_when_dining_feedback(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    msg = "When did you eat?\n" + MSG_CANCEL;
+    msg = 'When did you eat?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
+    sessions.getDiningSession(chatId).next = ask_where;
 }
 
-function ask_where_dining_feedback(chatId, bot, when) {
+function ask_where(chatId, bot, when) {
+    var diningSession = sessions.getDiningSession(chatId);
+    diningSession.diningFeedback.when = when;
+
     var keyboard = [];
-    if (when === "Breakfast") {
+    if (when === 'Breakfast') {
         keyboard = [
             ['Asian', 'Western'],
             ['Muslim', 'Toast'],
-            ['Other']
+            ['Grab & Go']
         ];
-    } else if (when === "Dinner") {
+    } else if (when === 'Dinner') {
         keyboard = [
             ['Noodle', 'Asian'],
             ['Western - Main Course', 'Western - Panini'],
@@ -69,11 +85,15 @@ function ask_where_dining_feedback(chatId, bot, when) {
             one_time_keyboard: true
         })
     };
-    msg = "Which stall?\n" + MSG_CANCEL;
+    msg = 'Which stall?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
+    diningSession.next = ask_how;
 }
 
-function ask_how_dining_feedback(chatId, bot) {
+function ask_how(chatId, bot, where) {
+    var diningSession = sessions.getDiningSession(chatId);
+    diningSession.diningFeedback.where = where;
+
     var opts = {
         reply_markup: JSON.stringify({
             keyboard: [
@@ -83,14 +103,84 @@ function ask_how_dining_feedback(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    msg = "How was it?\n" + MSG_CANCEL;
+    msg = 'How was it?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
+    diningSession.next = ask_feedback;
 }
 
+function ask_feedback(chatId, bot, how) {
+    var diningSession = sessions.getDiningSession(chatId);
+    var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
+    if (validOptions.indexOf(how) < 0) {
+        return ask_how(df.where, chatId);
+    }
+    diningSession.diningFeedback.how = how.length / 2;
+
+    bot.sendMessage(chatId, 'Any additional comments?\n\nType /done to end.\n' + MSG_CANCEL);
+    diningSession.next = continue_feedback;
+}
+
+function continue_feedback(chatId, bot, msg) {
+    msg = (msg) ? msg : "";
+    var diningSession = sessions.getDiningSession(chatId);
+    diningSession.diningFeedback.feedbackMsg += msg + '\n';
+
+    if (msg.endsWith('/done')) {
+        done(chatId, bot);
+    } else {
+        diningSession.next = continue_feedback;
+    }
+}
+
+function done(chatId, bot) {
+    var diningSession = sessions.getDiningSession(chatId);
+    submit(chatId, bot);
+    sessions.deleteDiningSession(chatId);
+}
+
+function submit(chatId, bot) {
+    var diningSession = sessions.getDiningSession(chatId);
+    var df = diningSession.diningFeedback;
+
+    logger.dining(chatId, function() {
+        bot.sendMessage(chatId, 'Thanks!');
+    });
+
+    // TODO: Remove remote logging of dining feedback.
+    var feedbackURL = 'https://docs.google.com/forms/d/17IQ-KQCiDWPlJ992yIQIFxocPbBvvqKJTXmzoxOUPJQ/formResponse?entry.1834728229=' + df.when + '&entry.385772714=' + df.how;
+
+    if (df.when === 'Dinner') {
+        feedbackURL += '&entry.1055773284=' + df.where;
+    } else if (df.when === 'Breakfast') {
+        feedbackURL += '&entry.1929069273=' + df.where;
+    }
+    rest.get(feedbackURL).on('complete', function(data) {
+        // bot.sendMessage(chatId, 'Thanks!');
+        // return stats(chatId, bot);
+    });
+}
+
+function stats(chatId, bot, when, where, how) {
+    var statsURL = 'https://script.google.com/macros/s/AKfycbw22JUY0XVktavbywTQ7z--mTe7CFbL8X-Bgb6fX-JVNcjGBbeA/exec?';
+    statsURL += 'when=' + when;
+    statsURL += '&where=' + where;
+
+    function callback(data) {
+        var avgRating = parseFloat(data);
+        var roundedAvgRating = Math.round(avgRating * 100) / 100;
+        roundedAvgRating = (isNaN(roundedAvgRating) ? how : roundedAvgRating);
+        var msg = 'Avg rating for ' + where + ' stall at ' + when + ' is: ' + roundedAvgRating;
+        bot.sendMessage(chatId, msg, {
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    }
+    rest.get(statsURL).on('complete', callback);
+}
+
+
+
 module.exports = {
-    "dining_feedback": dining_feedback,
-    "dining_stats": dining_stats,
-    "ask_where_dining_feedback": ask_where_dining_feedback,
-    "ask_when_dining_feedback": ask_when_dining_feedback,
-    "ask_how_dining_feedback": ask_how_dining_feedback
+    start,
 };

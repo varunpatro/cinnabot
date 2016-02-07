@@ -40,7 +40,6 @@ console.log(chalk.green('============================'));
 console.log(chalk.green('                            '));
 
 var diningSessions = {};
-var faultSessions = {};
 
 function createBasicCallback(chatId) {
     return function(msg, sendId) {
@@ -156,8 +155,7 @@ bot.on('message', function(msg) {
                 busstop = args;
                 return travel.nusbus(chatId, busstop, msg.location, createNusBusOptionsCallback(chatId));
             case 'dining':
-                diningSessions[chatId] = diningSessions[chatId] || new DiningSession(chatId);
-                return ask_dining_feedback(chatId);
+                return dining.start(chatId, bot);
             case 'spaces':
                 return cinnamon.getAllSpaces(chatId, basicCallback);
             case 'events':
@@ -206,9 +204,9 @@ bot.on('message', function(msg) {
             case 'towards clementi':
                 return bus(chatId, '19059');
             default:
-                var diningSession = diningSessions[chatId] || new DiningSession(chatId);
-                if (diningSession.inThread.status) {
-                    return diningSession.inThread.next(body, chatId);
+                var diningSession = sessions.getDiningSession(chatId);
+                if (diningSession) {
+                    return diningSession.next(chatId, bot, body);
                 }
                 if (sessions.getFeedbackSession(chatId)) {
                     return misc.continue_feedback(body, chatId, msg, basicCallback);
@@ -285,17 +283,6 @@ function processLocation(msg) {
     return default_msg(chatId);
 }
 
-function cancel(chatId) {
-    diningSessions[chatId] = new DiningSession(chatId);
-    faultSessions[chatId] = new FaultSession(chatId);
-    bot.sendMessage(chatId, 'Your command has been *canceled*.', {
-        parse_mode: 'Markdown',
-        reply_markup: JSON.stringify({
-            hide_keyboard: true
-        })
-    });
-}
-
 function catfact(chatId) {
     return do_not_open.catfact(chatId, bot);
 }
@@ -303,144 +290,6 @@ function catfact(chatId) {
 function cnjoke(chatId) {
     return do_not_open.cnjoke(chatId, bot);
 }
-
-function ask_dining_feedback(chatId) {
-    function callback(row) {
-        if (!row) {
-            bot.sendMessage(chatId, 'Sorry you\'re not registered. Type /register to register.');
-            // } else if (!row.isCinnamonResident) {
-            //     bot.sendMessage(chatId, 'Sorry you must be a Cinnamon resident to use this feature :(');
-        } else {
-            var diningSession = diningSessions[chatId];
-            diningSession.inThread.status = true;
-            dining.ask_when_dining_feedback(chatId, bot);
-            diningSession.inThread.next = ask_where_dining_feedback;
-        }
-    }
-    auth.isCinnamonResident(chatId, callback);
-}
-
-function ask_where_dining_feedback(when, chatId) {
-    var validOptions = ['Breakfast', 'Dinner'];
-    if (validOptions.indexOf(when) < 0) {
-        return ask_dining_feedback(chatId);
-    }
-    var diningSession = diningSessions[chatId];
-    diningSession.diningFeedback.when = when;
-    dining.ask_where_dining_feedback(chatId, bot, when);
-    diningSession.inThread.next = ask_how_dining_feedback;
-}
-
-function ask_how_dining_feedback(where, chatId) {
-    var diningSession = diningSessions[chatId];
-    var df = diningSession.diningFeedback;
-    var validOptions = [];
-    if (df.when === 'Breakfast') {
-        validOptions = ['Asian', 'Western', 'Muslim', 'Toast', 'Other'];
-    } else if (df.when === 'Dinner') {
-        validOptions = ['Noodle', 'Asian', 'Western - Main Course', 'Western - Panini', 'Indian', 'Malay', 'Late Plate'];
-    }
-    if (validOptions.indexOf(where) < 0) {
-        return ask_where_dining_feedback(df.when, chatId);
-    }
-    df.where = where;
-    dining.ask_how_dining_feedback(chatId, bot);
-    diningSession.inThread.next = done_dining_feedback;
-}
-
-function done_dining_feedback(how, chatId) {
-    var diningSession = diningSessions[chatId];
-    var df = diningSession.diningFeedback;
-    var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
-    if (validOptions.indexOf(how) < 0) {
-        return ask_how_dining_feedback(df.where, chatId);
-    }
-    df.how = how.length / 2;
-    dining.dining_feedback(chatId, bot, df.when, df.where, df.how);
-    diningSessions[chatId] = new DiningSession(chatId);
-}
-
-function DiningSession(chatId) {
-    this.chatId = chatId;
-    this.inThread = {
-        'status': false,
-        'next': ask_where_dining_feedback
-    };
-    this.diningFeedback = new DiningFeedback();
-    diningSessions[chatId] = this;
-}
-
-function DiningFeedback() {
-    this.when = '';
-    this.where = '';
-    this.how = -1;
-}
-
-// function ask_fault_feedback(chatId) {
-//     function callback(row) {
-//         if (!row) {
-//             bot.sendMessage(chatId, 'Sorry you\'re not registered. Type /register to register.');
-//             // } else if (!row.isCinnamonResident) {
-//             //     bot.sendMessage(chatId, 'Sorry you must be a Cinnamon resident to use this feature :(');
-//         } else {
-//             var faultSession = faultSessions[chatId];
-//             faultSession.onGoing = true;
-//             fault.ask_category(chatId, bot, faultSession);
-//         }
-//     }
-//     auth.isCinnamonResident(chatId, callback);
-// }
-
-// function continue_fault_feedback(chatId, body) {
-//     var faultSession = faultSessions[chatId];
-//     if (faultSession.key === 'phone') {
-//         if ((body.length !== 8) || isNaN(parseInt(body))) {
-//             return bot.sendMessage(chatId, 'Phone number must be 8 numerical digits.').then(function() {
-//                 fault.ask_phone(chatId, bot, faultSession);
-//             });
-//         }
-//     }
-//     if (faultSession.key === 'description') {
-//         if (body.endsWith('/done')) {
-//             faultSession.faultFeedback[faultSession.key] += body.substring(0, body.length - 6);
-//             if (faultSession.faultFeedback.description.length < 24) {
-//                 return bot.sendMessage(chatId, 'Description should be at least 23 characters.').then(function() {
-//                     fault.ask_continue_description(chatId, bot, faultSession);
-//                 });
-//             }
-//             return done_fault(chatId);
-//         }
-//         faultSession.faultFeedback[faultSession.key] += body;
-//     }
-//     faultSession.faultFeedback[faultSession.key] = body;
-//     return faultSession.next(chatId, bot, faultSession);
-// }
-
-// function done_fault(chatId) {
-//     var faultSession = faultSessions[chatId];
-//     fault.submit(chatId, bot, faultSession.faultFeedback);
-// }
-
-// function FaultSession(chatId) {
-//     this.chatId = chatId;
-//     this.onGoing = false;
-//     this.key = 'category';
-//     this.next = ask_fault_feedback;
-//     this.faultFeedback = new FaultFeedback();
-//     faultSessions[chatId] = this;
-// }
-
-// function FaultFeedback() {
-//     this.category = 'New';
-//     this.urgency = 'Urgent';
-//     this.location = '';
-//     this.name = '';
-//     this.room = '';
-//     this.matric = '';
-//     this.email = '';
-//     this.phone = '';
-//     this.description = '';
-// }
 
 function welcome_msg(chatId) {
     bot.sendMessage(chatId, 'You\'re welcome😚 ', {
