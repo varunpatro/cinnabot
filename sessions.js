@@ -50,7 +50,7 @@ function PublicBusSession(chatId) {
 }
 
 function createPublicBusSession(chatId) {
-    publicBusSessions.set(chatId, new PublicBusSession(chatId));
+    publicBusSessions.set(chatId, new PublicBusSession(chatId), 30);
     return publicBusSessions.get(chatId);
 }
 
@@ -67,7 +67,7 @@ function NusBusSession(chatId) {
 }
 
 function createNusBusSession(chatId) {
-    nusBusSessions.set(chatId, new NusBusSession(chatId));
+    nusBusSessions.set(chatId, new NusBusSession(chatId), 30);
     return nusBusSessions.get(chatId);
 }
 
@@ -92,12 +92,13 @@ function FaultSession(chatId) {
         matric: '',
         email: '',
         phone: '',
-        description: ''
+        permission: '',
+        description: '',
     };
 }
 
 function createFaultSession(chatId) {
-    faultSessions.set(chatId, new FaultSession(chatId));
+    faultSessions.set(chatId, new FaultSession(chatId), 120);
     return faultSessions.get(chatId);
 }
 
