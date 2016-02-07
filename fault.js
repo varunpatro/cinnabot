@@ -32,7 +32,7 @@ function continueFeedback(chatId, body, bot) {
     if (faultSession.key === 'description') {
         var remindDone = function() {
             bot.sendMessage(chatId, "Please remember to type /done when you are done.");
-            //setTimeout(remindDone, 20 * 1000);
+            setTimeout(remindDone, 20 * 1000);
         };
         setTimeout(remindDone, 20 * 1000);
         if (body.endsWith('/done')) {

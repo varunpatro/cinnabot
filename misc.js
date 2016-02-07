@@ -7,7 +7,11 @@ function start_feedback(chatId, callback) {
     feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
     feedbackMsg += "Type /done to end the feedback session.\n";
     feedbackMsg += "Type /cancel to cancel feedback";
-
+    var remindDone = function() {
+        callback("Please remember to type /done when you are done.");
+        setTimeout(remindDone, 20 * 1000);
+    };
+    setTimeout(remindDone, 20 * 1000);
     var feedbackSession = sessions.createFeedbackSession(chatId);
     return callback(feedbackMsg);
 }
