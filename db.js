@@ -45,6 +45,14 @@ function getUserTable(callback) {
     return db.all('SELECT * FROM user', callback);
 }
 
+function getBreakfastRatings(callback) {
+    return db.all("SELECT stall,AVG(rating) AS average FROM dining WHERE date(time/1000,'unixepoch','localtime')=date('now','localtime') AND mealperiod = 'Breakfast' GROUP BY stall ORDER BY average DESC", callback);
+}
+
+function getDinnerRatings(callback) {
+    return db.all("SELECT stall,AVG(rating) AS average FROM dining WHERE date(time/1000,'unixepoch','localtime')=date('now','localtime') AND mealperiod = 'Dinner' GROUP BY stall ORDER BY average DESC", callback);
+}
+
 function getUser(userId, callback) {
     return db.get('SELECT * FROM user where userid=' + userId, callback);
 }
@@ -59,6 +67,8 @@ module.exports = {
     getFeebackStmt,
     getLogTable,
     getUserTable,
+    getBreakfastRatings,
+    getDinnerRatings,
     getUserStmt,
     getDiningStmt,
     getUser,

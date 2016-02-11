@@ -2,6 +2,9 @@ var rest = require('restler');
 var auth = require('./auth');
 var logger = require('./logger');
 var sessions = require('./sessions');
+var BPromise = require('bluebird');
+var db = require('./db');
+var util = require('./util');
 
 const MSG_CANCEL = 'Type /cancel to cancel feedback.';
 
@@ -38,7 +41,7 @@ function dispatch_option(chatId, bot, option) {
     if (option === 'Rate Food') {
         ask_when(chatId, bot);
     } else if (option === 'View Ratings') {
-        view_ratings();
+        viewRatings(chatId, bot);
     } else if (option === 'Give Feedback') {
         ask_feedback(chatId, bot);
     } else {
@@ -177,6 +180,54 @@ function stats(chatId, bot, when, where, how) {
     rest.get(statsURL).on('complete', callback);
 }
 
+function viewRatings(chatId, bot) {
+    var ratings = "";
+    var breakfastRatings = "";
+    var dinnerRatings = "";
+
+    BPromise.promisify(db.getBreakfastRatings)().then(function(rows) {
+        rows.forEach(function(row) {
+            breakfastRatings += row.stall + ' : ' + row.average + '\n';
+
+        });
+    }).then(function() {
+        BPromise.promisify(db.getDinnerRatings)().then(function(rows) {
+            rows.forEach(function(row) {
+                dinnerRatings += row.stall + ' : ' + row.average + '\n';
+                console.log(breakfastRatings);
+                console.log(dinnerRatings);
+            });
+        }).then(function() {
+            var today = new Date();
+            header = '*Food Rating for ' + util.formatDate(today) + '*\n\n';
+
+
+            if ((breakfastRatings === "") & (today.getHours() < 7)) {
+                breakfastRatings = "Breakfast hasn't started, it begins at 7am\n";
+            } else if ((breakfastRatings === "")) {
+                breakfastRatings = "Insufficient Ratings, Perhaps you could contribute?\n";
+            }
+
+            if ((dinnerRatings === "") & (today.getHours() < 17)) {
+                dinnerRatings = "Dinner hasn't started, it begins at 5.30pm\n";
+            } else if ((dinnerRatings === "")) {
+                dinnerRatings = "Insufficient Ratings, Perhaps you could contribute?\n";
+            }
+
+
+            ratings = '_Breakfast_\n\n' + breakfastRatings + '\n';
+            ratings += '_Dinner_\n\n' + dinnerRatings;
+            message = header + ratings;
+
+            bot.sendMessage(chatId, message, {
+                parse_mode: 'Markdown',
+                reply_markup: JSON.stringify({
+                    hide_keyboard: true
+                })
+            });
+        });
+    });
+}
 
 
 module.exports = {
