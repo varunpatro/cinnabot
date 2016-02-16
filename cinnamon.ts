@@ -1,7 +1,8 @@
-var rest = require('restler');
-var util = require('./util');
+import rest = require('restler');
+import util = require('./util');
+import auth = require('./auth');
 
-function getEvents(chatId, bot) {
+export function getEvents(chatId, bot) {
     var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetAllEvents';
     var data = {
         authenticationCode: "USC$2016DevTool"
@@ -19,7 +20,7 @@ function getEvents(chatId, bot) {
         }
         bot.sendMessage(chatId, "No Upcoming Events");
     }).on('error', function(err) {
-        console.log(error);
+        console.log(err);
     });
 }
 
@@ -35,7 +36,7 @@ function filterEvents(data) {
     return filteredMsg;
 }
 
-function getAllSpaces(chatId, callback) {
+export function getAllSpaces(chatId, callback) {
     function authCallback(row) {
         if (!row) {
             callback("Sorry you're not registered. Type /register to register.");
@@ -52,7 +53,7 @@ function getAllSpaces(chatId, callback) {
     auth.isCinnamonResident(chatId, authCallback);
 }
 
-function getSpaces(id, callback) {
+export function getSpaces(id, callback) {
     var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetSpacesBookingRecord';
     var data = {
         'facilityID': id
@@ -93,8 +94,8 @@ function filterSpaces(data) {
     var timeOffset = 8 * 60 * 60 * 1000;
     threeDays.setDate(threeDays.getDate() + 3);
     data.d.forEach(function(event) {
-        var startTime = new Date(new Date(event.start) - timeOffset);
-        var endTime = new Date(new Date(event.end) - timeOffset);
+        var startTime = new Date((new Date(event.start)).getTime() - timeOffset);
+        var endTime = new Date((new Date(event.end)).getTime() - timeOffset);
         if (startTime < threeDays && startTime > today) {
             filteredMsg += event.title + '\n' + util.formatDate(startTime) + ' from ' + util.formatTime(startTime) + ' to ' + util.formatTime(endTime) + '\n\n';
         }
@@ -102,9 +103,3 @@ function filterSpaces(data) {
 
     return filteredMsg;
 }
-
-
-module.exports = {
-    getAllSpaces: getAllSpaces,
-    getEvents: getEvents
-};

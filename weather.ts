@@ -1,11 +1,12 @@
-var rest = require('restler');
-var util = require('./util');
-var neaAuthKey = require('./private/nea_credentials.json').key;
+import rest = require('restler');
+import util = require('./util');
+import neaCreds = require('./private/nea_credentials.json');
 
+var neaAuthKey = neaCreds.key;
 var nowcastURL = 'http://www.nea.gov.sg/api/WebAPI?dataset=nowcast&keyref=' + neaAuthKey;
 var psiURL = 'http://sgp.si/now.json';
 
-function getWeather(callback) {
+export function getWeather(callback) {
     rest.get(nowcastURL).on('complete', function(data) {
         var nowCastJSON = data.channel.item[0];
         var clementiNowcast = nowCastJSON.weatherForecast[0].area[9].$.forecast.trim(); // area[9] is Clementi
@@ -24,7 +25,7 @@ function getWeather(callback) {
 }
 
 function getWeatherEmoji(weatherCode) {
-    weatherEmojiMap = {
+    var weatherEmojiMap = {
         "FD": "☀️",
         "FN": "🌙",
         "PC": "⛅️",
@@ -38,7 +39,3 @@ function getWeatherEmoji(weatherCode) {
     };
     return weatherEmojiMap[weatherCode];
 }
-
-module.exports = {
-    getWeather: getWeather
-};

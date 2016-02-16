@@ -1,11 +1,12 @@
-var rest = require('restler');
-var auth = require('./auth');
-var logger = require('./logger');
-var sessions = require('./sessions');
+import rest = require('restler');
+import auth = require('./auth');
+import logger = require('./logger');
+import sessions = require('./sessions');
+import {dining} from "./logger";
 
 const MSG_CANCEL = 'Type /cancel to cancel feedback.';
 
-function start(chatId, bot) {
+export function start(chatId, bot) {
     function authCallback(row) {
         if (!row) {
             bot.sendMessage(chatId, 'Sorry you\'re not registered. Type /register to register.');
@@ -29,7 +30,7 @@ function choose_option(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    msg = 'What would you like to do?\n' + MSG_CANCEL;
+    var msg = 'What would you like to do?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
     sessions.getDiningSession(chatId).next = dispatch_option;
 }
@@ -56,7 +57,7 @@ function ask_when(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    msg = 'When did you eat?\n' + MSG_CANCEL;
+    var msg = 'When did you eat?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
     sessions.getDiningSession(chatId).next = ask_where;
 }
@@ -85,7 +86,7 @@ function ask_where(chatId, bot, when) {
             one_time_keyboard: true
         })
     };
-    msg = 'Which stall?\n' + MSG_CANCEL;
+    var msg = 'Which stall?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
     diningSession.next = ask_how;
 }
@@ -103,7 +104,7 @@ function ask_how(chatId, bot, where) {
             one_time_keyboard: true
         })
     };
-    msg = 'How was it?\n' + MSG_CANCEL;
+    var msg = 'How was it?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
     diningSession.next = ask_feedback;
 }
@@ -112,7 +113,7 @@ function ask_feedback(chatId, bot, how) {
     var diningSession = sessions.getDiningSession(chatId);
     var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
     if (validOptions.indexOf(how) < 0) {
-        return ask_how(df.where, chatId);
+        return ask_how(chatId, bot, diningSession.diningFeedback.where);
     }
     diningSession.diningFeedback.how = how.length / 2;
 
@@ -176,9 +177,3 @@ function stats(chatId, bot, when, where, how) {
     }
     rest.get(statsURL).on('complete', callback);
 }
-
-
-
-module.exports = {
-    start,
-};

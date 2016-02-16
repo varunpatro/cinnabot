@@ -1,13 +1,13 @@
-var rest = require('restler');
-var db = require('./db');
-var util = require('./util');
-var auth = require('./auth');
-var sessions = require('./sessions');
+import rest = require('restler');
+import db = require('./db');
+import util = require('./util');
+import auth = require('./auth');
+import sessions = require('./sessions');
 
 const MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
 const timeDelay = 30 * 1000;
 
-function start(chatId, bot, callback) {
+export function start(chatId, bot, callback) {
     function authCallback(row) {
         if (!row) {
             callback('Sorry you\'re not registered. Type /register to register.');
@@ -21,7 +21,7 @@ function start(chatId, bot, callback) {
     auth.isCinnamonResident(chatId, authCallback);
 }
 
-function continueFeedback(chatId, body, bot) {
+export function continueFeedback(chatId, body, bot) {
     var faultSession = sessions.getFaultSession(chatId);
     if (faultSession.key === 'phone') {
         if ((body.length !== 8) || isNaN(parseInt(body))) {
@@ -67,7 +67,7 @@ function ask_category(chatId, bot, faultSession) {
     bot.sendMessage(chatId, "*Welcome to Cinnabot's Fault Reporting System*\nThis will send an email to OHS, Cinnamon so please do not abuse it.", {
         parse_mode: "Markdown"
     }).then(function() {
-        msg = "What is your *Problem Category*?\n" + MSG_INFO;
+        var msg = "What is your *Problem Category*?\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
     });
     faultSession.key = "category";
@@ -86,7 +86,7 @@ function ask_urgency(chatId, bot, faultSession) {
             one_time_keyboard: true
         })
     };
-    msg = "How *urgent* is your problem?\n" + MSG_INFO;
+    var msg = "How *urgent* is your problem?\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "urgency";
     faultSession.next = ask_location;
@@ -100,7 +100,7 @@ function ask_location(chatId, bot, faultSession) {
             hide_keyboard: true
         })
     };
-    msg = "Where is the problem *located*?:\n" + MSG_INFO;
+    var msg = "Where is the problem *located*?:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "location";
     faultSession.next = ask_name;
@@ -120,7 +120,7 @@ function ask_name(chatId, bot, faultSession) {
                 one_time_keyboard: true
             })
         };
-        msg = "Select your *name* below:\n\nOr write your name if it doesn't match.\n" + MSG_INFO;
+        var msg = "Select your *name* below:\n\nOr write your name if it doesn't match.\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
         faultSession.key = "name";
         faultSession.next = ask_room;
@@ -135,7 +135,7 @@ function ask_room(chatId, bot, faultSession) {
             hide_keyboard: true
         })
     };
-    msg = "Please enter your *room number*:\n" + MSG_INFO;
+    var msg = "Please enter your *room number*:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "room";
     faultSession.next = ask_matric;
@@ -155,7 +155,7 @@ function ask_matric(chatId, bot, faultSession) {
                 one_time_keyboard: true
             })
         };
-        msg = "Select your *matric no.* below:\n\nOr write your matric no. if it doesn't match.\n" + MSG_INFO;
+        var msg = "Select your *matric no.* below:\n\nOr write your matric no. if it doesn't match.\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
         faultSession.key = "matric";
         faultSession.next = ask_email;
@@ -176,7 +176,7 @@ function ask_email(chatId, bot, faultSession) {
                 one_time_keyboard: true
             })
         };
-        msg = "Select your *email* below:\n\nOr write your email if it doesn't match.\n" + MSG_INFO;
+        var msg = "Select your *email* below:\n\nOr write your email if it doesn't match.\n" + MSG_INFO;
         bot.sendMessage(chatId, msg, opts);
         faultSession.key = "email";
         faultSession.next = ask_phone;
@@ -191,7 +191,7 @@ function ask_phone(chatId, bot, faultSession) {
             hide_keyboard: true
         })
     };
-    msg = "Please enter your *phone number*:\n" + MSG_INFO;
+    var msg = "Please enter your *phone number*:\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "phone";
     faultSession.next = ask_permission;
@@ -208,7 +208,7 @@ function ask_permission(chatId, bot, faultSession) {
             one_time_keyboard: true
         })
     };
-    msg = "*Do you consent to OHS entering your room without your presence to rectify the fault?*\n" + MSG_INFO;
+    var msg = "*Do you consent to OHS entering your room without your presence to rectify the fault?*\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "permission";
     faultSession.back = ask_phone;
@@ -223,7 +223,7 @@ function ask_description(chatId, bot, faultSession) {
             hide_keyboard: true
         })
     };
-    msg = "Enter the problem description. Type /done to end the description.\n" + MSG_INFO;
+    var msg = "Enter the problem description. Type /done to end the description.\n" + MSG_INFO;
     bot.sendMessage(chatId, msg, opts);
     faultSession.key = "description";
     faultSession.next = ask_continue_description;
@@ -257,19 +257,3 @@ function submit(chatId, bot, faultFeedback) {
     });
     sessions.deleteFaultSession(chatId);
 }
-
-module.exports = {
-    ask_category,
-    ask_urgency,
-    ask_location,
-    ask_name,
-    ask_matric,
-    ask_phone,
-    ask_room,
-    ask_permission,
-    ask_description,
-    ask_continue_description,
-    start,
-    continueFeedback,
-    submit
-};

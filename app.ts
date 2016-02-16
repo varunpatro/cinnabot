@@ -22,21 +22,7 @@ var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
 });
 
-console.log(chalk.blue('============================'));
-console.log(chalk.blue('                            '));
-console.log(chalk.blue('      CinnaBot Started      '));
-console.log(chalk.blue('                            '));
-console.log(chalk.blue('============================'));
-console.log(chalk.blue('                            '));
-
 adminServer.startServer(bot);
-
-console.log(chalk.green('============================'));
-console.log(chalk.green('                            '));
-console.log(chalk.green('     CinnaAdmin Started     '));
-console.log(chalk.green('                            '));
-console.log(chalk.green('============================'));
-console.log(chalk.green('                            '));
 
 var diningSessions = {};
 

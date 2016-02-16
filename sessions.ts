@@ -87,6 +87,7 @@ function FaultSession(chatId) {
     this.chatId = chatId;
     this.key = 'category';
     this.next = null;
+    this.back = null;
     this.faultFeedback = {
         category: 'New',
         urgency: 'Urgent',

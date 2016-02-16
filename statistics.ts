@@ -1,8 +1,8 @@
-var _ = require('lodash');
-var BPromise = require('bluebird');
-var db = require('./db');
+import _ = require('lodash');
+import BPromise = require('bluebird');
+import db = require('./db');
 
-function getAllSummary(callback) {
+export function getAllSummary(callback) {
     var commandsLastWeek = [];
     var numUniqueUsers = 0;
     var numRegisteredUsers = 0;
@@ -49,7 +49,3 @@ function getAllSummary(callback) {
 
     });
 }
-
-module.exports = {
-    getAllSummary,
-};
