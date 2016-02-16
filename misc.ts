@@ -1,10 +1,10 @@
-var auth = require('./auth');
-var sessions = require('./sessions');
-var logger = require('./logger');
+import auth = require('./auth');
+import sessions = require('./sessions');
+import logger = require('./logger');
 
 const timeDelay = 30 * 1000;
 
-function start_feedback(chatId, callback) {
+export function start_feedback(chatId, callback) {
     var feedbackMsg = "Thanks for using Cinnabot 😁\n";
     feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
     feedbackMsg += "Type /done to end the feedback session.\n";
@@ -18,7 +18,7 @@ function start_feedback(chatId, callback) {
     return callback(feedbackMsg);
 }
 
-function continue_feedback(body, chatId, msg, callback) {
+export function continue_feedback(body, chatId, msg, callback) {
     var feedbackSession = sessions.getFeedbackSession(chatId);
     feedbackSession.feedbackMsg += body + "\n";
     if (body.endsWith("/done")) {
@@ -27,7 +27,7 @@ function continue_feedback(body, chatId, msg, callback) {
     return;
 }
 
-function done_feedback(chatId, msg, callback) {
+export function done_feedback(chatId, msg, callback) {
     var feedbackSession = sessions.getFeedbackSession(chatId);
     var feedbackMsg = feedbackSession.feedbackMsg;
     feedbackMsg = feedbackMsg.substring(0, feedbackMsg.length - 6);
@@ -37,7 +37,7 @@ function done_feedback(chatId, msg, callback) {
     return callback(doneMsg);
 }
 
-function help(callback) {
+export function help(callback) {
     var helpMessage =
         "Here's what you can ask Cinnabot!\n\n" +
         "/bus                      - check bus timings for UTown and Dover road\n" +
@@ -55,14 +55,14 @@ function help(callback) {
     callback(helpMessage);
 }
 
-function getLinks(chatId, callback) {
+export function getLinks(chatId, callback) {
     var linkText =
         "USEFUL LINKS:\n" +
         "==============\n\n";
 
     function authCallback(row) {
         if (!row) {
-            return bot.sendMessage(chatId, "Sorry you're not registered. Type /register to register.");
+            return callback("Sorry you're not registered. Type /register to register.");
         } else {
             // if (!row.isCinnamonResident) {
             linkText +=
@@ -85,11 +85,3 @@ function getLinks(chatId, callback) {
     }
     auth.isCinnamonResident(chatId, authCallback);
 }
-
-module.exports = {
-    getLinks,
-    help,
-    start_feedback,
-    continue_feedback,
-    done_feedback
-};

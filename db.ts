@@ -1,4 +1,4 @@
-var sqlite3 = require('sqlite3').verbose();
+import sqlite3 = require('sqlite3');
 var db = new sqlite3.Database('cinnabot.db');
 
 var LOGSCHEMA = 'CREATE TABLE IF NOT EXISTS log (time INTEGER, msg TEXT, userid INTEGER, username TEXT, firstname TEXT, lastname TEXT, latitude REAL, longitude REAL)';
@@ -16,51 +16,39 @@ var feedbackStmt = db.prepare('INSERT INTO feedback VALUES (?, ?, ?, ?, ?, ?)');
 var userStmt = db.prepare('INSERT OR IGNORE INTO user VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 var diningStmt = db.prepare('INSERT OR IGNORE INTO dining VALUES (?, ?, ?, ?, ?, ?)');
 
-function getAllUsers(callback) {
+export function getAllUsers(callback) {
     var users = [];
     db.all('SELECT DISTINCT userid FROM log', callback);
 }
 
-function getLogStmt() {
+export function getLogStmt() {
     return logStmt;
 }
 
-function getFeebackStmt() {
+export function getFeebackStmt() {
     return feedbackStmt;
 }
 
-function getUserStmt() {
+export function getUserStmt() {
     return userStmt;
 }
 
-function getDiningStmt() {
+export function getDiningStmt() {
     return diningStmt;
 }
 
-function getLogTable(callback) {
+export function getLogTable(callback) {
     return db.all('SELECT * FROM log', callback);
 }
 
-function getUserTable(callback) {
+export function getUserTable(callback) {
     return db.all('SELECT * FROM user', callback);
 }
 
-function getUser(userId, callback) {
+export function getUser(userId, callback) {
     return db.get('SELECT * FROM user where userid=' + userId, callback);
 }
 
-function getFeedbackMsg(time, callback) {
+export function getFeedbackMsg(time, callback) {
     return db.get('SELECT msg FROM feedback where time=' + time, callback);
 }
-
-module.exports = {
-    getAllUsers,
-    getLogStmt,
-    getFeebackStmt,
-    getLogTable,
-    getUserTable,
-    getUserStmt,
-    getDiningStmt,
-    getUser,
-    getFeedbackMsg,
-};

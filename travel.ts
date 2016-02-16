@@ -1,11 +1,11 @@
-var rest = require('restler');
-var cheerio = require('cheerio');
-var geolib = require('geolib');
-var parseString = require('xml2js').parseString;
-var util = require('./util');
-var nusbusstops = require('./nusbusstops.json');
-var publicBusStops = require('./busstops.json');
-var ltaCredentials = require('./private/lta_credentials.json');
+import rest = require('restler');
+import geolib = require('geolib');
+import xml2js = require('xml2js');
+import util = require('./util');
+import nusbusstops = require('./nusbusstops.json');
+import publicBusStops = require('./busstops.json');
+import ltaCredentials = require('./private/lta_credentials.json');
+var parseString = xm2js.parseString;
 
 var defaultBusstop = 19059;
 
@@ -17,7 +17,7 @@ var busstopHeaders = {
     'UniqueUserID': ltaCredentials.UniqueUserID
 };
 
-function bus(chatId, busstop, location, callback) {
+export function bus(chatId, busstop, location, callback) {
     var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
@@ -83,7 +83,7 @@ function publicBusQuery(id, callback, location) {
     });
 }
 
-function nusbus(chatId, busstop, location, callback) {
+export function nusbus(chatId, busstop, location, callback) {
     var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
@@ -193,8 +193,3 @@ function nearestPublicBusstop(start) {
     }
     return minBusstopID;
 }
-
-module.exports = {
-    'nusbus': nusbus,
-    'bus': bus
-};

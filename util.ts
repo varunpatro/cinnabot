@@ -1,12 +1,10 @@
-var readline = require('readline');
-var chalk = require('chalk');
-
-function extractPhoneNumber(phoneString) {
+export function extractPhoneNumber(phoneString) {
     return phoneString.split('@')[0];
 }
 
-function timeLeftMin(time) {
-    var timeLeft = Math.ceil((time - new Date()) / 1000 / 60);
+export function timeLeftMin(time : Date) {
+    var today = new Date();
+    var timeLeft = Math.ceil((time.getTime() - today.getTime()) / 1000 / 60);
     if (timeLeft < 0) {
         return "N.A.";
     } else {
@@ -14,7 +12,7 @@ function timeLeftMin(time) {
     }
 }
 
-function currentTimeGreeting() {
+export function currentTimeGreeting() {
     var hours = new Date().getHours();
     if (hours < 12) {
         return "morning";
@@ -27,20 +25,20 @@ function currentTimeGreeting() {
     }
 }
 
-function formatDate(date) {
+export function formatDate(date) {
     return date.toDateString().substr(0, 3) + ', ' + date.toDateString().substr(4, 6);
 }
 
-function formatTime(date) {
+export function formatTime(date) {
     var median = (date.getHours() < 12) ? "AM" : "PM";
     return (formatDigit(date.getHours() % 12)) + ":" + formatDigit(date.getMinutes()) + " " + median;
 }
 
-function formatDigit(n) {
+export function formatDigit(n) {
     return n > 9 ? "" + n : "0" + n;
 }
 
-var calculateNUSMatricNumber = function(id) {
+export var calculateNUSMatricNumber = function(id) {
     // credits to Beng Hee <beng@benghee.eu>
     var matches = id.toUpperCase().match(/^A\d{7}|U\d{6,7}/);
     if (matches) {
@@ -62,13 +60,4 @@ var calculateNUSMatricNumber = function(id) {
 
         return match + 'YXWURNMLJHEAB' [sum % 13];
     }
-};
-
-module.exports = {
-    getPhoneNum: extractPhoneNumber,
-    timeLeftMin: timeLeftMin,
-    formatTime: formatTime,
-    formatDate: formatDate,
-    currentTimeGreeting: currentTimeGreeting,
-    calculateNUSMatricNumber: calculateNUSMatricNumber
 };

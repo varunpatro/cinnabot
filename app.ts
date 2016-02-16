@@ -1,23 +1,22 @@
-var TelegramBot = require('node-telegram-bot-api');
-var chalk = require('chalk');
-var rest = require('restler');
-var logger = require('./logger');
-var weather = require('./weather');
-var travel = require('./travel');
-var dining = require('./dining');
-var fault = require('./fault');
-var do_not_open = require('./do_not_open');
-var broadcast = require('./broadcast');
-var cinnamon = require('./cinnamon');
-var db = require('./db');
-var statistics = require('./statistics');
-var auth = require('./auth');
-var util = require('./util');
-var CREDENTIALS = require('./private/telegram_credentials.json');
-var admins = require('./private/config.json').admins;
-var admin = require('./frontend/admin');
-var misc = require('./misc');
-var sessions = require('./sessions');
+import TelegramBot = require('node-telegram-bot-api');
+import chalk = require('chalk');
+import logger = require('./logger');
+import weather = require('./weather');
+import travel = require('./travel');
+import dining = require('./dining');
+import fault = require('./fault');
+import do_not_open = require('./do_not_open');
+import broadcast = require('./broadcast');
+import cinnamon = require('./cinnamon');
+import db = require('./db');
+import statistics = require('./statistics');
+import auth = require('./auth');
+import util = require('./util');
+import CREDENTIALS = require('./private/telegram_credentials.json');
+import config = require('./private/config.json');
+import adminServer = require('./frontend/admin');
+import misc = require('./misc');
+import sessions = require('./sessions');
 
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
@@ -30,7 +29,7 @@ console.log(chalk.blue('                            '));
 console.log(chalk.blue('============================'));
 console.log(chalk.blue('                            '));
 
-admin.startServer(bot);
+adminServer.startServer(bot);
 
 console.log(chalk.green('============================'));
 console.log(chalk.green('                            '));
@@ -126,7 +125,7 @@ bot.on('message', function(msg) {
             return processLocation(msg);
         }
 
-        if (msg.hasOwnProperty('reply_to_message') && admins.indexOf(msg.from.id) > -1) {
+        if (msg.hasOwnProperty('reply_to_message') && config.admins.indexOf(msg.from.id) > -1) {
             return processFeedbackReply(msg);
         }
 
@@ -172,7 +171,7 @@ bot.on('message', function(msg) {
                         disable_web_page_preview: true
                     });
                 };
-                return misc.getLinks(chatId, cb);
+                return misc.getLinks(chatId, callback);
             case 'register':
                 return auth.register(chatId, basicCallback);
             case 'agree':
@@ -200,9 +199,9 @@ bot.on('message', function(msg) {
         // manage markups
         switch (body.toLowerCase()) {
             case 'towards buona vista':
-                return bus(chatId, '19051');
+                return travel.bus(chatId, '19051', null, createPublicBusResponseCallback(chatId));
             case 'towards clementi':
-                return bus(chatId, '19059');
+                return travel.bus(chatId, '19059', null, createPublicBusResponseCallback(chatId));
             default:
                 var diningSession = sessions.getDiningSession(chatId);
                 if (diningSession) {
@@ -261,7 +260,7 @@ function processFeedbackReply(msg) {
         bot.sendMessage(replyId, msgToSend, {
             parse_mode: 'Markdown'
         });
-        admins.forEach(function(admin) {
+        config.admins.forEach(function(admin) {
             if (admin !== msg.from.id) {
                 msgToSend = '==============\nADMIN REPLY\n==============\n' + msgToSend;
                 bot.sendMessage(admin, msgToSend, {

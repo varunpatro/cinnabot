@@ -1,7 +1,7 @@
-var fs = require('fs');
-var BPromise = require('bluebird');
-var util = require('./util');
-var db = require('./db');
+import fs = require('fs');
+import BPromise = require('bluebird');
+import util = require('./util');
+import db = require('./db');
 var bcastfile = 'bcast.txt';
 
 function file_read(callback) {
@@ -16,7 +16,7 @@ function file_read(callback) {
     });
 }
 
-function broadcast(bot) {
+export function broadcast(bot) {
     var header = 'BROADCAST MESSAGE\n';
     header += '=================\n\n';
 
@@ -39,7 +39,7 @@ function broadcast(bot) {
     return file_read(callback);
 }
 
-function broadcastMessage(bot, data) {
+export function broadcastMessage(bot, data) {
     var header = 'BROADCAST MESSAGE\n';
     header += '=================\n\n';
 
@@ -58,8 +58,3 @@ function broadcastMessage(bot, data) {
 
     return;
 }
-
-module.exports = {
-    broadcast: broadcast,
-    broadcastMessage: broadcastMessage
-};
