@@ -238,8 +238,8 @@ function viewRatings(chatId, bot) {
         }).then(function() {
             var today = new Date();
             header = '*Food Rating for ' + util.formatDate(today) + '*\n\n';
-            var bfastHeader = '_Breakfast_\n\n';
-            var dinnerHeader = '_Dinner_\n\n';
+            var bfastHeader = '_Breakfast (7.00am - 10.30am)_\n\n';
+            var dinnerHeader = '_Dinner (5.30pm - 9.30pm)_\n\n';
 
             for (var key in breakfastRatings) {
                 breakfastStr += key + ':' + breakfastRatings[key];
@@ -249,10 +249,12 @@ function viewRatings(chatId, bot) {
                 dinnerStr += item + ':' + dinnerRatings[item];
             }
 
-            if ((today.getHours() > 7) && (today.getHours() < 12)) {
+            if ((today.getHours() > 7) && (today.getHours() < 17)) {
                 ratings = bfastHeader + breakfastStr;
             } else if ((today.getHours() > 17) && (today.getHours() < 23)) {
                 ratings = dinnerHeader + dinnerStr;
+            }   else  {
+                ratings = 'It is not a valid meal time 😔';
             }
 
             message = header + ratings;
