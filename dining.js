@@ -6,7 +6,7 @@ var BPromise = require('bluebird');
 var db = require('./db');
 var util = require('./util');
 
-const MSG_CANCEL = 'Type /cancel to cancel feedback.';
+const MSG_CANCEL = 'Type /cancel to cancel the request.';
 
 function start(chatId, bot) {
     function authCallback(row) {
@@ -24,6 +24,7 @@ function start(chatId, bot) {
 
 function choose_option(chatId, bot) {
     var opts = {
+        parse_mode : 'Markdown',
         reply_markup: JSON.stringify({
             keyboard: [
                 ['Rate Food', 'View Ratings'],
@@ -32,7 +33,8 @@ function choose_option(chatId, bot) {
             one_time_keyboard: true
         })
     };
-    msg = 'What would you like to do?\n' + MSG_CANCEL;
+    msg = '*Cinnabot Dining Service\n\n*';
+    msg += 'What would you like to do?\n' + MSG_CANCEL;
     bot.sendMessage(chatId, msg, opts);
     sessions.getDiningSession(chatId).next = dispatch_option;
 }
@@ -182,41 +184,77 @@ function stats(chatId, bot, when, where, how) {
 
 function viewRatings(chatId, bot) {
     var ratings = "";
-    var breakfastRatings = "";
-    var dinnerRatings = "";
+    var breakfastStr = "";
+    var dinnerStr = "";
+    var message = "";
+
+    var breakfastRatings = {
+        'Asian': ' N.A\n',
+        'Western': ' N.A\n',
+        'Muslim': ' N.A\n',
+        'Toast': ' N.A\n',
+        'Grab & Go': ' N.A\n'
+    };
+
+    var dinnerRatings = {
+        'Noodle': ' N.A\n',
+        'Asian': ' N.A\n',
+        'Western - Main Course': ' N.A\n',
+        'Western - Panini': ' N.A\n',
+        'Indian': ' N.A\n',
+        'Malay': ' N.A\n',
+        'Late Plate': ' N.A\n'
+    };
 
     BPromise.promisify(db.getBreakfastRatings)().then(function(rows) {
         rows.forEach(function(row) {
-            breakfastRatings += row.stall + ' : ' + row.average + '\n';
-
+            var entryStr;
+            for (var key in breakfastRatings) {
+                if (key === row.stall) {
+                    if (row.stallCount > 1) {
+                        entryStr = "entries";
+                    } else {
+                        entryStr = "entry";
+                    }
+                    breakfastRatings[key] = ' ' + parseFloat(Math.round(row.average * 100) / 100).toFixed(2) + ' (_out of ' + row.stallCount + ' ' + entryStr + '_)\n';
+                }
+            }
         });
     }).then(function() {
         BPromise.promisify(db.getDinnerRatings)().then(function(rows) {
             rows.forEach(function(row) {
-                dinnerRatings += row.stall + ' : ' + row.average + '\n';
-                console.log(breakfastRatings);
-                console.log(dinnerRatings);
+                for (var item in dinnerRatings) {
+                    if (item === row.stall) {
+                        if (row.stallCount > 1) {
+                            entryStr = "entries";
+                        } else {
+                            entryStr = "entry";
+                        }
+                        dinnerRatings[item] = ' ' + parseFloat(Math.round(row.average * 100) / 100).toFixed(2) + ' (_out of ' + row.stallCount + ' ' + entryStr + '_)\n';
+                    }
+                }
+
             });
         }).then(function() {
             var today = new Date();
             header = '*Food Rating for ' + util.formatDate(today) + '*\n\n';
+            var bfastHeader = '_Breakfast_\n\n';
+            var dinnerHeader = '_Dinner_\n\n';
 
-
-            if ((breakfastRatings === "") & (today.getHours() < 7)) {
-                breakfastRatings = "Breakfast hasn't started, it begins at 7am\n";
-            } else if ((breakfastRatings === "")) {
-                breakfastRatings = "Insufficient Ratings, Perhaps you could contribute?\n";
+            for (var key in breakfastRatings) {
+                breakfastStr += key + ':' + breakfastRatings[key];
             }
 
-            if ((dinnerRatings === "") & (today.getHours() < 17)) {
-                dinnerRatings = "Dinner hasn't started, it begins at 5.30pm\n";
-            } else if ((dinnerRatings === "")) {
-                dinnerRatings = "Insufficient Ratings, Perhaps you could contribute?\n";
+            for (var item in dinnerRatings) {
+                dinnerStr += item + ':' + dinnerRatings[item];
             }
 
+            if ((today.getHours() > 7) && (today.getHours() < 12)) {
+                ratings = bfastHeader + breakfastStr;
+            } else if ((today.getHours() > 17) && (today.getHours() < 23)) {
+                ratings = dinnerHeader + dinnerStr;
+            }
 
-            ratings = '_Breakfast_\n\n' + breakfastRatings + '\n';
-            ratings += '_Dinner_\n\n' + dinnerRatings;
             message = header + ratings;
 
             bot.sendMessage(chatId, message, {

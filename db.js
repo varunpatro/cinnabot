@@ -46,11 +46,15 @@ function getUserTable(callback) {
 }
 
 function getBreakfastRatings(callback) {
-    return db.all("SELECT stall,AVG(rating) AS average FROM dining WHERE date(time/1000,'unixepoch','localtime')=date('now','localtime') AND mealperiod = 'Breakfast' GROUP BY stall ORDER BY average DESC", callback);
+    return db.all("SELECT count(stall) AS stallCount ,stall,AVG(rating) AS average FROM dining WHERE date(time/1000,'unixepoch','localtime')=date('now','localtime') AND mealperiod = 'Breakfast' GROUP BY stall ORDER BY average DESC", callback);
+}
+
+function getRatings(stallName, mealperiod, callback) {
+    return db.get("SELECT count(stall) AS numRatings ,stall,mealperiod, AVG(rating) AS average FROM dining WHERE stall = '" + stallName + "' AND mealperiod = '" + mealperiod + "' AND date(time/1000,'unixepoch','localtime')=date('now','localtime') GROUP BY stall ORDER BY mealperiod,stall,average DESC ", callback);
 }
 
 function getDinnerRatings(callback) {
-    return db.all("SELECT stall,AVG(rating) AS average FROM dining WHERE date(time/1000,'unixepoch','localtime')=date('now','localtime') AND mealperiod = 'Dinner' GROUP BY stall ORDER BY average DESC", callback);
+    return db.all("SELECT count(stall) AS stallCount ,stall,AVG(rating) AS average FROM dining WHERE date(time/1000,'unixepoch','localtime')=date('now','localtime') AND mealperiod = 'Dinner' GROUP BY stall ORDER BY average DESC", callback);
 }
 
 function getUser(userId, callback) {
@@ -69,6 +73,7 @@ module.exports = {
     getUserTable,
     getBreakfastRatings,
     getDinnerRatings,
+    getRatings,
     getUserStmt,
     getDiningStmt,
     getUser,
