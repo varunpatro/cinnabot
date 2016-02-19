@@ -1,30 +1,32 @@
-import TelegramBot = require('node-telegram-bot-api');
-import chalk = require('chalk');
-import logger = require('./logger');
-import weather = require('./weather');
-import travel = require('./travel');
-import dining = require('./dining');
-import fault = require('./fault');
-import do_not_open = require('./do_not_open');
-import broadcast = require('./broadcast');
-import cinnamon = require('./cinnamon');
-import db = require('./db');
-import statistics = require('./statistics');
-import auth = require('./auth');
-import util = require('./util');
-import CREDENTIALS = require('./private/telegram_credentials.json');
-import config = require('./private/config.json');
-import adminServer = require('./frontend/admin');
-import misc = require('./misc');
-import sessions = require('./sessions');
+var TelegramBot = require('node-telegram-bot-api');
+var chalk = require('chalk');
+
+
+var auth = require('./auth');
+var broadcast = require('./broadcast');
+var cinnamon = require('./cinnamon');
+var db = require('./db');
+var dining = require('./dining');
+var do_not_open = require('./do_not_open');
+var fault = require('./fault');
+var logger = require('./logger');
+var misc = require('./misc');
+var sessions = require('./sessions');
+var statistics = require('./statistics');
+var travel = require('./travel');
+var util = require('./util');
+var weather = require('./weather');
+
+var CREDENTIALS = require('./private/telegram_credentials.json');
+var adminServer = require('./frontend/admin');
+var config = require('./private/config.json');
+
 
 var bot = new TelegramBot(CREDENTIALS.token, {
     polling: true
 });
 
 adminServer.startServer(bot);
-
-var diningSessions = {};
 
 function createBasicCallback(chatId) {
     return function(msg, sendId) {
@@ -134,7 +136,7 @@ bot.on('message', function(msg) {
             case 'psi':
                 return weather.getWeather(basicCallback);
             case 'bus':
-                let busstop = args;
+                var busstop = args;
                 return travel.bus(chatId, busstop, msg.location, createPublicBusOptionsCallback(chatId));
             case 'nusbus':
                 busstop = args;
@@ -146,22 +148,17 @@ bot.on('message', function(msg) {
             case 'events':
                 return cinnamon.getEvents(basicCallback);
             case 'cat':
-                return catfact(chatId);
+                return do_not_open.catfact(createBasicCallback(chatId));
             case 'feedback':
                 return misc.start_feedback(chatId, basicCallback);
             case 'stats':
                 return statistics.getAllSummary(basicCallback);
             case 'links':
-                let callback = function(msg) {
-                    bot.sendMessage(chatId, msg, {
-                        disable_web_page_preview: true
-                    });
-                };
-                return misc.getLinks(chatId, callback);
+                return misc.getLinks(chatId, bot);
             case 'register':
                 return auth.register(chatId, basicCallback);
             case 'agree':
-                return auth.agree(msg.from.id, basicCallback);
+                return auth.agree(chatId, basicCallback);
             case 'fault':
                 return fault.start(chatId, bot, basicCallback);
             case 'back':
@@ -171,18 +168,17 @@ bot.on('message', function(msg) {
                 }
                 return default_msg(chatId);
             case 'cancel':
-                var cancelCallback = function(msg) {
+                var cancelCallback = (msg => {
                     bot.sendMessage(chatId, msg, {
                         parse_mode: 'Markdown',
                         reply_markup: JSON.stringify({
                             hide_keyboard: true
                         })
                     });
-                };
+                });
                 return sessions.cancel(chatId, cancelCallback);
         }
 
-        // manage markups
         switch (body.toLowerCase()) {
             case 'towards buona vista':
                 return travel.bus(chatId, '19051', null, createPublicBusResponseCallback(chatId));
@@ -206,18 +202,14 @@ bot.on('message', function(msg) {
                     return fault.continueFeedback(chatId, body, bot);
                 }
         }
-        if (body.toLowerCase().indexOf('thanks') > -1) {
-            return welcome_msg(chatId);
-        }
+
         return default_msg(chatId);
     } catch (e) {
         var errloc = e.stack.split('\n')[1];
         bot.sendMessage(msg.chat.id, 'Cinnabot is sleeping right now 😴 Wake him up later.').then(function() {
-            bot.sendMessage(msg.chat.id, 'Here\'s a catfact instead:').then(function() {
-                catfact(msg.chat.id);
-            });
+            do_not_open.catfact(msg => bot.sendMessage(msg.chat.id, 'Here\'s a catfact instead:\n\n + msg'));
+            admins.forEach(admin => bot.sendMessage(admin, e.toString() + '\n' + errloc));
         });
-        bot.sendMessage('102675141', e.toString() + '\n' + errloc);
     }
 });
 
@@ -272,24 +264,12 @@ function catfact(chatId) {
     return do_not_open.catfact(chatId, bot);
 }
 
-function cnjoke(chatId) {
-    return do_not_open.cnjoke(chatId, bot);
-}
-
-function welcome_msg(chatId) {
-    bot.sendMessage(chatId, 'You\'re welcome😚 ', {
-        reply_markup: JSON.stringify({
-            hide_keyboard: true
-        })
-    });
-}
-
 function default_msg(chatId) {
-    bot.sendMessage(chatId, 'Hey we didn\'t understand you!Here\'s a chuck norris fact instead:\n', {
-        reply_markup: JSON.stringify({
-            hide_keyboard: true
-        })
-    }).then(function() {
-        return cnjoke(chatId);
+    do_not_open.cnjoke(msg => {
+        bot.sendMessage(chatId, 'Hey we didn\'t understand you!Here\'s a chuck norris fact instead:\n\n' + msg, {
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
     });
 }

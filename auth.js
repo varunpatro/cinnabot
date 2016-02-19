@@ -1,16 +1,18 @@
-import cache = require('memory-cache');
-import IVLE_CREDENTIALS = require('./private/ivle_credentials.json');
-import APP_CREDENTIALS = require('./private/app_credentials.json');
-import db = require('./db');
-import sessions = require('./sessions');
+var cache = require('memory-cache');
 
-export function getOTP(key) {
+var db = require('./db');
+var sessions = require('./sessions');
+
+var APP_CREDENTIALS = require('./private/app_credentials.json');
+var IVLE_CREDENTIALS = require('./private/ivle_credentials.json');
+
+function getOTP(key) {
     var randomOTP = "" + Math.floor(Math.random() * 1000000);
     cache.put(key, randomOTP, 2 * 60 * 1000);
     return randomOTP;
 }
 
-export function validateOTP(key, OTP) {
+function validateOTP(key, OTP) {
     var storedOTP = cache.get(key);
     if (storedOTP === OTP) {
         cache.del(key);
@@ -19,7 +21,7 @@ export function validateOTP(key, OTP) {
     return false;
 }
 
-export function register(chatId, callback) {
+function register(chatId, callback) {
     var regSession = sessions.createRegisterSession(chatId);
 
     var msg = "*Cinnabot Registration*\n\n";
@@ -32,7 +34,7 @@ export function register(chatId, callback) {
     return callback(msg);
 }
 
-export function agree(userId, callback) {
+function agree(userId, callback) {
     var regSession = sessions.getRegisterSession(userId);
 
     if (!regSession) {
@@ -45,7 +47,7 @@ export function agree(userId, callback) {
     callback(msg);
 }
 
-export function isCinnamonResident(userId, finalCallback) {
+function isCinnamonResident(userId, finalCallback) {
     function callback(err, row) {
         if (!err) {
             finalCallback(row);
@@ -53,3 +55,7 @@ export function isCinnamonResident(userId, finalCallback) {
     }
     return db.getUser(userId, callback);
 }
+
+module.exports = {
+    getOTP, validateOTP, register, agree, isCinnamonResident
+};

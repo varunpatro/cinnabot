@@ -1,4 +1,4 @@
-import NodeCache = require('node-cache');
+var NodeCache = require('node-cache');
 
 var registerSessions = new NodeCache();
 var feedbackSessions = new NodeCache({
@@ -17,16 +17,16 @@ function RegisterSession(chatId) {
     this.chatId = chatId;
 }
 
-export function createRegisterSession(chatId) {
+function createRegisterSession(chatId) {
     registerSessions.set(chatId, new RegisterSession(chatId), 30);
     return registerSessions.get(chatId);
 }
 
-export function getRegisterSession(chatId) {
+function getRegisterSession(chatId) {
     return registerSessions.get(chatId);
 }
 
-export function deleteRegisterSession(chatId) {
+function deleteRegisterSession(chatId) {
     return registerSessions.del(chatId.toString());
 }
 
@@ -36,16 +36,16 @@ function FeedbackSession(chatId) {
     feedbackSessions[chatId] = this;
 }
 
-export function createFeedbackSession(chatId) {
+function createFeedbackSession(chatId) {
     feedbackSessions.set(chatId, new FeedbackSession(chatId), 120);
     return feedbackSessions.get(chatId);
 }
 
-export function getFeedbackSession(chatId) {
+function getFeedbackSession(chatId) {
     return feedbackSessions.get(chatId);
 }
 
-export function deleteFeedbackSession(chatId) {
+function deleteFeedbackSession(chatId) {
     return feedbackSessions.del(chatId.toString());
 }
 
@@ -53,16 +53,16 @@ function PublicBusSession(chatId) {
     this.chatId = chatId;
 }
 
-export function createPublicBusSession(chatId) {
+function createPublicBusSession(chatId) {
     publicBusSessions.set(chatId, new PublicBusSession(chatId), 30);
     return publicBusSessions.get(chatId);
 }
 
-export function getPublicBusSession(chatId) {
+function getPublicBusSession(chatId) {
     return publicBusSessions.get(chatId);
 }
 
-export function deletePublicBusSession(chatId) {
+function deletePublicBusSession(chatId) {
     return publicBusSessions.del(chatId.toString());
 }
 
@@ -70,16 +70,16 @@ function NusBusSession(chatId) {
     this.chatId = chatId;
 }
 
-export function createNusBusSession(chatId) {
+function createNusBusSession(chatId) {
     nusBusSessions.set(chatId, new NusBusSession(chatId), 30);
     return nusBusSessions.get(chatId);
 }
 
-export function getNusBusSession(chatId) {
+function getNusBusSession(chatId) {
     return nusBusSessions.get(chatId);
 }
 
-export function deleteNusBusSession(chatId) {
+function deleteNusBusSession(chatId) {
     return nusBusSessions.del(chatId.toString());
 }
 
@@ -102,16 +102,16 @@ function FaultSession(chatId) {
     };
 }
 
-export function createFaultSession(chatId) {
+function createFaultSession(chatId) {
     faultSessions.set(chatId, new FaultSession(chatId), 120);
     return faultSessions.get(chatId);
 }
 
-export function getFaultSession(chatId) {
+function getFaultSession(chatId) {
     return faultSessions.get(chatId);
 }
 
-export function deleteFaultSession(chatId) {
+function deleteFaultSession(chatId) {
     return faultSessions.del(chatId.toString());
 }
 
@@ -127,20 +127,20 @@ function DiningFeedback() {
     this.feedbackMsg = '';
 }
 
-export function createDiningSession(chatId) {
+function createDiningSession(chatId) {
     diningSessions.set(chatId, new DiningSession(chatId), 520);
     return diningSessions.get(chatId);
 }
 
-export function getDiningSession(chatId) {
+function getDiningSession(chatId) {
     return diningSessions.get(chatId);
 }
 
-export function deleteDiningSession(chatId) {
+function deleteDiningSession(chatId) {
     return diningSessions.del(chatId.toString());
 }
 
-export function cancel(chatId, callback) {
+function cancel(chatId, callback) {
     deleteFeedbackSession(chatId);
     deleteRegisterSession(chatId);
     deletePublicBusSession(chatId);
@@ -149,3 +149,12 @@ export function cancel(chatId, callback) {
     deleteDiningSession(chatId);
     callback('Your command has been *canceled*.');
 }
+
+module.exports = {
+    createRegisterSession, getRegisterSession, deleteRegisterSession,
+    createFeedbackSession, getFeedbackSession, deleteFeedbackSession,
+    createPublicBusSession, getPublicBusSession, deletePublicBusSession,
+    createNusBusSession, getNusBusSession, deleteNusBusSession,
+    createFaultSession, getFaultSession, deleteFaultSession,
+    createDiningSession, getDiningSession, deleteDiningSession
+};

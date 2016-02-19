@@ -1,27 +1,25 @@
-import rest = require('restler');
-import util = require('./util');
-import auth = require('./auth');
+var rest = require('restler');
 
-export function getEvents(chatId, bot) {
+var auth = require('./auth');
+var util = require('./util');
+
+function getEvents(chatId, bot) {
     var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetAllEvents';
     var data = {
         authenticationCode: "USC$2016DevTool"
     };
     rest.postJson(spacesURL, data, {
         timeout: 5000
-    }).on('timeout', function() {
-        bot.sendMessage("USC website is taking too long to respond. Please try again later 😊");
-    }).on('complete', function(data, response) {
-        var header = "Upcoming Events:\n";
-        header += "==============\n\n";
-        var msg = filterEvents(data);
-        if (msg !== "") {
-            return bot.sendMessage(chatId, header + msg);
-        }
-        bot.sendMessage(chatId, "No Upcoming Events");
-    }).on('error', function(err) {
-        console.log(err);
-    });
+    }).on('timeout', x => bot.sendMessage("USC website is taking too long to respond. Please try again later 😊")
+        .on('complete', function(data, response) {
+            var header = "Upcoming Events:\n";
+            header += "==============\n\n";
+            var msg = filterEvents(data);
+            if (msg !== "") {
+                return bot.sendMessage(chatId, header + msg);
+            }
+            bot.sendMessage(chatId, "No Upcoming Events");
+        }).on('error', err => console.log(err)));
 }
 
 function filterEvents(data) {
@@ -36,7 +34,7 @@ function filterEvents(data) {
     return filteredMsg;
 }
 
-export function getAllSpaces(chatId, callback) {
+function getAllSpaces(chatId, callback) {
     function authCallback(row) {
         if (!row) {
             callback("Sorry you're not registered. Type /register to register.");
@@ -53,7 +51,7 @@ export function getAllSpaces(chatId, callback) {
     auth.isCinnamonResident(chatId, authCallback);
 }
 
-export function getSpaces(id, callback) {
+function getSpaces(id, callback) {
     var spacesURL = 'http://www.nususc.com/USCWebsiteInformationAPI.asmx/GetSpacesBookingRecord';
     var data = {
         'facilityID': id
@@ -93,7 +91,7 @@ function filterSpaces(data) {
     var threeDays = new Date();
     var timeOffset = 8 * 60 * 60 * 1000;
     threeDays.setDate(threeDays.getDate() + 3);
-    data.d.forEach(function(event) {
+    data.d.forEach(event => {
         var startTime = new Date((new Date(event.start)).getTime() - timeOffset);
         var endTime = new Date((new Date(event.end)).getTime() - timeOffset);
         if (startTime < threeDays && startTime > today) {
@@ -103,3 +101,7 @@ function filterSpaces(data) {
 
     return filteredMsg;
 }
+
+module.exports = {
+    getEvents, getAllSpaces, getSpaces
+};

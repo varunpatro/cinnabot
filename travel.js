@@ -1,26 +1,26 @@
-import rest = require('restler');
-import geolib = require('geolib');
-import xml2js = require('xml2js');
-import util = require('./util');
-import nusbusstops = require('./nusbusstops.json');
-import publicBusStops = require('./busstops.json');
-import ltaCredentials = require('./private/lta_credentials.json');
-var parseString = xm2js.parseString;
+var rest = require('restler');
+var geolib = require('geolib');
+var xml2js = require('xml2js');
 
-var defaultBusstop = 19059;
+var util = require('./util');
 
-var busstopUrl =
+var nusbusstops = require('./nusbusstops.json');
+var busstops = require('./busstops.json');
+var ltaCredentials = require('./private/lta_credentials.json');
+
+const busstopUrl =
     'http://datamall2.mytransport.sg/ltaodataservice/BusArrival?BusStopID=';
 
+var parseString = xml2js.parseString;
 var busstopHeaders = {
     'AccountKey': ltaCredentials.AccountKey,
     'UniqueUserID': ltaCredentials.UniqueUserID
 };
 
-export function bus(chatId, busstop, location, callback) {
-    var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
-    locResponse += "You can do this by selecting the paperclip icon (📎) ";
-    locResponse += "followed by attaching your location (📌).";
+function bus(chatId, busstop, location, callback) {
+    const locResponse = `Please send me your location to find public bus timings for the nearest bus stop:\n\n
+        You can do this by selecting the paperclip icon (📎)
+        followed by attaching your location (📌)`;
 
 
     var greeting = "Good " + util.currentTimeGreeting() + ", where do you want to go today?";
@@ -83,7 +83,7 @@ function publicBusQuery(id, callback, location) {
     });
 }
 
-export function nusbus(chatId, busstop, location, callback) {
+function nusbus(chatId, busstop, location, callback) {
     var locResponse = "Please send me your location to find public bus timings for the nearest bus stop:\n\n";
     locResponse += "You can do this by selecting the paperclip icon (📎) ";
     locResponse += "followed by attaching your location (📌).";
@@ -193,3 +193,7 @@ function nearestPublicBusstop(start) {
     }
     return minBusstopID;
 }
+
+module.exports = {
+    nusbus, bus
+};

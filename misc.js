@@ -1,10 +1,10 @@
-import auth = require('./auth');
-import sessions = require('./sessions');
-import logger = require('./logger');
+var auth = require('./auth');
+var logger = require('./logger');
+var sessions = require('./sessions');
 
 const timeDelay = 30 * 1000;
 
-export function start_feedback(chatId, callback) {
+function start_feedback(chatId, callback) {
     var feedbackMsg = "Thanks for using Cinnabot 😁\n";
     feedbackMsg += "Feel free to tell us how cinnabot can be improved.\n";
     feedbackMsg += "Type /done to end the feedback session.\n";
@@ -18,7 +18,7 @@ export function start_feedback(chatId, callback) {
     return callback(feedbackMsg);
 }
 
-export function continue_feedback(body, chatId, msg, callback) {
+function continue_feedback(body, chatId, msg, callback) {
     var feedbackSession = sessions.getFeedbackSession(chatId);
     feedbackSession.feedbackMsg += body + "\n";
     if (body.endsWith("/done")) {
@@ -27,7 +27,7 @@ export function continue_feedback(body, chatId, msg, callback) {
     return;
 }
 
-export function done_feedback(chatId, msg, callback) {
+function done_feedback(chatId, msg, callback) {
     var feedbackSession = sessions.getFeedbackSession(chatId);
     var feedbackMsg = feedbackSession.feedbackMsg;
     feedbackMsg = feedbackMsg.substring(0, feedbackMsg.length - 6);
@@ -37,7 +37,7 @@ export function done_feedback(chatId, msg, callback) {
     return callback(doneMsg);
 }
 
-export function help(callback) {
+function help(callback) {
     var helpMessage =
         "Here's what you can ask Cinnabot!\n\n" +
         "/bus                      - check bus timings for UTown and Dover road\n" +
@@ -55,7 +55,7 @@ export function help(callback) {
     callback(helpMessage);
 }
 
-export function getLinks(chatId, callback) {
+function getLinks(chatId, bot) {
     var linkText =
         "USEFUL LINKS:\n" +
         "==============\n\n";
@@ -81,7 +81,13 @@ export function getLinks(chatId, callback) {
                 "https://bit.ly/chillycinnamon";
             // }
         }
-        callback(linkText);
+        bot.sendMessage(chatId, linkText, {
+            disable_web_page_preview: true
+        });
     }
     auth.isCinnamonResident(chatId, authCallback);
 }
+
+module.exports = {
+    start_feedback, continue_feedback, done_feedback, help, getLinks
+};

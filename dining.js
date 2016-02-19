@@ -1,12 +1,12 @@
-import rest = require('restler');
-import auth = require('./auth');
-import logger = require('./logger');
-import sessions = require('./sessions');
-import {dining} from "./logger";
+var rest = require('restler');
+
+var auth = require('./auth');
+var logger = require('./logger');
+var sessions = require('./sessions');
 
 const MSG_CANCEL = 'Type /cancel to cancel feedback.';
 
-export function start(chatId, bot) {
+function start(chatId, bot) {
     function authCallback(row) {
         if (!row) {
             bot.sendMessage(chatId, 'Sorry you\'re not registered. Type /register to register.');
@@ -41,7 +41,7 @@ function dispatch_option(chatId, bot, option) {
     } else if (option === 'View Ratings') {
         view_ratings();
     } else if (option === 'Give Feedback') {
-        ask_feedback(chatId, bot);
+        ask_feedback(chatId, bot, null, true);
     } else {
         bot.sendMessage(chatId, 'Hey we didn\'t understand that option! Try again.\n' + MSG_CANCEL);
         choose_option(chatId, bot);
@@ -109,10 +109,10 @@ function ask_how(chatId, bot, where) {
     diningSession.next = ask_feedback;
 }
 
-function ask_feedback(chatId, bot, how) {
+function ask_feedback(chatId, bot, how, onlyFeedback) {
     var diningSession = sessions.getDiningSession(chatId);
     var validOptions = ['👍', '👍👍', '👍👍👍', '👍👍👍👍', '👍👍👍👍👍'];
-    if (validOptions.indexOf(how) < 0) {
+    if (onlyFeedback || validOptions.indexOf(how) < 0) {
         return ask_how(chatId, bot, diningSession.diningFeedback.where);
     }
     diningSession.diningFeedback.how = how.length / 2;
@@ -177,3 +177,7 @@ function stats(chatId, bot, when, where, how) {
     }
     rest.get(statsURL).on('complete', callback);
 }
+
+module.exports = {
+    start
+};

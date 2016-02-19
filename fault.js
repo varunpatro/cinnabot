@@ -1,13 +1,14 @@
-import rest = require('restler');
-import db = require('./db');
-import util = require('./util');
-import auth = require('./auth');
-import sessions = require('./sessions');
+var rest = require('restler');
+
+var auth = require('./auth');
+var db = require('./db');
+var sessions = require('./sessions');
+var util = require('./util');
 
 const MSG_INFO = "\nType /back to go back. Type /cancel to cancel feedback.";
 const timeDelay = 30 * 1000;
 
-export function start(chatId, bot, callback) {
+function start(chatId, bot, callback) {
     function authCallback(row) {
         if (!row) {
             callback('Sorry you\'re not registered. Type /register to register.');
@@ -21,7 +22,7 @@ export function start(chatId, bot, callback) {
     auth.isCinnamonResident(chatId, authCallback);
 }
 
-export function continueFeedback(chatId, body, bot) {
+function continueFeedback(chatId, body, bot) {
     var faultSession = sessions.getFaultSession(chatId);
     if (faultSession.key === 'phone') {
         if ((body.length !== 8) || isNaN(parseInt(body))) {
@@ -257,3 +258,7 @@ function submit(chatId, bot, faultFeedback) {
     });
     sessions.deleteFaultSession(chatId);
 }
+
+module.exports = {
+    start, continueFeedback
+};
