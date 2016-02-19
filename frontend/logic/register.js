@@ -1,7 +1,7 @@
 var rest = require('restler');
 var Promise = require('bluebird');
 var IVLE_CREDENTIALS = require('../../private/ivle_credentials.json');
-var db = require('../../db');
+var db = require('../../lib/db');
 
 function hasUrcModule(modules) {
     for (var i = 0; i < modules.length; i++) {

@@ -1,7 +1,7 @@
 var express = require('express');
 var register = require('../logic/register')
-var broadcast = require('../../broadcast');
-var auth = require('../../auth');
+var broadcast = require('../../lib/broadcast');
+var auth = require('../../lib/auth');
 var router = express.Router();
 
 /* GET home page. */

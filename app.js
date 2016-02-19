@@ -2,20 +2,20 @@ var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
 
 
-var auth = require('./auth');
-var broadcast = require('./broadcast');
-var cinnamon = require('./cinnamon');
-var db = require('./db');
-var dining = require('./dining');
-var do_not_open = require('./do_not_open');
-var fault = require('./fault');
-var logger = require('./logger');
-var misc = require('./misc');
-var sessions = require('./sessions');
-var statistics = require('./statistics');
-var travel = require('./travel');
-var util = require('./util');
-var weather = require('./weather');
+var auth = require('./lib/auth');
+var broadcast = require('./lib/broadcast');
+var cinnamon = require('./lib/cinnamon');
+var db = require('./lib/db');
+var dining = require('./lib/dining');
+var do_not_open = require('./lib/do_not_open');
+var fault = require('./lib/fault');
+var logger = require('./lib/logger');
+var misc = require('./lib/misc');
+var sessions = require('./lib/sessions');
+var statistics = require('./lib/statistics');
+var travel = require('./lib/travel');
+var util = require('./lib/util');
+var weather = require('./lib/weather');
 
 var CREDENTIALS = require('./private/telegram_credentials.json');
 var adminServer = require('./frontend/admin');

@@ -25,12 +25,14 @@
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "grunt": "^0.4.5",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-jshint": "^0.12.0",
     "grunt-jsbeautifier": "^0.2.10",
     "grunt-jscs": "^2.6.0",
-    "grunt-nodemon": "^0.4.0"
+    "grunt-nodemon": "^0.4.0",
+    "mocha": "^2.4.5"
   },
   "license": "MIT"
 }
