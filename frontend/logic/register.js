@@ -1,6 +1,5 @@
 var rest = require('restler');
-var Promise = require('bluebird');
-var IVLE_CREDENTIALS = require('../../private/ivle_credentials.json');
+var config = require('../../private/config.json');
 var db = require('../../lib/db');
 
 function hasUrcModule(modules) {
@@ -20,10 +19,10 @@ function storeUserProfile(userId, matric, name, email, gender, isCinnamonResiden
 
 function registerUser(userId, token) {
     var profile;
-    var profileLink = 'https://ivle.nus.edu.sg/api/Lapi.svc/Profile_view?APIKey=' + IVLE_CREDENTIALS.APIKey + '&AuthToken=' + token;
+    var profileLink = 'https://ivle.nus.edu.sg/api/Lapi.svc/Profile_view?APIKey=' + config.IVLE.APIKey + '&AuthToken=' + token;
     rest.get(profileLink).on('complete', function(data) {
         profile = data.Results[0];
-        var modulesLink = 'https://ivle.nus.edu.sg/api/Lapi.svc/Modules?APIKey=' + IVLE_CREDENTIALS.APIKey + '&AuthToken=' + token;
+        var modulesLink = 'https://ivle.nus.edu.sg/api/Lapi.svc/Modules?APIKey=' + config.IVLE.APIKey + '&AuthToken=' + token;
         rest.get(modulesLink).on('complete', function(data) {
             var modules = data.Results;
             var isCinnamonResident = hasUrcModule(modules);
@@ -34,4 +33,4 @@ function registerUser(userId, token) {
 
 module.exports = {
     "registerUser": registerUser
-}
+};

@@ -17,16 +17,18 @@ var travel = require('./lib/travel');
 var util = require('./lib/util');
 var weather = require('./lib/weather');
 
-var CREDENTIALS = require('./private/telegram_credentials.json');
-var adminServer = require('./frontend/admin');
 var config = require('./private/config.json');
+var adminServer = require('./frontend/admin');
 
 
-var bot = new TelegramBot(CREDENTIALS.token, {
+
+var bot = new TelegramBot(config.TELEGRAM.token, {
     polling: true
 });
 
 adminServer.startServer(bot);
+
+bot.on('message', respondTelegramMessage);
 
 function createBasicCallback(chatId) {
     return function(msg, sendId) {
@@ -100,7 +102,7 @@ function createNusBusOptionsCallback(chatId) {
     };
 }
 
-bot.on('message', function(msg) {
+function respondTelegramMessage(msg) {
     'use strict';
     try {
         console.log(msg);
@@ -211,7 +213,7 @@ bot.on('message', function(msg) {
             admins.forEach(admin => bot.sendMessage(admin, e.toString() + '\n' + errloc));
         });
     }
-});
+}
 
 function processFeedbackReply(msg) {
     var fullMsg = msg.reply_to_message.text;
