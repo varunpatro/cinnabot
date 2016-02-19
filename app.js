@@ -26,9 +26,19 @@ var bot = new TelegramBot(config.TELEGRAM.token, {
     polling: true
 });
 
-adminServer.startServer(bot);
-
-bot.on('message', respondTelegramMessage);
+if (config.MODE === "LIVE") {
+    adminServer.startServer(bot);
+    bot.on('message', respondTelegramMessage);
+} else if (config.MODE === "TEST") {
+    exports.testInput = function(msg, callback) {
+        bot.sendMessage = function(chatId, text, options) {
+            callback({
+                chatId, text, options
+            });
+        };
+        respondTelegramMessage(msg);
+    };
+}
 
 function createBasicCallback(chatId) {
     return function(msg, sendId) {
@@ -208,10 +218,8 @@ function respondTelegramMessage(msg) {
         return default_msg(chatId);
     } catch (e) {
         var errloc = e.stack.split('\n')[1];
-        bot.sendMessage(msg.chat.id, 'Cinnabot is sleeping right now 😴 Wake him up later.').then(function() {
-            do_not_open.catfact(msg => bot.sendMessage(msg.chat.id, 'Here\'s a catfact instead:\n\n + msg'));
-            admins.forEach(admin => bot.sendMessage(admin, e.toString() + '\n' + errloc));
-        });
+        do_not_open.catfact(msg => bot.sendMessage(msg.chat.id, 'Cinnabot is sleeping right now 😴 Wake him up later. Here\'s a catfact instead:\n\n' + msg));
+        config.ADMINS.forEach(admin => bot.sendMessage(admin, e.toString() + '\n' + errloc));
     }
 }
 
