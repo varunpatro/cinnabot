@@ -26,7 +26,7 @@ var bot = new TelegramBot(config.TELEGRAM.token, {
     polling: true
 });
 
-if (config.MODE === "LIVE") {
+if (config.MODE === "STAGING" || config.mode === "PRODUCTION") {
     adminServer.startServer(bot);
     bot.on('message', respondTelegramMessage);
 } else if (config.MODE === "TEST") {
@@ -115,7 +115,7 @@ function createNusBusOptionsCallback(chatId) {
 function respondTelegramMessage(msg) {
     'use strict';
     try {
-        console.log(msg);
+        if (config.MODE === 'STAGING') console.log(msg);
         if (!msg.hasOwnProperty('text') && !msg.hasOwnProperty('location')) {
             return false;
         }
@@ -276,7 +276,7 @@ function catfact(chatId) {
 
 function default_msg(chatId) {
     do_not_open.cnjoke(msg => {
-        bot.sendMessage(chatId, 'Hey we didn\'t understand you!Here\'s a chuck norris fact instead:\n\n' + msg, {
+        bot.sendMessage(chatId, 'Hey we didn\'t understand you! Here\'s a chuck norris fact instead:\n\n' + msg, {
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
