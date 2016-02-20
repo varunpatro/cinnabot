@@ -125,7 +125,7 @@ function respondTelegramMessage(msg) {
             return processLocation(msg);
         }
 
-        if (msg.hasOwnProperty('reply_to_message') && config.admins.indexOf(msg.from.id) > -1) {
+        if (msg.hasOwnProperty('reply_to_message') && config.ADMINS.indexOf(msg.from.id) > -1) {
             return processFeedbackReply(msg);
         }
 
@@ -248,7 +248,7 @@ function processFeedbackReply(msg) {
         bot.sendMessage(replyId, msgToSend, {
             parse_mode: 'Markdown'
         });
-        config.admins.forEach(function(admin) {
+        config.ADMINS.forEach(function(admin) {
             if (admin !== msg.from.id) {
                 msgToSend = '==============\nADMIN REPLY\n==============\n' + msgToSend;
                 bot.sendMessage(admin, msgToSend, {
