@@ -218,7 +218,7 @@ function respondTelegramMessage(msg) {
         return default_msg(chatId);
     } catch (e) {
         var errloc = e.stack.split('\n')[1];
-        do_not_open.catfact(msg => bot.sendMessage(msg.chat.id, 'Cinnabot is sleeping right now 😴 Wake him up later. Here\'s a catfact instead:\n\n' + msg));
+        do_not_open.catfact(fact => bot.sendMessage(msg.chat.id, 'Cinnabot is sleeping right now 😴 Wake him up later. Here\'s a catfact instead:\n\n' + fact));
         config.ADMINS.forEach(admin => bot.sendMessage(admin, e.toString() + '\n' + errloc));
     }
 }
