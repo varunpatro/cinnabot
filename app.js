@@ -26,11 +26,11 @@ winston.log('info', 'app started');
 var bot = new TelegramBot(config.TELEGRAM.token, {
     polling: true
 });
-var origSendMessage = bot.sendMessage;
 
 if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
     adminServer.startServer(bot);
     bot.on('message', respondTelegramMessage);
+    var origSendMessage = bot.sendMessage;
 } else if (config.MODE === 'TEST') {
     exports.testInput = function(msg, callback) {
         bot.sendMessage = function(chatId, text, options) {
@@ -40,82 +40,8 @@ if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
                 options
             });
         };
+        origSendMessage = bot.sendMessage;
         respondTelegramMessage(msg);
-    };
-}
-
-function createBasicCallback(chatId) {
-    return function(msg, sendId) {
-        if (typeof sendId !== 'number') {
-            sendId = chatId;
-        }
-        bot.sendMessage(sendId, msg, {
-            parse_mode: 'Markdown',
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-    };
-}
-
-function createPublicBusResponseCallback(chatId) {
-    return function(data) {
-        bot.sendMessage(chatId, data, {
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true,
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-        sessions.deletePublicBusSession(chatId);
-    };
-}
-
-function createPublicBusOptionsCallback(chatId) {
-    return function(data) {
-        var opts = {
-            reply_markup: JSON.stringify({
-                keyboard: [
-                    ['Nearest Bus Stop'],
-                    ['Towards Buona Vista'],
-                    ['Towards Clementi'],
-                ],
-                one_time_keyboard: true
-            })
-        };
-        bot.sendMessage(chatId, data, opts);
-        sessions.createPublicBusSession(chatId);
-    };
-}
-
-function createNusBusResponseCallback(chatId) {
-    return function(data) {
-        bot.sendMessage(chatId, data, {
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true,
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-    };
-}
-
-function createNusBusOptionsCallback(chatId) {
-    return function(data) {
-        var opts = {
-            reply_markup: JSON.stringify({
-                keyboard: [
-                    ['Nearest Bus Stop'],
-                    ['UTown', 'Computing'],
-                    ['Central Library', 'Computer Centre'],
-                    ['Science', 'Business'],
-                    ['Kent Ridge MRT', 'Bukit Timah Campus']
-                ],
-                one_time_keyboard: true
-            })
-        };
-        bot.sendMessage(chatId, data, opts);
-        sessions.createNusBusSession(chatId);
     };
 }
 
@@ -290,3 +216,80 @@ function default_msg(chatId) {
         });
     });
 }
+
+function createBasicCallback(chatId) {
+    return function(msg, sendId) {
+        if (typeof sendId !== 'number') {
+            sendId = chatId;
+        }
+        bot.sendMessage(sendId, msg, {
+            parse_mode: 'Markdown',
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    };
+}
+
+function createPublicBusResponseCallback(chatId) {
+    return function(data) {
+        bot.sendMessage(chatId, data, {
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+        sessions.deletePublicBusSession(chatId);
+    };
+}
+
+function createPublicBusOptionsCallback(chatId) {
+    return function(data) {
+        var opts = {
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Nearest Bus Stop'],
+                    ['Towards Buona Vista'],
+                    ['Towards Clementi'],
+                ],
+                one_time_keyboard: true
+            })
+        };
+        bot.sendMessage(chatId, data, opts);
+        sessions.createPublicBusSession(chatId);
+    };
+}
+
+function createNusBusResponseCallback(chatId) {
+    return function(data) {
+        bot.sendMessage(chatId, data, {
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    };
+}
+
+function createNusBusOptionsCallback(chatId) {
+    return function(data) {
+        var opts = {
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Nearest Bus Stop'],
+                    ['UTown', 'Computing'],
+                    ['Central Library', 'Computer Centre'],
+                    ['Science', 'Business'],
+                    ['Kent Ridge MRT', 'Bukit Timah Campus']
+                ],
+                one_time_keyboard: true
+            })
+        };
+        bot.sendMessage(chatId, data, opts);
+        sessions.createNusBusSession(chatId);
+    };
+}
+
+

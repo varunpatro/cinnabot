@@ -98,6 +98,18 @@ describe('registered users', function() {
         });
     });
 
+    it('should return spaces calendar for /spaces', function(done) {
+        msg.text = '/spaces';
+        var isNotDone = true;
+        app.testInput(msg, retObj => {
+            expect(retObj.text).to.not.be.empty;
+            if (isNotDone) {
+                done();
+            }
+            isNotDone = false;
+        });
+    });
+
     after(function(done) {
         // TODO: Remove the user from the db 
         done();
