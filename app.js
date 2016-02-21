@@ -33,7 +33,9 @@ if (config.MODE === "STAGING" || config.mode === "PRODUCTION") {
     exports.testInput = function(msg, callback) {
         bot.sendMessage = function(chatId, text, options) {
             callback({
-                chatId, text, options
+                chatId,
+                text,
+                options
             });
         };
         respondTelegramMessage(msg);
@@ -47,6 +49,9 @@ function createBasicCallback(chatId) {
         }
         bot.sendMessage(sendId, msg, {
             parse_mode: 'Markdown',
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
         });
     };
 }
@@ -122,6 +127,7 @@ function respondTelegramMessage(msg) {
         logger.log(msg);
 
         if (msg.hasOwnProperty('location')) {
+            console.log(msg);
             return processLocation(msg);
         }
 
@@ -149,7 +155,8 @@ function respondTelegramMessage(msg) {
                 return weather.getWeather(basicCallback);
             case 'bus':
                 var busstop = args;
-                return travel.bus(chatId, busstop, msg.location, createPublicBusOptionsCallback(chatId));
+                var callback = (busstop !== '') ? createPublicBusOptionsCallback(chatId) : basicCallback;
+                return travel.bus(chatId, busstop, msg.location, callback);
             case 'nusbus':
                 busstop = args;
                 return travel.nusbus(chatId, busstop, msg.location, createNusBusOptionsCallback(chatId));
@@ -180,15 +187,7 @@ function respondTelegramMessage(msg) {
                 }
                 return default_msg(chatId);
             case 'cancel':
-                var cancelCallback = (msg => {
-                    bot.sendMessage(chatId, msg, {
-                        parse_mode: 'Markdown',
-                        reply_markup: JSON.stringify({
-                            hide_keyboard: true
-                        })
-                    });
-                });
-                return sessions.cancel(chatId, cancelCallback);
+                return sessions.cancel(chatId, basicCallback);
         }
 
         switch (body.toLowerCase()) {
@@ -205,10 +204,10 @@ function respondTelegramMessage(msg) {
                     return misc.continue_feedback(body, chatId, msg, basicCallback);
                 }
                 if (sessions.getNusBusSession(chatId)) {
-                    return travel.nusbus(chatId, body.toLowerCase(), msg.location, createNusBusResponseCallback(chatId));
+                    return travel.nusbus(chatId, body.toLowerCase(), msg.location, createBasicCallback(chatId));
                 }
                 if (sessions.getPublicBusSession(chatId)) {
-                    return travel.bus(chatId, body.toLowerCase(), msg.location, createPublicBusResponseCallback(chatId));
+                    return travel.bus(chatId, body.toLowerCase(), msg.location, createBasicCallback(chatId));
                 }
                 if (sessions.getFaultSession(chatId)) {
                     return fault.continueFeedback(chatId, body, bot);
