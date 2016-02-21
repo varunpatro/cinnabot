@@ -1,6 +1,6 @@
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
-
+var winston = require('winston');
 
 var auth = require('./lib/auth');
 var broadcast = require('./lib/broadcast');
@@ -20,16 +20,18 @@ var weather = require('./lib/weather');
 var config = require('./private/config.json');
 var adminServer = require('./frontend/admin');
 
-
+winston.add(winston.transports.File, {filename: 'logs/' + (new Date()).getTime().toString() + '.log'});
+winston.log('info', 'app started');
 
 var bot = new TelegramBot(config.TELEGRAM.token, {
     polling: true
 });
+var origSendMessage = bot.sendMessage;
 
-if (config.MODE === "STAGING" || config.mode === "PRODUCTION") {
+if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
     adminServer.startServer(bot);
     bot.on('message', respondTelegramMessage);
-} else if (config.MODE === "TEST") {
+} else if (config.MODE === 'TEST') {
     exports.testInput = function(msg, callback) {
         bot.sendMessage = function(chatId, text, options) {
             callback({
@@ -130,6 +132,12 @@ function respondTelegramMessage(msg) {
             console.log(msg);
             return processLocation(msg);
         }
+
+        winston.profile(msg.text);
+        bot.sendMessage = function() {
+            winston.profile(msg.text);
+            origSendMessage.apply(this, arguments);
+        };
 
         if (msg.hasOwnProperty('reply_to_message') && config.ADMINS.indexOf(msg.from.id) > -1) {
             return processFeedbackReply(msg);

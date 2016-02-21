@@ -1,11 +1,8 @@
 node_modules/
 private/
 broadcast_logs/
-
 bcast.txt
-
 *.swp
-
 *.db
-
 *.map
+*.log
