@@ -33,7 +33,9 @@ if (config.MODE === "LIVE") {
     exports.testInput = function(msg, callback) {
         bot.sendMessage = function(chatId, text, options) {
             callback({
-                chatId, text, options
+                chatId,
+                text,
+                options
             });
         };
         respondTelegramMessage(msg);
@@ -122,6 +124,7 @@ function respondTelegramMessage(msg) {
         logger.log(msg);
 
         if (msg.hasOwnProperty('location')) {
+            console.log(msg);
             return processLocation(msg);
         }
 
@@ -205,10 +208,10 @@ function respondTelegramMessage(msg) {
                     return misc.continue_feedback(body, chatId, msg, basicCallback);
                 }
                 if (sessions.getNusBusSession(chatId)) {
-                    return travel.nusbus(chatId, body.toLowerCase(), msg.location, createNusBusResponseCallback(chatId));
+                    return travel.nusbus(chatId, body.toLowerCase(), msg.location, createBasicCallback(chatId));
                 }
                 if (sessions.getPublicBusSession(chatId)) {
-                    return travel.bus(chatId, body.toLowerCase(), msg.location, createPublicBusResponseCallback(chatId));
+                    return travel.bus(chatId, body.toLowerCase(), msg.location, createBasicCallback(chatId));
                 }
                 if (sessions.getFaultSession(chatId)) {
                     return fault.continueFeedback(chatId, body, bot);
@@ -264,6 +267,7 @@ function processLocation(msg) {
     if (sessions.getNusBusSession(chatId)) {
         return travel.nusbus(chatId, msg.text, msg.location, createNusBusResponseCallback(chatId));
     }
+    console.log(sessions.getPublicBusSession(chatId));
     if (sessions.getPublicBusSession(chatId)) {
         return travel.bus(chatId, msg.text, msg.location, createPublicBusResponseCallback(chatId));
     }
