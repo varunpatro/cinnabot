@@ -22,8 +22,15 @@ var msg = {
     text: '/cancel'
 };
 
+function notInvalid(retObj) {
+    expect(retObj.text.startsWith('Hey we didn\'t understand you!')).to.be.false;
+}
 
 describe('app', function() {
+    this.slow(5000);
+
+
+
     it('should export a method for testing', function() {
         expect(app.testInput).to.be.a('function');
     });
@@ -33,8 +40,9 @@ describe('app', function() {
         app.testInput(msg, retObj => {
             expect(retObj.chatId).to.equal(msg.chat.id);
             expect(retObj.text).to.equal(misc.__get__('helpMessage'));
+            notInvalid(retObj);
             done();
-        })
+        });
     });
 
     it('should cancel any command', function(done) {
@@ -42,6 +50,7 @@ describe('app', function() {
         app.testInput(msg, retObj => {
             expect(retObj.chatId).to.equal(msg.chat.id);
             expect(retObj.text).to.equal('Your command has been *canceled*.');
+            notInvalid(retObj);
             done();
         });
     });
@@ -51,6 +60,7 @@ describe('app', function() {
         msg.text = '/help';
         app.testInput(msg, retObj => {
             expect(retObj.text).to.equal(misc.__get__('helpMessage'));
+            notInvalid(retObj);
             done();
         });
     });
@@ -59,6 +69,7 @@ describe('app', function() {
         msg.text = '/psi';
         app.testInput(msg, retObj => {
             expect(retObj.text.startsWith('*Cinnabot Weather Service*\n')).to.be.true;
+            notInvalid(retObj);
             done();
         });
     });
@@ -67,6 +78,54 @@ describe('app', function() {
         msg.text = '/stats';
         app.testInput(msg, retObj => {
             expect(retObj.text.startsWith('*STATISTICS SUMMARY\n')).to.be.true;
+            notInvalid(retObj);
+            done();
+        });
+    });
+
+    it('should return bus timings for buona vista', function(done) {
+        msg.text = 'towards Buona Vista';
+        app.testInput(msg, retObj => {
+            expect(retObj.text.startsWith('Bus Stop:')).to.be.true;
+            notInvalid(retObj);
+            done();
+        });
+    });
+
+    it('should return bus timings for clementi', function(done) {
+        msg.text = 'towards clementi';
+        app.testInput(msg, retObj => {
+            expect(retObj.text.startsWith('Bus Stop:')).to.be.true;
+            notInvalid(retObj);
+            done();
+        });
+    });
+
+    it('should return information for upcoming events', function(done) {
+        msg.text = '/events';
+        app.testInput(msg, retObj => {
+            expect(retObj.text.startsWith("Upcoming Events")).to.be.true;
+            notInvalid(retObj);
+            done();
+        });
+    });
+
+    it('should return a cat fact on /catfact', function(done) {
+        msg.text = '/cat';
+        app.testInput(msg, retObj => {
+            expect(retObj.text).to.not.equal("Meow.");
+            expect(retObj.text.length).to.be.above(0);
+            notInvalid(retObj);
+            done();
+        });
+    });
+
+    it('should return a chuck norris joke', function(done) {
+        msg.text = '2341i2asdf98!$a@';
+        app.testInput(msg, retObj => {
+            expect(retObj.text).to.not.equal("Meow.");
+            expect(retObj.text.length).to.be.above(0);
+            expect(retObj.text.startsWith('Hey we didn\'t understand you!')).to.be.true;
             done();
         });
     });
@@ -103,6 +162,7 @@ describe('registered users', function() {
         var isNotDone = true;
         app.testInput(msg, retObj => {
             expect(retObj.text).to.not.be.empty;
+            notInvalid(retObj);
             if (isNotDone) {
                 done();
             }

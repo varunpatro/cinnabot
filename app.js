@@ -35,7 +35,7 @@ if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
     var origSendMessage = bot.sendMessage;
 } else if (config.MODE === 'TEST') {
     exports.testInput = function(msg, callback) {
-        var bot = {};
+        bot = {};
         bot.sendMessage = function(chatId, text, options) {
             return callback({
                 chatId: chatId,
@@ -104,7 +104,7 @@ function respondTelegramMessage(msg) {
             case 'events':
                 return cinnamon.getEvents(basicCallback);
             case 'cat':
-                return do_not_open.catfact(createBasicCallback(chatId));
+                return do_not_open.catfact(basicCallback);
             case 'feedback':
                 return misc.start_feedback(chatId, basicCallback);
             case 'stats':
@@ -204,10 +204,6 @@ function processLocation(msg) {
         return travel.bus(chatId, msg.text, msg.location, createPublicBusResponseCallback(chatId));
     }
     return default_msg(chatId);
-}
-
-function catfact(chatId) {
-    return do_not_open.catfact(chatId, bot);
 }
 
 function default_msg(chatId) {
