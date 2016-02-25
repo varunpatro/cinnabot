@@ -1,5 +1,4 @@
 {
-  "camelcase": true,
   "curly": true,
   "eqeqeq": true,
   "freeze": true,
@@ -11,5 +10,7 @@
   "maxlen": 80,
   "eqnull": true,
   "funcscope": true,
-  "node": true
+  "node": true,
+  "esversion": 6,
+  "esnext": true
 }
