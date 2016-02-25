@@ -23,21 +23,22 @@ var adminServer = require('./frontend/admin');
 winston.add(winston.transports.File, {filename: 'logs/' + (new Date()).getTime().toString() + '.log'});
 winston.log('info', 'app started');
 
-var bot = new TelegramBot(config.TELEGRAM.token, {
-    polling: true
-});
-
+console.log(chalk.red(config.MODE + " MODE"));
 if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
+    var bot = new TelegramBot(config.TELEGRAM.token, {
+        polling: true
+    });
     adminServer.startServer(bot);
     bot.on('message', respondTelegramMessage);
     var origSendMessage = bot.sendMessage;
 } else if (config.MODE === 'TEST') {
     exports.testInput = function(msg, callback) {
+        var bot = {};
         bot.sendMessage = function(chatId, text, options) {
-            callback({
-                chatId,
-                text,
-                options
+            return callback({
+                chatId: chatId,
+                text: text,
+                options: options
             });
         };
         origSendMessage = bot.sendMessage;
