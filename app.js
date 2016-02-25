@@ -1,6 +1,6 @@
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
-
+var winston = require('winston');
 
 var auth = require('./lib/auth');
 var broadcast = require('./lib/broadcast');
@@ -20,107 +20,38 @@ var weather = require('./lib/weather');
 var config = require('./private/config.json');
 var adminServer = require('./frontend/admin');
 
-
-
-var bot = new TelegramBot(config.TELEGRAM.token, {
-    polling: true
+winston.add(winston.transports.File, {
+    filename: 'logs/' + (new Date()).getTime().toString() + '.log'
 });
+winston.log('info', 'app started');
 
-if (config.MODE === "LIVE") {
+console.log(chalk.red(config.MODE + " MODE"));
+if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
+    var bot = new TelegramBot(config.TELEGRAM.token, {
+        polling: true
+    });
     adminServer.startServer(bot);
     bot.on('message', respondTelegramMessage);
-} else if (config.MODE === "TEST") {
+    var origSendMessage = bot.sendMessage;
+} else if (config.MODE === 'TEST') {
     exports.testInput = function(msg, callback) {
+        bot = {};
         bot.sendMessage = function(chatId, text, options) {
-            callback({
-                chatId,
-                text,
-                options
+            return callback({
+                chatId: chatId,
+                text: text,
+                options: options
             });
         };
+        origSendMessage = bot.sendMessage;
         respondTelegramMessage(msg);
-    };
-}
-
-function createBasicCallback(chatId) {
-    return function(msg, sendId) {
-        if (typeof sendId !== 'number') {
-            sendId = chatId;
-        }
-        bot.sendMessage(sendId, msg, {
-            parse_mode: 'Markdown',
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-    };
-}
-
-function createPublicBusResponseCallback(chatId) {
-    return function(data) {
-        bot.sendMessage(chatId, data, {
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true,
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-        sessions.deletePublicBusSession(chatId);
-    };
-}
-
-function createPublicBusOptionsCallback(chatId) {
-    return function(data) {
-        var opts = {
-            reply_markup: JSON.stringify({
-                keyboard: [
-                    ['Nearest Bus Stop'],
-                    ['Towards Buona Vista'],
-                    ['Towards Clementi'],
-                ],
-                one_time_keyboard: true
-            })
-        };
-        bot.sendMessage(chatId, data, opts);
-        sessions.createPublicBusSession(chatId);
-    };
-}
-
-function createNusBusResponseCallback(chatId) {
-    return function(data) {
-        bot.sendMessage(chatId, data, {
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true,
-            reply_markup: JSON.stringify({
-                hide_keyboard: true
-            })
-        });
-    };
-}
-
-function createNusBusOptionsCallback(chatId) {
-    return function(data) {
-        var opts = {
-            reply_markup: JSON.stringify({
-                keyboard: [
-                    ['Nearest Bus Stop'],
-                    ['UTown', 'Computing'],
-                    ['Central Library', 'Computer Centre'],
-                    ['Science', 'Business'],
-                    ['Kent Ridge MRT', 'Bukit Timah Campus']
-                ],
-                one_time_keyboard: true
-            })
-        };
-        bot.sendMessage(chatId, data, opts);
-        sessions.createNusBusSession(chatId);
     };
 }
 
 function respondTelegramMessage(msg) {
     'use strict';
     try {
-        console.log(msg);
+        if (config.MODE === 'STAGING') console.log(msg);
         if (!msg.hasOwnProperty('text') && !msg.hasOwnProperty('location')) {
             return false;
         }
@@ -130,6 +61,12 @@ function respondTelegramMessage(msg) {
             console.log(msg);
             return processLocation(msg);
         }
+
+        winston.profile(msg.text);
+        bot.sendMessage = function() {
+            winston.profile(msg.text);
+            origSendMessage.apply(this, arguments);
+        };
 
         if (msg.hasOwnProperty('reply_to_message') && config.ADMINS.indexOf(msg.from.id) > -1) {
             return processFeedbackReply(msg);
@@ -167,7 +104,7 @@ function respondTelegramMessage(msg) {
             case 'events':
                 return cinnamon.getEvents(basicCallback);
             case 'cat':
-                return do_not_open.catfact(createBasicCallback(chatId));
+                return do_not_open.catfact(basicCallback);
             case 'feedback':
                 return misc.start_feedback(chatId, basicCallback);
             case 'stats':
@@ -269,16 +206,87 @@ function processLocation(msg) {
     return default_msg(chatId);
 }
 
-function catfact(chatId) {
-    return do_not_open.catfact(chatId, bot);
-}
-
 function default_msg(chatId) {
     do_not_open.cnjoke(msg => {
-        bot.sendMessage(chatId, 'Hey we didn\'t understand you!Here\'s a chuck norris fact instead:\n\n' + msg, {
+        bot.sendMessage(chatId, 'Hey we didn\'t understand you! Here\'s a chuck norris fact instead:\n\n' + msg, {
             reply_markup: JSON.stringify({
                 hide_keyboard: true
             })
         });
     });
+}
+
+function createBasicCallback(chatId) {
+    return function(msg, sendId) {
+        if (typeof sendId !== 'number') {
+            sendId = chatId;
+        }
+        bot.sendMessage(sendId, msg, {
+            parse_mode: 'Markdown',
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    };
+}
+
+function createPublicBusResponseCallback(chatId) {
+    return function(data) {
+        bot.sendMessage(chatId, data, {
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+        sessions.deletePublicBusSession(chatId);
+    };
+}
+
+function createPublicBusOptionsCallback(chatId) {
+    return function(data) {
+        var opts = {
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Nearest Bus Stop'],
+                    ['Towards Buona Vista'],
+                    ['Towards Clementi'],
+                ],
+                one_time_keyboard: true
+            })
+        };
+        bot.sendMessage(chatId, data, opts);
+        sessions.createPublicBusSession(chatId);
+    };
+}
+
+function createNusBusResponseCallback(chatId) {
+    return function(data) {
+        bot.sendMessage(chatId, data, {
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            })
+        });
+    };
+}
+
+function createNusBusOptionsCallback(chatId) {
+    return function(data) {
+        var opts = {
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Nearest Bus Stop'],
+                    ['UTown', 'Computing'],
+                    ['Central Library', 'Computer Centre'],
+                    ['Science', 'Business'],
+                    ['Kent Ridge MRT', 'Bukit Timah Campus']
+                ],
+                one_time_keyboard: true
+            })
+        };
+        bot.sendMessage(chatId, data, opts);
+        sessions.createNusBusSession(chatId);
+    };
 }
