@@ -20,7 +20,9 @@ var weather = require('./lib/weather');
 var config = require('./private/config.json');
 var adminServer = require('./frontend/admin');
 
-winston.add(winston.transports.File, {filename: 'logs/' + (new Date()).getTime().toString() + '.log'});
+winston.add(winston.transports.File, {
+    filename: 'logs/' + (new Date()).getTime().toString() + '.log'
+});
 winston.log('info', 'app started');
 
 console.log(chalk.red(config.MODE + " MODE"));
@@ -292,5 +294,3 @@ function createNusBusOptionsCallback(chatId) {
         sessions.createNusBusSession(chatId);
     };
 }
-
-
