@@ -25,7 +25,7 @@ var msg = {
 describe('cinnamon', function() {
     'use strict';
     this.slow(5000);
-    this.timeout(5000);
+    this.timeout(10000);
 
     var spaceIds = {1: 'Theme Room 1', 2: 'Theme Room 2', 3: 'CTPH', 4: 'Amphitheatre', 6: 'Chatterbox'};
     for (let spaceId in spaceIds) {
