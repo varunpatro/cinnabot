@@ -29,7 +29,7 @@ function notInvalid(retObj) {
 
 describe('app', function() {
     this.slow(5000);
-
+    this.timeout(5000);
 
 
     it('should export a method for testing', function() {
