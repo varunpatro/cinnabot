@@ -9,3 +9,5 @@ bcast.txt
 *.db
 *.map
 *.log
+*.travis.yml
+*.md
