@@ -117,7 +117,6 @@ describe('dining', function() {
                     msg.chat.id = 8080;
                     msg.text = 'View Ratings';
                     app.testInput(msg, retObj => {
-                        console.log(retObj);
                         expect(retObj.text.startsWith('*Food Rating for')).to.be.true;
                         done();
                     });
