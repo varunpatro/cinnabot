@@ -122,10 +122,6 @@ describe('dining', function() {
                         done();
                     });
                 });
-                it('lookup db for rating', function(done) {
-                    
-                    
-                });
             });
 
             
