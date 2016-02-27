@@ -34,7 +34,7 @@ describe('dining', function() {
     'use strict';
     this.slow(5000);
 
-    describe("unregistered users", function() {
+    describe('unregistered users', function() {
             it('check case for not registered', function(done) {
             msg.text = '/dining';
             app.testInput(msg, retObj => {
@@ -44,7 +44,7 @@ describe('dining', function() {
         });
     });
 
-    describe("registered users", function() {
+    describe('registered users', function() {
 
             before(function(done) {
                 var userStmt = db.getUserStmt();
@@ -60,7 +60,7 @@ describe('dining', function() {
                     done();
                 });
             });
-            describe("give ratings thread", function(){
+            describe('give ratings thread', function(){
                 it('check case for give ratings:ask_when', function(done) {
                     msg.chat.id = 8080;
                     msg.text = 'Rate Food';    
@@ -103,7 +103,7 @@ describe('dining', function() {
                 });
             });
 
-            describe("check ratings thread", function(){
+            describe('check ratings thread', function(){
 
                 it('start thread', function(done) {
                     msg.chat.id = 8080;
