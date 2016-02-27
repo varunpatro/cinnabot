@@ -6,11 +6,8 @@
   "newcap": true,
   "quotmark": "single",
   "maxdepth": 3,
-  "maxstatements": 15,
-  "maxlen": 80,
   "eqnull": true,
   "funcscope": true,
   "node": true,
-  "esversion": 6,
-  "esnext": true
+  "esversion": 6
 }

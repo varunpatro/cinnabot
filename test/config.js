@@ -1,3 +1,4 @@
+/* jshint expr:true */
 var chai = require('chai');
 var config = require('../private/config.json');
 

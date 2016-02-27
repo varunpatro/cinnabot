@@ -1,3 +1,5 @@
+/* jshint expr:true */
+/* jshint loopfunc:true */
 var chai = require('chai');
 var rewire = require('rewire');
 

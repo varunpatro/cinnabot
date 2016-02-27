@@ -1,3 +1,4 @@
+/* jshint expr:true */
 var chai = require('chai');
 var rewire = require('rewire');
 
@@ -87,6 +88,7 @@ describe('app', function() {
         msg.text = 'towards Buona Vista';
         app.testInput(msg, retObj => {
             expect(retObj.text.startsWith('Bus Stop:')).to.be.true;
+            expect(retObj.text.startsWith('Bus Stop:') || retObj.text.startsWith('Go walk home')).to.be.true;
             notInvalid(retObj);
             done();
         });
@@ -95,7 +97,7 @@ describe('app', function() {
     it('should return bus timings for clementi', function(done) {
         msg.text = 'towards clementi';
         app.testInput(msg, retObj => {
-            expect(retObj.text.startsWith('Bus Stop:')).to.be.true;
+            expect(retObj.text.startsWith('Bus Stop:') || retObj.text.startsWith('Go walk home')).to.be.true;
             notInvalid(retObj);
             done();
         });
@@ -104,7 +106,7 @@ describe('app', function() {
     it('should return information for upcoming events', function(done) {
         msg.text = '/events';
         app.testInput(msg, retObj => {
-            expect(retObj.text.startsWith("Upcoming Events")).to.be.true;
+            expect(retObj.text.startsWith('Upcoming Events')).to.be.true;
             notInvalid(retObj);
             done();
         });
@@ -113,7 +115,7 @@ describe('app', function() {
     it('should return a cat fact on /catfact', function(done) {
         msg.text = '/cat';
         app.testInput(msg, retObj => {
-            expect(retObj.text).to.not.equal("Meow.");
+            expect(retObj.text).to.not.equal('Meow.');
             expect(retObj.text.length).to.be.above(0);
             notInvalid(retObj);
             done();
@@ -123,9 +125,18 @@ describe('app', function() {
     it('should return a chuck norris joke', function(done) {
         msg.text = '2341i2asdf98!$a@';
         app.testInput(msg, retObj => {
-            expect(retObj.text).to.not.equal("Meow.");
+            expect(retObj.text).to.not.equal('Meow.');
             expect(retObj.text.length).to.be.above(0);
             expect(retObj.text.startsWith('Hey we didn\'t understand you!')).to.be.true;
+            done();
+        });
+    });
+
+    it('should ask for feedback message for /feedback', function(done) {
+        msg.text = '/feedback';
+        app.testInput(msg, retObj => {
+            notInvalid(retObj);
+            expect(retObj.text).to.equal(misc.__get__('feedbackMsg'));
             done();
         });
     });

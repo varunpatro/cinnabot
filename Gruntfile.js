@@ -2,10 +2,9 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         jshint: {
-            files: ['Gruntfile.js', '*.js'],
+            files: ['Gruntfile.js', '*.js', 'lib/*.js', 'test/*.js'],
             options: {
                 esversion: 6,
-                ignores: ['test*']
             }
         },
         jscs: {

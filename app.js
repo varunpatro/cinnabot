@@ -25,7 +25,7 @@ winston.add(winston.transports.File, {
 });
 winston.log('info', 'app started');
 
-console.log(chalk.red(config.MODE + " MODE"));
+console.log(chalk.red(config.MODE + ' MODE'));
 if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
     var bot = new TelegramBot(config.TELEGRAM.token, {
         polling: true
@@ -51,7 +51,9 @@ if (config.MODE === 'STAGING' || config.mode === 'PRODUCTION') {
 function respondTelegramMessage(msg) {
     'use strict';
     try {
-        if (config.MODE === 'STAGING') console.log(msg);
+        if (config.MODE === 'STAGING') {
+            console.log(msg);
+        }
         if (!msg.hasOwnProperty('text') && !msg.hasOwnProperty('location')) {
             return false;
         }
