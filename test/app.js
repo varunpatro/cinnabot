@@ -29,8 +29,7 @@ function notInvalid(retObj) {
 
 describe('app', function() {
     this.slow(5000);
-
-
+    this.timeout(10000);
 
     it('should export a method for testing', function() {
         expect(app.testInput).to.be.a('function');
@@ -153,6 +152,9 @@ describe('unregistered users', function() {
 });
 
 describe('registered users', function() {
+    this.slow(5000);
+    this.timeout(10000);
+
     before(function(done) {
         var userStmt = db.getUserStmt();
         userStmt.run(new Date(), 8080, 'A000X', 'test_user', 'test@cinnabot.com', 'Male', '1', 'QWERTY');
