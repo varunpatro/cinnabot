@@ -283,7 +283,8 @@ function createNusBusOptionsCallback(chatId) {
                     ['UTown', 'Computing'],
                     ['Central Library', 'Computer Centre'],
                     ['Science', 'Business'],
-                    ['Kent Ridge MRT', 'Bukit Timah Campus']
+                    ['Museum', 'Bukit Timah Campus'],
+                    ['Kent Ridge MRT', 'PGP Terminal']
                 ],
                 one_time_keyboard: true
             })
