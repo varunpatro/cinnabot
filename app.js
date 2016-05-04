@@ -94,7 +94,7 @@ function respondTelegramMessage(msg) {
                 return weather.getWeather(basicCallback);
             case 'bus':
                 var busstop = args;
-                var callback = (busstop !== '') ? createPublicBusOptionsCallback(chatId) : basicCallback;
+                var callback = (busstop === '') ? createPublicBusOptionsCallback(chatId) : basicCallback;
                 return travel.bus(chatId, busstop, msg.location, callback);
             case 'nusbus':
                 busstop = args;

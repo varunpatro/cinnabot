@@ -8,6 +8,7 @@
     "url": "https://github.com/varunpatro/cinnabot"
   },
   "dependencies": {
+    "async": "^2.0.0-rc.3",
     "bluebird": "^3.0.2",
     "body-parser": "^1.14.1",
     "chalk": "^1.1.1",
