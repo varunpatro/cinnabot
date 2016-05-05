@@ -94,7 +94,7 @@ function respondTelegramMessage(msg) {
                 return weather.getWeather(basicCallback);
             case 'bus':
                 var busstop = args;
-                var callback = (busstop === '') ? createPublicBusOptionsCallback(chatId) : basicCallback;
+                var callback = (!busstop) ? createPublicBusOptionsCallback(chatId) : basicCallback;
                 return travel.bus(chatId, busstop, msg.location, callback);
             case 'nusbus':
                 busstop = args;
@@ -250,7 +250,7 @@ function createPublicBusOptionsCallback(chatId) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
-                    ['Nearest Bus Stop'],
+                    [{text: 'Nearest 3 Bus Stops', request_location: true}],
                     ['Towards Buona Vista'],
                     ['Towards Clementi'],
                 ],
@@ -271,6 +271,7 @@ function createNusBusResponseCallback(chatId) {
                 hide_keyboard: true
             })
         });
+        sessions.deleteNusBusSession(chatId);
     };
 }
 
@@ -279,7 +280,7 @@ function createNusBusOptionsCallback(chatId) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
-                    ['Nearest Bus Stop'],
+                    [{text: 'Nearest 2 Bus Stops', request_location: true}],
                     ['UTown', 'Computing'],
                     ['Central Library', 'Computer Centre'],
                     ['Science', 'Business'],
