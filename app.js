@@ -67,7 +67,7 @@ function respondTelegramMessage(msg) {
         winston.profile(msg.text);
         bot.sendMessage = function() {
             winston.profile(msg.text);
-            origSendMessage.apply(this, arguments);
+            return origSendMessage.apply(this, arguments);
         };
 
         if (msg.hasOwnProperty('reply_to_message') && config.ADMINS.indexOf(msg.from.id) > -1) {
@@ -122,7 +122,7 @@ function respondTelegramMessage(msg) {
             case 'back':
                 let faultSession = sessions.getFaultSession(chatId);
                 if (faultSession) {
-                    return fault.back(chatId, bot, faultSession);
+                    return faultSession.back(chatId, bot, faultSession);
                 }
                 return default_msg(chatId);
             case 'cancel':
@@ -250,7 +250,10 @@ function createPublicBusOptionsCallback(chatId) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
-                    [{text: 'Nearest 3 Bus Stops', request_location: true}],
+                    [{
+                        text: 'Nearest 3 Bus Stops',
+                        request_location: true
+                    }],
                     ['Towards Buona Vista'],
                     ['Towards Clementi'],
                 ],
@@ -280,7 +283,10 @@ function createNusBusOptionsCallback(chatId) {
         var opts = {
             reply_markup: JSON.stringify({
                 keyboard: [
-                    [{text: 'Nearest 2 Bus Stops', request_location: true}],
+                    [{
+                        text: 'Nearest 2 Bus Stops',
+                        request_location: true
+                    }],
                     ['UTown', 'Computing'],
                     ['Central Library', 'Computer Centre'],
                     ['Science', 'Business'],
