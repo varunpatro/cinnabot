@@ -76,11 +76,16 @@ function respondTelegramMessage(msg) {
 
         var chatId = msg.chat.id;
         var body = msg.text;
-        var command = body.split(' ')[0].substr(0);
-        var args = body.split(' ')[1];
-        if (body.charAt(0) === '/') {
-            command = body.split(' ')[0].substr(1);
-            args = body.split(' ')[1];
+        var command = body;
+        var args = "";
+        var spaceSepIndex = body.indexOf(' ');
+        if (spaceSepIndex > 0) {
+            command = body.substr(0, spaceSepIndex);
+            args = body.substr(spaceSepIndex + 1);
+        }
+
+        if (command.charAt(0) === '/') {
+            command = command.substr(1);
         }
 
         var basicCallback = createBasicCallback(chatId);
@@ -108,7 +113,7 @@ function respondTelegramMessage(msg) {
             case 'cat':
                 return do_not_open.catfact(basicCallback);
             case 'feedback':
-                return misc.start_feedback(chatId, basicCallback);
+                return misc.start_feedback(chatId, args, msg, basicCallback);
             case 'stats':
                 return statistics.getAllSummary(basicCallback);
             case 'links':
@@ -140,7 +145,7 @@ function respondTelegramMessage(msg) {
                     return diningSession.next(chatId, bot, body);
                 }
                 if (sessions.getFeedbackSession(chatId)) {
-                    return misc.continue_feedback(body, chatId, msg, basicCallback);
+                    return misc.continue_feedback(chatId, body, msg, basicCallback);
                 }
                 if (sessions.getNusBusSession(chatId)) {
                     return travel.nusbus(chatId, body.toLowerCase(), msg.location, createBasicCallback(chatId));
