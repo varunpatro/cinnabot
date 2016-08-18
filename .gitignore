@@ -9,3 +9,4 @@ bcast.txt
 *.db
 *.map
 *.log
+*.tags*
