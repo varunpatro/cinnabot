@@ -91,6 +91,8 @@ function respondTelegramMessage(msg) {
         var basicCallback = createBasicCallback(chatId);
         // manage commands
         switch (command.toLowerCase()) {
+            case 'about':
+                return misc.about(basicCallback);
             case 'start':
                 return misc.help(basicCallback);
             case 'help':
