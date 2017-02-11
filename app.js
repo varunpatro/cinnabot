@@ -1,11 +1,8 @@
 var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
 var winston = require('winston');
-
 var cheerio = require('cheerio');
 var rest = require('restler');
-
-
 var auth = require('./lib/auth');
 var broadcast = require('./lib/broadcast');
 var cinnamon = require('./lib/cinnamon');
