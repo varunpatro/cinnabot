@@ -2,6 +2,10 @@ var TelegramBot = require('node-telegram-bot-api');
 var chalk = require('chalk');
 var winston = require('winston');
 
+var cheerio = require('cheerio');
+var rest = require('restler');
+
+
 var auth = require('./lib/auth');
 var broadcast = require('./lib/broadcast');
 var cinnamon = require('./lib/cinnamon');
@@ -91,6 +95,8 @@ function respondTelegramMessage(msg) {
         var basicCallback = createBasicCallback(chatId);
         // manage commands
         switch (command.toLowerCase()) {
+            case 'menu':
+                return getMenu(chatId);
             case 'about':
                 return misc.about(basicCallback);
             case 'start':
@@ -306,4 +312,79 @@ function createNusBusOptionsCallback(chatId) {
         bot.sendMessage(chatId, data, opts);
         sessions.createNusBusSession(chatId);
     };
+}
+
+
+function getMenu(chatId) {
+    var date = getTodayDate();
+    var reqURL = 'http://hg.sg/nus_ohs_admin/adminOHS/backend/script/index.php?controller=pjFront&action=pjActionLoadEventDetail&index=4455&cate=0&dt=' + date;
+    console.log(reqURL);
+    var reqOptions = {
+        timeout: 10000
+    };
+    rest.get(reqURL, reqOptions).on('complete', function(data) {
+        var msgArr = parseMenu(data);
+        var msg = "";
+        msgArr.forEach(function(element) {
+          msg += element + '\n';
+        });
+        bot.sendMessage(chatId, msg, {
+          parse_mode: 'Markdown',
+          reply_markup: JSON.stringify({
+              hide_keyboard: true
+          })
+        });
+  });
+}
+
+function parseMenu(data) {
+    const divider = '==========================\n';
+    const msg = ['\n' + divider + '*BREAKFAST*\n' + divider];
+    const menu_type = [
+      'SPECIAL OF THE DAY',
+      'HELP YOURSELF',
+      'WESTERN',
+      'TIM SUM',
+      'ASIAN',
+      'VEGETARIAN',
+      'MALAY(HALAL)',
+      'GRAB & GO',
+      'INDIAN',
+      'HELP YOURSELF',
+      'WESTERN',
+      'NOODLE',
+      'ASIAN',
+      'MALAY(HALAL)'
+    ];
+    var $ = cheerio.load(data);
+    var i = 0;
+    $('td').not(":has(img)").each(function () {
+      var str =
+          '*' + menu_type[i] + '*\n' +
+          $(this).text() + '\n';
+      if(i == 7) {
+        str += '\n' + divider + '*DINNER*\n' + divider
+      }
+      msg.push(str);
+      i++;
+    });
+    return msg;
+}
+
+function getTodayDate() {
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+
+    if(dd<10) {
+        dd='0'+dd
+    }
+
+    if(mm<10) {
+        mm='0'+mm
+    }
+
+    today = yyyy + '-' + mm + '-' + dd;
+    return today;
 }
