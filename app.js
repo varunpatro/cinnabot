@@ -315,7 +315,6 @@ function createNusBusOptionsCallback(chatId) {
 function getMenu(chatId) {
     var date = getTodayDate();
     var reqURL = 'http://hg.sg/nus_ohs_admin/adminOHS/backend/script/index.php?controller=pjFront&action=pjActionLoadEventDetail&index=4455&cate=0&dt=' + date;
-    console.log(reqURL);
     var reqOptions = {
         timeout: 10000
     };
@@ -335,8 +334,11 @@ function getMenu(chatId) {
 }
 
 function parseMenu(data) {
+    var newLine = '(<br />)';
+    var reg = new RegExp(newLine, 'g');
+    data = data.replace(reg, '\n');
     const divider = '==========================\n';
-    const msg = ['\n' + divider + '*BREAKFAST*\n' + divider];
+    var msg;
     const menu_type = [
       'SPECIAL OF THE DAY',
       'HELP YOURSELF',
@@ -354,23 +356,47 @@ function parseMenu(data) {
       'MALAY(HALAL)'
     ];
     var $ = cheerio.load(data);
-    var i = 0;
-    $('td').not(":has(img)").each(function () {
-      var str =
-          '*' + menu_type[i] + '*\n' +
-          $(this).text() + '\n';
-      if(i == 7) {
-        str += '\n' + divider + '*DINNER*\n' + divider
-      }
-      msg.push(str);
-      i++;
-    });
+    if(data.search('BREAKFAST') != -1 && data.search('DINNER') != -1) { //Weekdays
+      msg = ['\n' + divider + '*BREAKFAST*\n' + divider];
+      var i = 0;
+      $('td').not(":has(img)").each(function () {
+        var str =
+            '*' + menu_type[i] + '*\n' +
+            $(this).text() + '\n';
+        if(i == 7) {
+          str += '\n' + divider + '*DINNER*\n' + divider
+        }
+        msg.push(str);
+        i++;
+      });
+    } else if(data.search('BREAKFAST') != -1 && data.search('DINNER') == -1) {//Saturday
+      msg = ['\n' + divider + '*BREAKFAST*\n' + divider];
+      var i = 0;
+      $('td').not(":has(img)").each(function () {
+        var temp = $(this).text() + '\n';
+        var str =
+            '*' + menu_type[i] + '*\n' +
+            $(this).text() + '\n';
+        msg.push(str);
+        i++;
+      });
+    } else if(data.search('BREAKFAST') == -1 && data.search('DINNER') != -1) {//Sunday
+      msg = ['\n' + divider + '*DINNER*\n' + divider];
+      var i = 8;
+      $('td').not(":has(img)").each(function () {
+        var str =
+            '*' + menu_type[i] + '*\n' +
+            $(this).text() + '\n';
+        msg.push(str);
+        i++;
+      });
+    }
     return msg;
 }
 
 function getTodayDate() {
     var today = new Date();
-    var dd = today.getDate();
+    var dd = today.getDate()+1;
     var mm = today.getMonth()+1; //January is 0!
     var yyyy = today.getFullYear();
 
