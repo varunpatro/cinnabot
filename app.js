@@ -396,7 +396,7 @@ function parseMenu(data) {
 
 function getTodayDate() {
     var today = new Date();
-    var dd = today.getDate()+1;
+    var dd = today.getDate();
     var mm = today.getMonth()+1; //January is 0!
     var yyyy = today.getFullYear();
 
