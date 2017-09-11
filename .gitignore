@@ -1,12 +1,7 @@
-node_modules/
-private/
-broadcast_logs/
-logs/
-coverage/
-
-bcast.txt
 *.swp
 *.db
 *.map
 *.log
 *.tags*
+
+config.json

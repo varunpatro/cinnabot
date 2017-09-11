@@ -3,15 +3,11 @@ Telegram Bot for Cinnamon College
 
 ## Set Up
 
-`npm install`
-
-`sh init.sh`
+`go get ./...`
 
 ## Test
 
-`npm run lint`
-
-`npm test`
+`go test ./...`
 
 ## Suggestions
 
@@ -21,7 +17,3 @@ Telegram Bot for Cinnamon College
 
 1. Have cooler phrases as commands instead of one word commands. Like ''.
 2. Fun error messages (e.g. Chuck Norris Jokes)
-
-### Misc
-
-1. Change name to something more human - 'cinnabutler'

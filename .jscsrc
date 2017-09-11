@@ -1,6 +1,0 @@
-{
-    "preset": "google",
-    "validateIndentation": 4,
-    "disallowMultipleVarDecl": true
-
-}
