@@ -1,7 +1,14 @@
+# IDE/Editor
+out/
+.idea/
 *.swp
-*.db
-*.map
-*.log
+
+# Tags
 *.tags*
 
+# Logs
+*.log
+
+# Misc
+*.db
 config.json

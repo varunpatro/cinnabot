@@ -14,16 +14,20 @@ import (
 	"github.com/tucnak/telebot"
 )
 
-// CinnaBot is the main struct. All response funcs bind to this.
-type CinnaBot struct {
+type bot interface {
+	SendMessage(recipient telebot.Recipient, msg string, options *telebot.SendOptions) error
+	Listen(subscription chan telebot.Message, timeout time.Duration)
+}
+
+type cinnabot struct {
 	Name string // The name of the bot registered with Botfather
-	bot  *telebot.Bot
+	bot  bot
 	log  *log.Logger
 	fmap FuncMap
 	keys config
 }
 
-// Configuration struct for setting up CinnaBot
+// Configuration struct for setting up cinnabot
 type config struct {
 	Name           string `json:"name"`
 	TelegramAPIKey string `json:"telegram_api_key"`
@@ -47,16 +51,15 @@ func (m message) GetArgString() string {
 }
 
 // A FuncMap is a map of command strings to response functions.
-// It is use for routing comamnds to responses.
+// It is used for routing commands to responses.
 type FuncMap map[string]ResponseFunc
 
 // ResponseFunc is a handler for a bot command.
 type ResponseFunc func(m *message)
 
-// Initialise a CinnaBot.
-// lg is optional.
-func InitCinnaBot(configJSON []byte, lg *log.Logger) *CinnaBot {
-	// We'll use random numbers throughout CinnaBot
+// Initialize cinnabot
+func InitCinnabot(configJSON []byte, lg *log.Logger) *cinnabot {
+	// We'll use random numbers throughout cinnabot
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if lg == nil {
@@ -86,61 +89,61 @@ func InitCinnaBot(configJSON []byte, lg *log.Logger) *CinnaBot {
 		log.Fatalf("error creating new bot, dude %s", err)
 	}
 
-	j := &CinnaBot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
-	j.fmap = j.getDefaultFuncMap()
+	cb := &cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
+	cb.fmap = cb.getDefaultFuncMap()
 
-	return j
+	return cb
 }
 
 // Listen exposes the telebot Listen API.
-func (j *CinnaBot) Listen(subscription chan telebot.Message, timeout time.Duration) {
-	j.bot.Listen(subscription, timeout)
+func (cb *cinnabot) Listen(subscription chan telebot.Message, timeout time.Duration) {
+	cb.bot.Listen(subscription, timeout)
 }
 
 // Get the built-in, default FuncMap.
-func (j *CinnaBot) getDefaultFuncMap() FuncMap {
-	return FuncMap { }
+func (cb *cinnabot) getDefaultFuncMap() FuncMap {
+	return FuncMap{}
 }
 
 // Add a response function to the FuncMap
-func (j *CinnaBot) AddFunction(command string, resp ResponseFunc) error {
+func (cb *cinnabot) AddFunction(command string, resp ResponseFunc) error {
 	if !strings.HasPrefix(command, "/") {
 		return fmt.Errorf("not a valid command string - it should be of the format /something")
 	}
-	j.fmap[command] = resp
+	cb.fmap[command] = resp
 	return nil
 }
 
 // Route received Telegram messages to the appropriate response functions.
-func (j *CinnaBot) Router(msg telebot.Message) {
+func (cb *cinnabot) Router(msg telebot.Message) {
 	// Don't respond to forwarded commands
 	if msg.IsForwarded() {
 		return
 	}
-	jmsg := j.parseMessage(&msg)
+	jmsg := cb.parseMessage(&msg)
 	if jmsg.Cmd != "" {
-		j.log.Printf("[%s][id: %d] command: %s, args: %s", time.Now().Format(time.RFC3339), jmsg.ID, jmsg.Cmd, jmsg.GetArgString())
+		cb.log.Printf("[%s][id: %d] command: %s, args: %s", time.Now().Format(time.RFC3339), jmsg.ID, jmsg.Cmd, jmsg.GetArgString())
 	}
-	execFn := j.fmap[jmsg.Cmd]
+	execFn := cb.fmap[jmsg.Cmd]
 
 	if execFn != nil {
-		j.GoSafely(func() { execFn(jmsg) })
+		cb.GoSafely(func() { execFn(jmsg) })
 	} else {
-		j.SendMessage(msg.Chat, "No such command!", &telebot.SendOptions{ReplyTo: msg})
+		cb.SendMessage(msg.Chat, "No such command!", &telebot.SendOptions{ReplyTo: msg})
 	}
 }
 
 // GoSafely is a utility wrapper to recover and log panics in goroutines.
 // If we use naked goroutines, a panic in any one of them crashes
 // the whole program. Using GoSafely prevents this.
-func (j *CinnaBot) GoSafely(fn func()) {
+func (cb *cinnabot) GoSafely(fn func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
 				stack := make([]byte, 1024*8)
 				stack = stack[:runtime.Stack(stack, false)]
 
-				j.log.Printf("PANIC: %s\n%s", err, stack)
+				cb.log.Printf("PANIC: %s\n%s", err, stack)
 			}
 		}()
 
@@ -148,8 +151,8 @@ func (j *CinnaBot) GoSafely(fn func()) {
 	}()
 }
 
-// Helper to parse incoming messages and return CinnaBot messages
-func (j *CinnaBot) parseMessage(msg *telebot.Message) *message {
+// Helper to parse incoming messages and return cinnabot messages
+func (cb *cinnabot) parseMessage(msg *telebot.Message) *message {
 	cmd := ""
 	args := []string{}
 
@@ -158,7 +161,7 @@ func (j *CinnaBot) parseMessage(msg *telebot.Message) *message {
 		// part of the message.
 		r := regexp.MustCompile(`\/\w*`)
 		res := r.FindString(msg.ReplyTo.Text)
-		for k, _ := range j.fmap {
+		for k, _ := range cb.fmap {
 			if res == k {
 				cmd = k
 				args = strings.Split(msg.Text, " ")
@@ -168,7 +171,7 @@ func (j *CinnaBot) parseMessage(msg *telebot.Message) *message {
 	} else if msg.Text != "" {
 		msgTokens := strings.Fields(msg.Text)
 		cmd, args = strings.ToLower(msgTokens[0]), msgTokens[1:]
-		// Deal with commands of the form command@CinnaBot, which appear in
+		// Deal with commands of the form command@cinnabot, which appear in
 		// group chats.
 		if strings.Contains(cmd, "@") {
 			c := strings.Split(cmd, "@")
@@ -179,6 +182,6 @@ func (j *CinnaBot) parseMessage(msg *telebot.Message) *message {
 	return &message{Cmd: cmd, Args: args, Message: msg}
 }
 
-func (j *CinnaBot) SendMessage(recipient telebot.Recipient, msg string, options *telebot.SendOptions) {
-	j.bot.SendMessage(recipient, msg, options)
+func (cb *cinnabot) SendMessage(recipient telebot.Recipient, msg string, options *telebot.SendOptions) error {
+	return cb.bot.SendMessage(recipient, msg, options)
 }

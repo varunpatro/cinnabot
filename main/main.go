@@ -18,10 +18,11 @@ func main() {
 
 	logger := log.New(os.Stdout, "[cinnabot] ", 0)
 
-	cb := cinnabot.InitCinnaBot(configJSON, logger)
+	cb := cinnabot.InitCinnabot(configJSON, logger)
 
-	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/about", cb.About)
+	cb.AddFunction("/echo", cb.Echo)
+	cb.AddFunction("/hello", cb.SayHello)
 
 	messages := make(chan telebot.Message)
 	cb.Listen(messages, 1 * time.Second)
