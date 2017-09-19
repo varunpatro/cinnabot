@@ -26,3 +26,8 @@ func (cb *cinnabot) Echo(msg *message) {
 func (cb *cinnabot) About(msg *message) {
 	cb.SendMessage(msg.Chat, "Touch me: https://github.com/varunpatro/cinnabot", nil)
 }
+
+func (cb *cinnabot) Capitalize(msg *message) {
+	cb.SendMessage(msg.Chat, strings.ToUpper(strings.Join(msg.Args," ")), nil)
+}
+
