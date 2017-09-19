@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/tucnak/telebot"
-	"github.com/varunpatro/cinnabot"
+	"github.com/chikchengyao/cinnabot"
 )
 
 func main() {
@@ -23,6 +23,7 @@ func main() {
 	cb.AddFunction("/about", cb.About)
 	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/hello", cb.SayHello)
+	cb.AddFunction("/capitalise", cb.Capitalise)
 
 	messages := make(chan telebot.Message)
 	cb.Listen(messages, 1 * time.Second)
