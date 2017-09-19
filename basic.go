@@ -1,3 +1,4 @@
+//Contains cinnabot functions
 package cinnabot
 
 import (
