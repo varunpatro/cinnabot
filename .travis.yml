@@ -18,6 +18,8 @@ matrix:
   # tests pass on the stable versions of Go.
   fast_finish: true
 
+go_import_path: github.com/varunpatro/cinnabot
+
 # Anything in before_script that returns a nonzero exit code will
 # flunk the build and immediately stop. It's sorta like having
 # set -e enabled in bash. 
