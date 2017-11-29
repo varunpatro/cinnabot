@@ -1,11 +1,11 @@
-package cinnabot
+package main
 
 import (
 	"io/ioutil"
 	"log"
 	"os"
 
-	"./lib"
+	"github.com/pengnam/cinnabot"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "[cinnabot] ", 0)
 
-	cb := lib.InitCinnabot(configJSON, logger)
+	cb := cinnabot.InitCinnabot(configJSON, logger)
 
 	cb.AddFunction("/about", cb.About)
 	cb.AddFunction("/echo", cb.Echo)
