@@ -2,16 +2,14 @@ package cinnabot
 
 import (
 	"os"
-	"strings"
 	"testing"
-	"time"
+	"strings"
 
 	"github.com/stretchr/testify/mock"
-	"github.com/tucnak/telebot"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 var (
-	mockChat telebot.Chat
 	mockMsg  message
 )
 
@@ -19,25 +17,23 @@ type mockBot struct {
 	mock.Mock
 }
 
-func (mb *mockBot) Listen(subscription chan telebot.Message, timeout time.Duration) {
-	mb.Called(subscription, timeout)
+func (mb *mockBot) GetUpdatesChan(config tgbotapi.UpdateConfig) (tgbotapi.UpdatesChannel, error) {
+	return nil, nil
 }
 
-func (mb *mockBot) SendMessage(recipient telebot.Recipient, msg string, options *telebot.SendOptions) error {
-	args := mb.Called(recipient, msg, options)
-	return args.Error(0)
+func (mb *mockBot) Send(c tgbotapi.Chattable) (tgbotapi.Message, error) {
+	args := mb.Called(c)
+	return tgbotapi.Message{}, args.Error(0)
 }
 
 func setup() {
-	mockChat = telebot.Chat{
-		ID: 9999,
-	}
 
 	mockMsg = message{
 		Args: []string{"test_args1", "test_args2"},
-		Message: &telebot.Message{
-			Chat: mockChat,
-			Sender: telebot.User{
+		Message: &tgbotapi.Message{
+			MessageID: 1,
+			From: &tgbotapi.User{
+				ID: 999,
 				FirstName: "test_first_name_user",
 			},
 		},
@@ -54,9 +50,9 @@ func TestSayHello(t *testing.T) {
 	cb := cinnabot{
 		bot: &mb,
 	}
-	var expectedOptions *telebot.SendOptions = nil
-	expectedMsgStr := "Hello there, " + mockMsg.Sender.FirstName + "!"
-	mb.On("SendMessage", mockChat, expectedMsgStr, expectedOptions).Return(nil)
+	expectedMsgStr := "Hello there, " + mockMsg.From.FirstName + "!"
+	expectedMsg := tgbotapi.NewMessage(999, expectedMsgStr)
+	mb.On("Send", expectedMsg).Return(nil)
 	cb.SayHello(&mockMsg)
 }
 
@@ -65,8 +61,9 @@ func TestEcho(t *testing.T) {
 	cb := cinnabot{
 		bot: &mb,
 	}
-	var expectedOptions *telebot.SendOptions = nil
+
 	expectedMsgStr := "🤖: " + strings.Join(mockMsg.Args, " ")
-	mb.On("SendMessage", mockChat, expectedMsgStr, expectedOptions).Return(nil)
+	expectedMsg := tgbotapi.NewMessage(999, expectedMsgStr)
+	mb.On("Send", expectedMsg).Return(nil)
 	cb.Echo(&mockMsg)
 }

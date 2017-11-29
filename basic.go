@@ -3,31 +3,34 @@ package cinnabot
 import (
 	"strings"
 
-	"github.com/tucnak/telebot"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 // SayHello says hi.
 func (cb *cinnabot) SayHello(msg *message) {
-	cb.SendMessage(msg.Chat, "Hello there, "+msg.Sender.FirstName+"!", nil)
+	cb.SendTextMessage(msg.From.ID, "Hello there, "+msg.From.FirstName+"!")
 }
 
 // Echo parrots back the argument given by the user.
 func (cb *cinnabot) Echo(msg *message) {
 	if len(msg.Args) == 0 {
-		so := &telebot.SendOptions{ReplyTo: *msg.Message, ReplyMarkup: telebot.ReplyMarkup{ForceReply: true, Selective: true}}
-		cb.SendMessage(msg.Chat, "/echo Cinnabot Parrot Mode 🤖\nWhat do you want me to parrot?\n\n", so)
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/echo Cinnabot Parrot Mode 🤖\nWhat do you want me to parrot?\n\n")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{true,true}
+		cb.SendMessage(replyMsg)
 		return
 	}
 	response := "🤖: " + strings.Join(msg.Args, " ")
-	cb.SendMessage(msg.Chat, response, nil)
+	cb.SendTextMessage(msg.From.ID, response)
 }
+
 
 // Source returns a link to Jarvis's source code.
 func (cb *cinnabot) About(msg *message) {
-	cb.SendMessage(msg.Chat, "Touch me: https://github.com/varunpatro/cinnabot", nil)
+	cb.SendTextMessage(msg.From.ID, "Touch me: https://github.com/varunpatro/cinnabot")
 }
 
 func (cb *cinnabot) Capitalize(msg *message) {
-	cb.SendMessage(msg.Chat, strings.ToUpper(strings.Join(msg.Args," ")), nil)
+	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args," ")))
 }
 
