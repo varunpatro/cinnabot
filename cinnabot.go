@@ -19,7 +19,8 @@ type bot interface {
 	GetUpdatesChan(config tgbotapi.UpdateConfig) (tgbotapi.UpdatesChannel, error)
 }
 
-type cinnabot struct {
+// Cinnabot is main struct that processes user requests.
+type Cinnabot struct {
 	Name string // The name of the bot registered with Botfather
 	bot  bot
 	log  *log.Logger
@@ -27,7 +28,7 @@ type cinnabot struct {
 	keys config
 }
 
-// Configuration struct for setting up cinnabot
+// Configuration struct for setting up Cinnabot
 type config struct {
 	Name           string `json:"name"`
 	TelegramAPIKey string `json:"telegram_api_key"`
@@ -41,7 +42,7 @@ type message struct {
 	*tgbotapi.Message
 }
 
-// GetArgs prints out the arguments for the message in one string.
+// GetArgStrings prints out the arguments for the message in one string.
 func (m message) GetArgString() string {
 	argString := ""
 	for _, s := range m.Args {
@@ -57,13 +58,13 @@ type FuncMap map[string]ResponseFunc
 // ResponseFunc is a handler for a bot command.
 type ResponseFunc func(m *message)
 
-// Initialize cinnabot
-func InitCinnabot(configJSON []byte, lg *log.Logger) *cinnabot {
-	// We'll use random numbers throughout cinnabot
+// InitCinnabot initializes an instance of Cinnabot.
+func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
+	// We'll use random numbers throughout Cinnabot
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if lg == nil {
-		lg = log.New(os.Stdout, "[cinnabot] ", 0)
+		lg = log.New(os.Stdout, "[Cinnabot] ", 0)
 	}
 
 	var cfg config
@@ -89,14 +90,14 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *cinnabot {
 		log.Fatalf("error creating new bot, dude %s", err)
 	}
 
-	cb := &cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
+	cb := &Cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
 	cb.fmap = cb.getDefaultFuncMap()
 
 	return cb
 }
 
 // Listen exposes the telebot Listen API.
-func (cb *cinnabot) Listen(timeout int) tgbotapi.UpdatesChannel {
+func (cb *Cinnabot) Listen(timeout int) tgbotapi.UpdatesChannel {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = timeout
 	updates, err := cb.bot.GetUpdatesChan(u)
@@ -107,12 +108,12 @@ func (cb *cinnabot) Listen(timeout int) tgbotapi.UpdatesChannel {
 }
 
 // Get the built-in, default FuncMap.
-func (cb *cinnabot) getDefaultFuncMap() FuncMap {
+func (cb *Cinnabot) getDefaultFuncMap() FuncMap {
 	return FuncMap{}
 }
 
-// Add a response function to the FuncMap
-func (cb *cinnabot) AddFunction(command string, resp ResponseFunc) error {
+// AddFunction binds a response function to a command string in Cinnabot's FuncMap
+func (cb *Cinnabot) AddFunction(command string, resp ResponseFunc) error {
 	if !strings.HasPrefix(command, "/") {
 		return fmt.Errorf("not a valid command string - it should be of the format /something")
 	}
@@ -120,8 +121,8 @@ func (cb *cinnabot) AddFunction(command string, resp ResponseFunc) error {
 	return nil
 }
 
-// Route received Telegram messages to the appropriate response functions.
-func (cb *cinnabot) Router(msg tgbotapi.Message) {
+// Router routes Telegram messages to the appropriate response functions.
+func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 	// Don't respond to forwarded commands
 	if msg.ForwardFrom != nil {
 		return
@@ -142,7 +143,7 @@ func (cb *cinnabot) Router(msg tgbotapi.Message) {
 // GoSafely is a utility wrapper to recover and log panics in goroutines.
 // If we use naked goroutines, a panic in any one of them crashes
 // the whole program. Using GoSafely prevents this.
-func (cb *cinnabot) GoSafely(fn func()) {
+func (cb *Cinnabot) GoSafely(fn func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -157,8 +158,8 @@ func (cb *cinnabot) GoSafely(fn func()) {
 	}()
 }
 
-// Helper to parse incoming messages and return cinnabot messages
-func (cb *cinnabot) parseMessage(msg *tgbotapi.Message) *message {
+// Helper to parse incoming messages and return Cinnabot messages
+func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 	cmd := ""
 	args := []string{}
 
@@ -177,7 +178,7 @@ func (cb *cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 	} else if msg.Text != "" {
 		msgTokens := strings.Fields(msg.Text)
 		cmd, args = strings.ToLower(msgTokens[0]), msgTokens[1:]
-		// Deal with commands of the form command@cinnabot, which appear in
+		// Deal with commands of the form command@Cinnabot, which appear in
 		// group chats.
 		if strings.Contains(cmd, "@") {
 			c := strings.Split(cmd, "@")
@@ -188,11 +189,14 @@ func (cb *cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 	return &message{Cmd: cmd, Args: args, Message: msg}
 }
 
-func (cb *cinnabot) SendTextMessage(recipient int, text string) error {
+// SendTextMessage sends a basic text message back to the specified user.
+func (cb *Cinnabot) SendTextMessage(recipient int, text string) error {
 	msg := tgbotapi.NewMessage(int64(recipient), text)
 	_, err := cb.bot.Send(msg)
 	return err
 }
-func (cb *cinnabot) SendMessage(chattable tgbotapi.Chattable) {
+
+// SendMessage sends messages which require non-default options such as reply markups.
+func (cb *Cinnabot) SendMessage(chattable tgbotapi.Chattable) {
 	cb.bot.Send(chattable)
 }

@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 
 func TestSayHello(t *testing.T) {
 	mb := mockBot{}
-	cb := cinnabot{
+	cb := Cinnabot{
 		bot: &mb,
 	}
 	expectedMsgStr := "Hello there, " + mockMsg.From.FirstName + "!"
@@ -58,7 +58,7 @@ func TestSayHello(t *testing.T) {
 
 func TestEcho(t *testing.T) {
 	mb := mockBot{}
-	cb := cinnabot{
+	cb := Cinnabot{
 		bot: &mb,
 	}
 

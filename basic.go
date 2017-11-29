@@ -7,16 +7,16 @@ import (
 )
 
 // SayHello says hi.
-func (cb *cinnabot) SayHello(msg *message) {
+func (cb *Cinnabot) SayHello(msg *message) {
 	cb.SendTextMessage(msg.From.ID, "Hello there, "+msg.From.FirstName+"!")
 }
 
 // Echo parrots back the argument given by the user.
-func (cb *cinnabot) Echo(msg *message) {
+func (cb *Cinnabot) Echo(msg *message) {
 	if len(msg.Args) == 0 {
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/echo Cinnabot Parrot Mode 🤖\nWhat do you want me to parrot?\n\n")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{true,true}
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
 		return
 	}
@@ -25,12 +25,13 @@ func (cb *cinnabot) Echo(msg *message) {
 }
 
 
-// Source returns a link to Jarvis's source code.
-func (cb *cinnabot) About(msg *message) {
-	cb.SendTextMessage(msg.From.ID, "Touch me: https://github.com/varunpatro/cinnabot")
+// About returns a link to Cinnabot's source code.
+func (cb *Cinnabot) About(msg *message) {
+	cb.SendTextMessage(msg.From.ID, "Touch me: https://github.com/varunpatro/Cinnabot")
 }
 
-func (cb *cinnabot) Capitalize(msg *message) {
+// Capitalize returns a capitalized form of the input string.
+func (cb *Cinnabot) Capitalize(msg *message) {
 	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args," ")))
 }
 
