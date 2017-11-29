@@ -8,11 +8,7 @@ language: go
 # are allowed to fail on Go tip.
 go:
   - 1.9
-  - master 
-
-# Skip the install step. Don't `go get` dependencies. Only build with the
-# code in vendor/
-install: true
+  - master
 
 matrix:
   # It's ok if our code fails on unstable development versions of Go.
