@@ -73,7 +73,7 @@ func TestCapitalize(t *testing.T) {
 	cb := Cinnabot{
 		bot: &mb,
 	}
-	expectedMsgStr := "Hello there, " + mockMsg.From.FirstName + "!"
+	expectedMsgStr := "TEST_ARGS1 TEST_ARGS2"
 	expectedMsg := tgbotapi.NewMessage(999, expectedMsgStr)
 	mb.On("Send", expectedMsg).Return(nil)
 	cb.Capitalize(&mockMsg)
