@@ -1,0 +1,15 @@
+PreCommit:
+  GoLint:
+    enabled: true
+    description: 'Analyze with golint'
+    required_executable: 'golint'
+    install_command: 'go get github.com/golang/lint/golint'
+    include: '**/*.go'
+
+  GoVet:
+    enabled: true
+    description: 'Analyze with go vet'
+    required_executable: 'go'
+    flags: ['tool', 'vet']
+    install_command: 'go get golang.org/x/tools/cmd/vet'
+    include: '**/*.go'
