@@ -24,7 +24,6 @@ func (cb *Cinnabot) Echo(msg *message) {
 	cb.SendTextMessage(msg.From.ID, response)
 }
 
-
 // About returns a link to Cinnabot's source code.
 func (cb *Cinnabot) About(msg *message) {
 	cb.SendTextMessage(msg.From.ID, "Touch me: https://github.com/varunpatro/Cinnabot")
@@ -32,6 +31,5 @@ func (cb *Cinnabot) About(msg *message) {
 
 // Capitalize returns a capitalized form of the input string.
 func (cb *Cinnabot) Capitalize(msg *message) {
-	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args," ")))
+	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args, " ")))
 }
-

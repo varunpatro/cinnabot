@@ -2,15 +2,15 @@ package cinnabot
 
 import (
 	"os"
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
 var (
-	mockMsg  message
+	mockMsg message
 )
 
 type mockBot struct {
@@ -33,7 +33,7 @@ func setup() {
 		Message: &tgbotapi.Message{
 			MessageID: 1,
 			From: &tgbotapi.User{
-				ID: 999,
+				ID:        999,
 				FirstName: "test_first_name_user",
 			},
 		},
