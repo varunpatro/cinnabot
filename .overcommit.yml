@@ -13,3 +13,11 @@ PreCommit:
     flags: ['tool', 'vet']
     install_command: 'go get golang.org/x/tools/cmd/vet'
     include: '**/*.go'
+
+PrePush:
+  Minitest:
+    enabled: true
+    description: 'Run unit tests'
+    required_executable: 'go'
+    flags: ['race']
+    command: ['test']
