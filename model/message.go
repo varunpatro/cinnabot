@@ -5,6 +5,7 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
+// Message is a struct that serializes the telegram message into a single row.
 type Message struct {
 	gorm.Model
 	MessageID int
@@ -14,6 +15,7 @@ type Message struct {
 	Date      int
 }
 
+// FromTelegramMessage creates an ORM compatible struct of a telegram message.
 func FromTelegramMessage(tgbotMsg tgbotapi.Message) Message {
 	modelMsg := Message{
 		MessageID: tgbotMsg.MessageID,
