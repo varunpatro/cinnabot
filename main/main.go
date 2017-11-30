@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/pengnam/cinnabot"
+	"github.com/varunpatro/cinnabot"
 )
 
 func main() {

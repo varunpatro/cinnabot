@@ -67,3 +67,14 @@ func TestEcho(t *testing.T) {
 	mb.On("Send", expectedMsg).Return(nil)
 	cb.Echo(&mockMsg)
 }
+
+func TestCapitalize(t *testing.T) {
+	mb := mockBot{}
+	cb := Cinnabot{
+		bot: &mb,
+	}
+	expectedMsgStr := "Hello there, " + mockMsg.From.FirstName + "!"
+	expectedMsg := tgbotapi.NewMessage(999, expectedMsgStr)
+	mb.On("Send", expectedMsg).Return(nil)
+	cb.Capitalize(&mockMsg)
+}
