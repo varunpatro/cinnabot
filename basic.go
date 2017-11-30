@@ -11,11 +11,6 @@ func (cb *Cinnabot) SayHello(msg *message) {
 	cb.SendTextMessage(msg.From.ID, "Hello there, "+msg.From.FirstName+"!")
 }
 
-//Capitalizes any inputted string
-func (cb *cinnabot) Capitalize(msg *message){
-	cb.SendMessage(msg.Chat, "Hello", nil)
-}
-
 // Echo parrots back the argument given by the user.
 func (cb *Cinnabot) Echo(msg *message) {
 	if len(msg.Args) == 0 {
