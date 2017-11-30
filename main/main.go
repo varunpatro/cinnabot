@@ -4,10 +4,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"time"
 
-	"github.com/tucnak/telebot"
-	"github.com/spikerheado1234/cinnabot"
+	"github.com/varunpatro/cinnabot"
 )
 
 func main() {
@@ -25,10 +23,11 @@ func main() {
 	cb.AddFunction("/hello", cb.SayHello)
 	cb.AddFunction("/capitalize", cb.Capitalize)
 
-	messages := make(chan telebot.Message)
-	cb.Listen(messages, 1 * time.Second)
+	updates := cb.Listen(60)
 
-	for message := range messages {
-		cb.Router(message)
+	for update := range updates {
+		if update.Message != nil {
+			cb.Router(*update.Message)
+		}
 	}
 }
