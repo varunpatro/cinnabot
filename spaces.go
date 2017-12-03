@@ -1,11 +1,11 @@
 package cinnabot
 
 import (
-	"net/http"       //http.Client, http.NewRequest
-	"bytes"          //bytes.NewBuffer
-	"encoding/json"  //json.Unmarshal
-	"io/ioutil"      //ioutil.ReadAll
-	"fmt"            //printing
+	"bytes"         //bytes.NewBuffer
+	"encoding/json" //json.Unmarshal
+	"fmt"           //printing
+	"io/ioutil"     //ioutil.ReadAll
+	"net/http"      //http.Client, http.NewRequest
 	//"reflect"
 	"sort"
 	"time"
@@ -13,13 +13,13 @@ import (
 
 // An Event is a single booking of a location.
 type Event struct {
-	Type string `json:"__type"`
-	ID float64 `json:"id"`
-	Title string `json:"title"`
-	Start string `json:"start"`
-	End string `json:"end"`
-	AllDay bool `json:"allDay"`
-	Color string `json:"colour"`
+	Type   string  `json:"__type"`
+	ID     float64 `json:"id"`
+	Title  string  `json:"title"`
+	Start  string  `json:"start"`
+	End    string  `json:"end"`
+	AllDay bool    `json:"allDay"`
+	Color  string  `json:"colour"`
 }
 
 // Used ONLY for Unmarshalling. Has an additional annoying layer "d" inside which can be abstracted away.
@@ -36,12 +36,14 @@ type Spaces []Space
 // ByStartDate implements sort.Interface for Space based on the space[i].Start field
 type ByStartDate Space
 
-func (space ByStartDate) Len() int           {return len(space)}
-func (space ByStartDate) Swap(i, j int)      { space[i], space[j] = space[j], space[i]}
-func (space ByStartDate) Less(i, j int) bool {return ParseJSONDate(space[i].Start).Before(ParseJSONDate(space[j].Start))}
+func (space ByStartDate) Len() int      { return len(space) }
+func (space ByStartDate) Swap(i, j int) { space[i], space[j] = space[j], space[i] }
+func (space ByStartDate) Less(i, j int) bool {
+	return ParseJSONDate(space[i].Start).Before(ParseJSONDate(space[j].Start))
+}
 
 // SortByStartDate returns a new Space whose Events are sorted in chronological order.
-func (space Space) SortByStartDate() Space{
+func (space Space) SortByStartDate() Space {
 	sort.Sort(ByStartDate(space))
 	return space
 }
@@ -68,7 +70,7 @@ func ScanRawSpace(rawSpacePointer *rawSpace, facilityID int) {
 		panic("Error in spaces.go while receiving HTTP response")
 	}
 
-	defer response.Body.Close(); //Close buffer
+	defer response.Body.Close() //Close buffer
 
 	//Get raw json data
 	rawData, rawDataError := ioutil.ReadAll(response.Body)
@@ -89,10 +91,10 @@ func GetSpace(facilityID int) Space {
 }
 
 // GetSpaces obtains all spaces booking info from nususc.com/Spaces.aspx
-func GetSpaces() Spaces{
+func GetSpaces() Spaces {
 	spaces := Spaces{}
-	for i := 0; i < 6; i++{
-		spaces = append(spaces, (GetSpace(i+1)).SortByStartDate() )
+	for i := 0; i < 6; i++ {
+		spaces = append(spaces, (GetSpace(i + 1)).SortByStartDate())
 	}
 	return spaces
 }
@@ -107,21 +109,55 @@ func ParseJSONDate(date string) time.Time {
 	return t
 }
 
-// IsDDMMYYDate checks if user-inputted dd/mm/yy date is a valid, Parse-able date
-func IsDDMMYYDate(date string) bool {
-	format := "02/01/06"
-	_, err := time.Parse(format, date)
-	return err == nil
-}
-
 // ParseDDMMYYDate parses user-inputted dd/mm/yy date into time.Time
-func ParseDDMMYYDate(date string) time.Time {
+func ParseDDMMYYDate(date string) (time.Time, error) {
+	//Attempt to parse as dd/mm/yy
 	format := "02/01/06"
 	t, err := time.Parse(format, date)
 	if err != nil {
-		panic(fmt.Sprintf("Error in spaces.go while parsing %s as a DD/MM/YY date", date))
+		// Attempt to parse as dd/m/yy
+		format = "02/1/06"
+		t, err = time.Parse(format, date)
 	}
-	return t
+	if err != nil {
+		// Attempt to parse as d/mm/yy
+		format = "2/01/06"
+		t, err = time.Parse(format, date)
+	}
+	if err != nil {
+		// Attempt to parse as d/m/yy
+		format = "2/1/06"
+		t, err = time.Parse(format, date)
+	}
+	if err != nil {
+		// Attempt to parse as some form of dd/mm
+		// Attempt to parse as dd/mm
+		format = "02/01"
+		t, err = time.Parse(format, date)
+		if err != nil {
+			// Attempt to parse as dd/m
+			format = "02/1"
+			t, err = time.Parse(format, date)
+		}
+		if err != nil {
+			// Attempt to parse as d/mm
+			format = "2/01"
+			t, err = time.Parse(format, date)
+		}
+		if err != nil {
+			// Attempt to parse as d/m
+			format = "2/1"
+			t, err = time.Parse(format, date)
+		}
+
+		// Check if one of the dd/mm checks have worked
+		if err == nil {
+			// return t, but using the current year
+			year := time.Now().Year()
+			t = time.Date(year, t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		}
+	}
+	return t, err
 }
 
 // FormatDate formats a time.Time into date in a standardised format
@@ -135,7 +171,7 @@ func FormatTime(t time.Time) string {
 }
 
 // FormatTimeDate formats a time.Time into a full time and date, in a standardised format
-func FormatTimeDate(t time.Time) string{
+func FormatTimeDate(t time.Time) string {
 	return fmt.Sprintf("%s, %s", FormatTime(t), FormatDate(t))
 }
 
@@ -175,18 +211,18 @@ func SpaceName(facilityID int) string {
 }
 
 // ToString displays info associated with one particular Event booking.
-func (event Event) ToString() string{
+func (event Event) ToString() string {
 	return fmt.Sprintf("%s\n%s", event.Title, event.TimeInfo())
 }
 
 //ToString displays info for all bookings in a Space.
-func (space Space) ToString() string{
+func (space Space) ToString() string {
 	returnString := ""
 	if len(space) == 0 {
 		returnString += "[No bookings recorded]"
 	} else {
 		for i := range space {
-			if i != 0{
+			if i != 0 {
 				returnString += "\n\n"
 			}
 			returnString += (space)[i].ToString()
@@ -199,12 +235,12 @@ func (space Space) ToString() string{
 func (spaces Spaces) ToString() string {
 	spacesString := ""
 
-	for _,i := range []int{0,1,2,3,5} {
-		if i != 0{
+	for _, i := range []int{0, 1, 2, 3, 5} {
+		if i != 0 {
 			spacesString += "\n\n\n"
 		}
 		spacesString += fmt.Sprintf("=======================\n%s\n=======================\n%s",
-									SpaceName(i), (spaces)[i].ToString())
+			SpaceName(i), (spaces)[i].ToString())
 	}
 	return spacesString
 }
@@ -213,9 +249,9 @@ func (spaces Spaces) ToString() string {
 type EventPredicate func(Event) bool
 
 // Restrict returns a new Spaces object containing all events in the original Spaces for which predicate returns true.
-func (spaces Spaces) Restrict(predicate EventPredicate) Spaces{
+func (spaces Spaces) Restrict(predicate EventPredicate) Spaces {
 	newSpaces := Spaces{}
-	for i,space := range spaces {
+	for i, space := range spaces {
 		newSpaces = append(newSpaces, Space{})
 		for _, event := range space {
 			if predicate(event) {
@@ -227,7 +263,7 @@ func (spaces Spaces) Restrict(predicate EventPredicate) Spaces{
 }
 
 // EventNow is an EventPredicate testing if current time falls between start and end time of the Event.
-func EventNow(event Event) bool{
+func EventNow(event Event) bool {
 	now := time.Now()
 	start := ParseJSONDate(event.Start)
 	end := ParseJSONDate(event.End)
@@ -236,13 +272,13 @@ func EventNow(event Event) bool{
 
 // EventOnDay is an EventPredicate testing if any part of an Event falls on the same day as the specified time.Time.
 func EventOnDay(t time.Time) func(Event) bool {
-	y,m,d := t.Date()
+	y, m, d := t.Date()
 	return func(event Event) bool {
 		start := ParseJSONDate(event.Start)
 		end := ParseJSONDate(event.End)
-		sy,sm,sd := start.Date()
-		ey,em,ed := end.Date()
-		return (EventNow(event)||(y==sy&&m==sm&&d==sd)||(y==ey&&m==em&&d==ed))
+		sy, sm, sd := start.Date()
+		ey, em, ed := end.Date()
+		return (EventNow(event) || (y == sy && m == sm && d == sd) || (y == ey && m == em && d == ed))
 	}
 }
 
@@ -266,14 +302,14 @@ func EventAfter(event Event, t time.Time) bool {
 // EventComingWeek is an EventPredicate testing if an Event overlaps with the time period of (now, now + 7 days)
 func EventComingWeek(event Event) bool {
 	now := time.Now()
-	week := now.AddDate(0,0,7)
+	week := now.AddDate(0, 0, 7)
 	return EventAfter(event, now) && EventBefore(event, week)
 }
 
 // EventBetweenDays returns an EventPredicate testing if an event falls between the start and end date, inclusive.
 // It is meant to be called with start, end time.Time obtained from ParseDDMMYYDate, which by default has time = 12MN.
 func EventBetweenDays(start, end time.Time) func(Event) bool {
-	correctedEnd := end.AddDate(0,0,1) // Standard is 12AM, so 1 day is added to capture events on the last day
+	correctedEnd := end.AddDate(0, 0, 1) // Standard is 12AM, so 1 day is added to capture events on the last day
 	return func(event Event) bool {
 		return EventAfter(event, start) && EventBefore(event, correctedEnd)
 	}
@@ -308,9 +344,9 @@ func (spaces Spaces) BookingsOnDate(t time.Time) string {
 }
 
 // BookingsBetween returns a string describing bookings in the given interval.
-func (spaces Spaces) BookingsBetween(start,end time.Time) string {
+func (spaces Spaces) BookingsBetween(start, end time.Time) string {
 	message := fmt.Sprintf("Displaying bookings between %s and %s\n\n", FormatDate(start), FormatDate(end))
-	message += spaces.Restrict(EventBetweenDays(start,end)).ToString()
+	message += spaces.Restrict(EventBetweenDays(start, end)).ToString()
 	return message
 }
 
@@ -333,24 +369,44 @@ func (cb *Cinnabot) Spaces(msg *message) {
 		toSend += spaces.BookingsNowMessage()
 	} else if msg.Args[0] == "week" {
 		toSend += spaces.BookingsComingWeekMessage()
-	} else if IsDDMMYYDate(msg.Args[0]){
-		t0 := ParseDDMMYYDate(msg.Args[0])
-		if len(msg.Args) >= 2 && IsDDMMYYDate(msg.Args[1]) {
-			t1 := ParseDDMMYYDate(msg.Args[1])
-			if t0.AddDate(0,0,33).Before(t1) {
-				toSend += "The time interval is too long. Please restrict it to at most one month."
-			} else {
-				toSend += spaces.BookingsBetween(t0,t1)
-			}
-		} else {
-			toSend += spaces.BookingsOnDate(t0)
-		}
+	} else if msg.Args[0] == "today" {
+		toSend += spaces.BookingsTodayMessage()
+	} else if msg.Args[0] == "tomorrow" {
+		today := time.Now()
+		tomorrow := today.AddDate(0, 0, 1)
+		toSend += spaces.BookingsOnDate(tomorrow)
 	} else {
+		t0, err0 := ParseDDMMYYDate(msg.Args[0])
+		if err0 == nil {
+			// First argument is a valid date
+			// Attempt to parse second argument, if exists, and show BookingsBetween(t0, t1)
+			if len(msg.Args) >= 2 {
+				t1, err1 := ParseDDMMYYDate(msg.Args[1])
+				if err1 == nil {
+					// Check if the interval is too long
+					if t0.AddDate(0, 0, 33).Before(t1) {
+						toSend += "The time interval is too long. Please restrict it to at most one month."
+					} else {
+						toSend += spaces.BookingsBetween(t0, t1)
+					}
+				}
+			}
+
+			if toSend == "" {
+				// i.e., second argument does not exist or failed to parse as date
+				// Just show events on date t0
+				toSend += spaces.BookingsOnDate(t0)
+			}
+		}
+	}
+
+	if toSend == "" {
+		// i.e., if arguments could not be parsed as above
 		if msg.Args[0] != "help" {
 			toSend += "Cinnabot was unable to understand your command.\n\n"
 		}
 
-		toSend += "To use the '/spaces' command, type one of the following:\n'/spaces' : to view all bookings for today\n'/spaces now' : to view bookings active at this very moment\n'/spaces week' : to view all bookings for this week\n'/spaces dd/mm/yy' : to view all bookings on a specific day\n'/spaces dd/mm/yy dd/mm/yy' : to view all bookings in a specific range of dates"
+		toSend += "To use the '/spaces' command, type one of the following:\n'/spaces' : to view all bookings for today\n'/spaces now' : to view bookings active at this very moment\n'/spaces week' : to view all bookings for this week\n'/spaces dd/mm(/yy)' : to view all bookings on a specific day\n'/spaces dd/mm(/yy) dd/mm(/yy)' : to view all bookings in a specific range of dates"
 	}
 
 	cb.SendTextMessage(msg.From.ID, toSend)
