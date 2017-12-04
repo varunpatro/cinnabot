@@ -11,15 +11,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tucnak/telebot"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 type bot interface {
-	SendMessage(recipient telebot.Recipient, msg string, options *telebot.SendOptions) error
-	Listen(subscription chan telebot.Message, timeout time.Duration)
+	Send(c tgbotapi.Chattable) (tgbotapi.Message, error)
+	GetUpdatesChan(config tgbotapi.UpdateConfig) (tgbotapi.UpdatesChannel, error)
 }
 
-type cinnabot struct {
+// Cinnabot is main struct that processes user requests.
+type Cinnabot struct {
 	Name string // The name of the bot registered with Botfather
 	bot  bot
 	log  *log.Logger
@@ -27,7 +28,7 @@ type cinnabot struct {
 	keys config
 }
 
-// Configuration struct for setting up cinnabot
+// Configuration struct for setting up Cinnabot
 type config struct {
 	Name           string `json:"name"`
 	TelegramAPIKey string `json:"telegram_api_key"`
@@ -38,10 +39,10 @@ type config struct {
 type message struct {
 	Cmd  string
 	Args []string
-	*telebot.Message
+	*tgbotapi.Message
 }
 
-// GetArgs prints out the arguments for the message in one string.
+// GetArgStrings prints out the arguments for the message in one string.
 func (m message) GetArgString() string {
 	argString := ""
 	for _, s := range m.Args {
@@ -57,13 +58,13 @@ type FuncMap map[string]ResponseFunc
 // ResponseFunc is a handler for a bot command.
 type ResponseFunc func(m *message)
 
-// Initialize cinnabot
-func InitCinnabot(configJSON []byte, lg *log.Logger) *cinnabot {
-	// We'll use random numbers throughout cinnabot
+// InitCinnabot initializes an instance of Cinnabot.
+func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
+	// We'll use random numbers throughout Cinnabot
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if lg == nil {
-		lg = log.New(os.Stdout, "[cinnabot] ", 0)
+		lg = log.New(os.Stdout, "[Cinnabot] ", 0)
 	}
 
 	var cfg config
@@ -84,29 +85,35 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *cinnabot {
 		log.Fatalf("config.json exists, but doesn't contain any admins.")
 	}
 
-	bot, err := telebot.NewBot(cfg.TelegramAPIKey)
+	bot, err := tgbotapi.NewBotAPI(cfg.TelegramAPIKey)
 	if err != nil {
 		log.Fatalf("error creating new bot, dude %s", err)
 	}
 
-	cb := &cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
+	cb := &Cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
 	cb.fmap = cb.getDefaultFuncMap()
 
 	return cb
 }
 
 // Listen exposes the telebot Listen API.
-func (cb *cinnabot) Listen(subscription chan telebot.Message, timeout time.Duration) {
-	cb.bot.Listen(subscription, timeout)
+func (cb *Cinnabot) Listen(timeout int) tgbotapi.UpdatesChannel {
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = timeout
+	updates, err := cb.bot.GetUpdatesChan(u)
+	if err != nil {
+		log.Fatalf("error creating updates channel: %s", err)
+	}
+	return updates
 }
 
 // Get the built-in, default FuncMap.
-func (cb *cinnabot) getDefaultFuncMap() FuncMap {
+func (cb *Cinnabot) getDefaultFuncMap() FuncMap {
 	return FuncMap{}
 }
 
-// Add a response function to the FuncMap
-func (cb *cinnabot) AddFunction(command string, resp ResponseFunc) error {
+// AddFunction binds a response function to a command string in Cinnabot's FuncMap
+func (cb *Cinnabot) AddFunction(command string, resp ResponseFunc) error {
 	if !strings.HasPrefix(command, "/") {
 		return fmt.Errorf("not a valid command string - it should be of the format /something")
 	}
@@ -114,29 +121,29 @@ func (cb *cinnabot) AddFunction(command string, resp ResponseFunc) error {
 	return nil
 }
 
-// Route received Telegram messages to the appropriate response functions.
-func (cb *cinnabot) Router(msg telebot.Message) {
+// Router routes Telegram messages to the appropriate response functions.
+func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 	// Don't respond to forwarded commands
-	if msg.IsForwarded() {
+	if msg.ForwardFrom != nil {
 		return
 	}
-	jmsg := cb.parseMessage(&msg)
-	if jmsg.Cmd != "" {
-		cb.log.Printf("[%s][id: %d] command: %s, args: %s", time.Now().Format(time.RFC3339), jmsg.ID, jmsg.Cmd, jmsg.GetArgString())
+	cmsg := cb.parseMessage(&msg)
+	if cmsg.Cmd != "" {
+		cb.log.Printf("[%s][id: %d] command: %s, args: %s", time.Now().Format(time.RFC3339), cmsg.MessageID, cmsg.Cmd, cmsg.GetArgString())
 	}
-	execFn := cb.fmap[jmsg.Cmd]
+	execFn := cb.fmap[cmsg.Cmd]
 
 	if execFn != nil {
-		cb.GoSafely(func() { execFn(jmsg) })
+		cb.GoSafely(func() { execFn(cmsg) })
 	} else {
-		cb.SendMessage(msg.Chat, "No such command!", &telebot.SendOptions{ReplyTo: msg})
+		cb.SendTextMessage(msg.From.ID, "No such command!")
 	}
 }
 
 // GoSafely is a utility wrapper to recover and log panics in goroutines.
 // If we use naked goroutines, a panic in any one of them crashes
 // the whole program. Using GoSafely prevents this.
-func (cb *cinnabot) GoSafely(fn func()) {
+func (cb *Cinnabot) GoSafely(fn func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -151,17 +158,17 @@ func (cb *cinnabot) GoSafely(fn func()) {
 	}()
 }
 
-// Helper to parse incoming messages and return cinnabot messages
-func (cb *cinnabot) parseMessage(msg *telebot.Message) *message {
+// Helper to parse incoming messages and return Cinnabot messages
+func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 	cmd := ""
 	args := []string{}
 
-	if msg.IsReply() {
+	if msg.ReplyToMessage != nil {
 		// We use a hack. All reply-to messages have the command it's replying to as the
 		// part of the message.
 		r := regexp.MustCompile(`\/\w*`)
-		res := r.FindString(msg.ReplyTo.Text)
-		for k, _ := range cb.fmap {
+		res := r.FindString(msg.ReplyToMessage.Text)
+		for k := range cb.fmap {
 			if res == k {
 				cmd = k
 				args = strings.Split(msg.Text, " ")
@@ -171,7 +178,7 @@ func (cb *cinnabot) parseMessage(msg *telebot.Message) *message {
 	} else if msg.Text != "" {
 		msgTokens := strings.Fields(msg.Text)
 		cmd, args = strings.ToLower(msgTokens[0]), msgTokens[1:]
-		// Deal with commands of the form command@cinnabot, which appear in
+		// Deal with commands of the form command@Cinnabot, which appear in
 		// group chats.
 		if strings.Contains(cmd, "@") {
 			c := strings.Split(cmd, "@")
@@ -182,6 +189,14 @@ func (cb *cinnabot) parseMessage(msg *telebot.Message) *message {
 	return &message{Cmd: cmd, Args: args, Message: msg}
 }
 
-func (cb *cinnabot) SendMessage(recipient telebot.Recipient, msg string, options *telebot.SendOptions) error {
-	return cb.bot.SendMessage(recipient, msg, options)
+// SendTextMessage sends a basic text message back to the specified user.
+func (cb *Cinnabot) SendTextMessage(recipient int, text string) error {
+	msg := tgbotapi.NewMessage(int64(recipient), text)
+	_, err := cb.bot.Send(msg)
+	return err
+}
+
+// SendMessage sends messages which require non-default options such as reply markups.
+func (cb *Cinnabot) SendMessage(chattable tgbotapi.Chattable) {
+	cb.bot.Send(chattable)
 }
