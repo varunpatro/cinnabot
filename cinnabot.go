@@ -171,6 +171,7 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 		for k := range cb.fmap {
 			if res == k {
 				cmd = k
+				log.Println(cmd)
 				args = strings.Split(msg.Text, " ")
 				break
 			}

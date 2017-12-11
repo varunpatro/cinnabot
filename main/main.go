@@ -28,13 +28,20 @@ func main() {
 	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/hello", cb.SayHello)
 	cb.AddFunction("/capitalize", cb.Capitalize)
+	cb.AddFunction("/bus", cb.BusTimings)
+	cb.AddFunction("/weather", cb.Weather)
 
 	updates := cb.Listen(60)
 
 	for update := range updates {
 		if update.Message != nil {
-			modelMsg := model.FromTelegramMessage(*update.Message)
+			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
 			db.Create(&modelMsg)
+			if db.NewRecord(&modelUsr) {
+				//log.Println(db.NewRecord(&modelUsr))
+				db.Create(&modelUsr)
+			}
+			//log.Println(db.NewRecord(&modelUsr))
 			cb.Router(*update.Message)
 		}
 	}

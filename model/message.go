@@ -10,23 +10,24 @@ type Message struct {
 	gorm.Model
 	MessageID int
 	UserID    int
-	User      User `gorm:"ForeignKey:UserID;AssociationForeignKey:UserID"`
 	Text      string
 	Date      int
 }
 
 // FromTelegramMessage creates an ORM compatible struct of a telegram message.
-func FromTelegramMessage(tgbotMsg tgbotapi.Message) Message {
+func FromTelegramMessage(tgbotMsg tgbotapi.Message) (Message, User) {
 	modelMsg := Message{
 		MessageID: tgbotMsg.MessageID,
 		Text:      tgbotMsg.Text,
 		Date:      tgbotMsg.Date,
 		UserID:    tgbotMsg.From.ID,
-		User: User{
-			FirstName: tgbotMsg.From.FirstName,
-			LastName:  tgbotMsg.From.LastName,
-			UserName:  tgbotMsg.From.UserName,
-		},
+
 	}
-	return modelMsg
+	modelUsr := User{
+		UserID: tgbotMsg.From.ID,
+		FirstName: tgbotMsg.From.FirstName,
+		LastName:  tgbotMsg.From.LastName,
+		UserName:  tgbotMsg.From.UserName,
+	}
+	return modelMsg, modelUsr
 }
