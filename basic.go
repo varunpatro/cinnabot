@@ -4,6 +4,7 @@ import (
 	"strings"
 	"net/http"
 
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"encoding/json"
@@ -13,6 +14,9 @@ import (
 	"log"
 	"fmt"
 	"time"
+	"regexp"
+	"github.com/varunpatro/cinnabot/model"
+	"github.com/jinzhu/gorm"
 )
 
 // SayHello says hi.
@@ -43,7 +47,7 @@ func (cb *Cinnabot) Capitalize(msg *message) {
 	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args, " ")))
 }
 
-
+//Link returns useful links
 func (cb *Cinnabot) Link(msg *message) {
 	links := make(map[string]string)
 	links["usplife"] = "https://www.facebook.com"
@@ -64,6 +68,7 @@ func (cb *Cinnabot) Link(msg *message) {
 	}
 }
 
+//Structs for weather forecast function
 type WeatherForecast struct {
 	AM []AreaMetadata `json:"area_metadata"`
 	FD []ForecastData `json:"items"`
@@ -83,7 +88,7 @@ type ForecastMetadata struct {
 	Forecast string `json:"forecast"`
 }
 
-
+//Weather checks the weather based on given location
 func (cb *Cinnabot) Weather(msg *message){
 	//Check if weather was sent with location, if not reply with markup
 	if msg.Location == nil {
@@ -104,8 +109,6 @@ func (cb *Cinnabot) Weather(msg *message){
 	resp,_ := client.Do(req)
 	responseData,_ := ioutil.ReadAll(resp.Body)
 
-
-
 	wf := WeatherForecast{}
 	if err := json.Unmarshal(responseData, &wf); err != nil {
 		panic(err)
@@ -121,7 +124,7 @@ func (cb *Cinnabot) Weather(msg *message){
 			nameMinLoc = wf.AM[i].Name
 		}
 	}
-	log.Print("The closest location is " + nameMinLoc)
+	log.Print("🤖 The closest location is " + nameMinLoc)
 
 	var forecast string
 	for i,_ := range wf.FD[0].FMD {
@@ -136,11 +139,11 @@ func (cb *Cinnabot) Weather(msg *message){
 	forecast = strings.ToLower(strings.Join(words[:len(words)-1], " "))
 
 
-	cb.SendTextMessage(msg.From.ID, "The forecast is " + forecast + " for " + nameMinLoc)
+	cb.SendTextMessage(msg.From.ID, "🤖 The forecast is " + forecast + " for " + nameMinLoc)
 
 }
 
-
+//Helper funcs for weather
 func DistanceBetween (Loc1 tgbotapi.Location, Loc2 tgbotapi.Location) float64 {
 	x := math.Pow((float64(Loc1.Latitude - Loc2.Latitude)),2)
 	y := math.Pow((float64(Loc1.Longitude-Loc2.Longitude)),2)
@@ -148,6 +151,7 @@ func DistanceBetween (Loc1 tgbotapi.Location, Loc2 tgbotapi.Location) float64 {
 }
 
 
+//Structs for BusTiming
 type BusTimes struct {
 	Services []Service `json:"Services"`
 }
@@ -162,9 +166,7 @@ type NextBus struct {
 	EstimatedArrival string `json:"EstimatedArrival"`
 }
 
-
-
-
+//BusTimings checks the bus timings based on given location
 func (cb *Cinnabot) BusTimings (msg *message) {
 	//Check if weather was sent with location, if not reply with markup
 	if msg.Location == nil {
@@ -173,22 +175,16 @@ func (cb *Cinnabot) BusTimings (msg *message) {
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
 		return
-
 	}
-
 
 	//Returns a heap of busstop data (sorted)
 	BSH := getBusStops(*msg.Location)
-
 	responseString := BusTimingResponse(&BSH)
-
 	cb.SendTextMessage(msg.From.ID, responseString)
 }
 
-
-
+//Helper functions for BusTiming
 func BusTimingResponse (BSH *BusStopHeap) string{
-
 	returnMessage := ""
 	//Iteratively get data for each closest bus stop.
 	for i := 0; i < 3; i++ {
@@ -232,7 +228,7 @@ func BusTimingResponse (BSH *BusStopHeap) string{
 	return returnMessage
 }
 
-
+//Bus stop structs
 type BusStop struct {
 	BusStopNumber string `json:"no"`
 	Latitude string `json:"lat"`
@@ -299,4 +295,140 @@ func DistanceBetween2 (Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
 	y := math.Pow(Loc1.Longitude - loc2Lon,2)
 	return x+y
 }
+
+
+//Broadcast broadcasts a message after checking for admin status [trial]
+//Admins are to first send a message with tags before sending actual message
+func (cb *Cinnabot) Broadcast (msg *message) {
+	val := checkAdmin(cb,msg)
+	if !val {
+		cb.SendTextMessage(msg.From.ID, "🤖 Im sorry! You do not seem to be an admin")
+		return
+	}
+
+	if len(msg.Args) == 0 {
+		cb.SendTextMessage(msg.From.ID, "🤖 Please include text in the message")
+		return
+	}
+	//Used to initialize tags in a mark-up. Ensure that people check their tags
+	if msg.ReplyToMessage == nil {
+		//Scan for tags
+		r := regexp.MustCompile(`\/\w*`)
+		locReply := r.FindStringIndex(msg.Text)
+		tags := strings.Fields(strings.ToLower(msg.Text[locReply[1]:]))
+
+		//Filter for valid tags
+		check := model.InitializeDB()
+		var sub model.User
+		var checkedTags []string
+		for i := 0; i < len(tags) ; i++ {
+			if err := check.Where(tags[i]+" = ?", "placebo").First(&sub).Error; err != gorm.ErrRecordNotFound {
+				continue
+			}
+			checkedTags = append(checkedTags, tags[i])
+		}
+
+		//Send in mark-up
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/broadcast " + strings.Join(checkedTags," "))
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+
+	}
+	//Initialize DB
+	db := model.InitializeDB()
+	defer db.Close()
+
+
+	//Tags to send to
+	r := regexp.MustCompile(`\/\w*`)
+	locReply := r.FindStringIndex(msg.ReplyToMessage.Text)
+	tags := strings.Fields(msg.ReplyToMessage.Text[locReply[1]:])
+
+
+	log.Print("1")
+	userGroup := db.UserGroup(tags)
+	log.Print("2")
+	log.Print(tags)
+	log.Print(len(userGroup))
+	log.Print(msg.Chat.ID)
+	log.Print(msg.From.ID)
+	//Consider forwarding the message instead [using forward config]
+	for j := 0; j < len(userGroup); j++ {
+		forwardMess := 	tgbotapi.NewForward(int64(userGroup[j].UserID), msg.Chat.ID, msg.MessageID)
+		cb.SendMessage(forwardMess)
+	}
+
+	log.Print("3")
+	return
+}
+
+
+
+
+
+
+func checkAdmin (cb *Cinnabot, msg *message) bool{
+	for _,admin := range cb.keys.Admins {
+		if admin == msg.From.ID {
+			return true
+		}
+	}
+	return false
+}
+
+//Subscribe subscribes the user to a broadcast channel [trial]
+func (cb *Cinnabot) Subscribe (msg *message) {
+
+	if len(msg.Args) == 0 {
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/subscribe 🤖 What do you want to subscribe to?\n\n")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+
+	db := model.InitializeDB()
+	tag := msg.Args[0]
+	log.Print("Tag: " + tag)
+
+	var user model.User
+
+	db.First(&user) //add error handling
+	log.Print(user)
+	//For Error handling
+	//Only way to check aside from direct SQL query
+
+	var sub model.User;
+	check := db.Where("user_id = ?", msg.From.ID)
+
+	//Check if tag exists.
+	//Placebo used as a placebo value. no such column error thrown if does not exist.
+	if err2 := check.Where(tag+" = ?", "placebo").First(&sub).Error; err2 != gorm.ErrRecordNotFound {
+		if strings.Contains(err2.Error(), "no such column") {
+			cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
+			return
+		}
+
+		cb.SendTextMessage(msg.From.ID,"🤖 UnknownError")
+		log.Fatal(err2)
+
+	}
+
+
+	if err1 := check.Where(tag + " = ?", true).First(&sub).Error; err1 != gorm.ErrRecordNotFound {
+		cb.SendTextMessage(msg.From.ID, "🤖 You are already subscribed to " + tag)
+		return
+	}
+
+	log.Print(user)
+	if err1 := check.Model(&user).Update(tag, true).Error; err1 != nil { //Need to try what happens someone updates user_id field.
+		log.Fatal(err1.Error())
+	}
+
+	cb.SendTextMessage(msg.From.ID, "🤖 You are now subscribed to " + tag)
+	return
+}
+
 

@@ -58,6 +58,8 @@ type FuncMap map[string]ResponseFunc
 // ResponseFunc is a handler for a bot command.
 type ResponseFunc func(m *message)
 
+
+
 // InitCinnabot initializes an instance of Cinnabot.
 func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 	// We'll use random numbers throughout Cinnabot
@@ -176,6 +178,7 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 				break
 			}
 		}
+
 	} else if msg.Text != "" {
 		msgTokens := strings.Fields(msg.Text)
 		cmd, args = strings.ToLower(msgTokens[0]), msgTokens[1:]
