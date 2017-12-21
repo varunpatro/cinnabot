@@ -27,11 +27,12 @@ func (db *Database) UserGroup (tags []string) []User {
 	}
 	rows, _ := gorm.Open("sqlite3", "../main/cinnabot.db")
 	defer rows.Close()
-	rows = rows.Where("everything = ?", true)
 
 	for i:=0;i<len(tags);i++ {
 		rows = rows.Where(tags[i]+" = ?",true)
 	}
+	rows = rows.Or("everything = ?", true)
+
 	var users []User
 	rows.Find(&users)
 

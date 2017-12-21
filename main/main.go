@@ -35,6 +35,7 @@ func main() {
 	cb.AddFunction("/weather", cb.Weather)
 	cb.AddFunction("/broadcast", cb.Broadcast)
 	cb.AddFunction("/subscribe", cb.Subscribe)
+	cb.AddFunction("/spaces", cb.Spaces)
 
 
 	/**
