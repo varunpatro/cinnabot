@@ -6,7 +6,7 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-func Test290516(t *testing.T) {
+func TestSpaces(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
 		bot: &mb,

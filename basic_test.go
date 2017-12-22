@@ -185,12 +185,12 @@ func TestWeather(t *testing.T) {
 
 }
 
-//MockDB used to test broadcast and subscribe.
+//MockDB used to test broadcast and subscribe. Mock-up db
 type mockDB struct {}
 
-//Helpers that all mockbot has to implement to inherit DataGroup
+//Helpers that allow to inherit DataGroup interface
+
 func (mdb *mockDB) Create(value interface{}) {}
-//NOTE: only arguments with single tag for simplicity
 func (mdb *mockDB) UserGroup (tags []string) []model.User {
 	user1 := model.User{
 		UserID: 0001,
@@ -231,12 +231,12 @@ func (mdb *mockDB) CheckSubscribed (id int, tag string) bool{
 }
 
 
-
 //Update updates the flag for the tag for an User which is determined by the id
 func (mdb *mockDB) UpdateTag (id int, tag string, flag bool) error{
 	return nil
 }
 
+//TestBroadcast tests broadcast function
 /**
 //Two ways to test broadcast
 //1. Ensure that a reply mock-up is sent when an empty message is sent

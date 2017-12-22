@@ -115,10 +115,10 @@ func (cb *Cinnabot) Weather(msg *message){
 	}
 
 	log.Print(msg.Location)
-	lowestDistance := DistanceBetween(wf.AM[0].Loc, *msg.Location)
+	lowestDistance := distanceBetween(wf.AM[0].Loc, *msg.Location)
 	nameMinLoc := wf.AM[0].Name
 	for i := 1; i < len(wf.AM); i++ {
-		currDistance := DistanceBetween(wf.AM[i].Loc, *msg.Location)
+		currDistance := distanceBetween(wf.AM[i].Loc, *msg.Location)
 		if currDistance < lowestDistance {
 			lowestDistance = currDistance
 			nameMinLoc = wf.AM[i].Name
@@ -144,7 +144,7 @@ func (cb *Cinnabot) Weather(msg *message){
 }
 
 //Helper funcs for weather
-func DistanceBetween (Loc1 tgbotapi.Location, Loc2 tgbotapi.Location) float64 {
+func distanceBetween (Loc1 tgbotapi.Location, Loc2 tgbotapi.Location) float64 {
 	x := math.Pow((float64(Loc1.Latitude - Loc2.Latitude)),2)
 	y := math.Pow((float64(Loc1.Longitude-Loc2.Longitude)),2)
 	return x+y
@@ -179,12 +179,12 @@ func (cb *Cinnabot) BusTimings (msg *message) {
 
 	//Returns a heap of busstop data (sorted)
 	BSH := getBusStops(*msg.Location)
-	responseString := BusTimingResponse(&BSH)
+	responseString := busTimingResponse(&BSH)
 	cb.SendTextMessage(msg.From.ID, responseString)
 }
 
 //Helper functions for BusTiming
-func BusTimingResponse (BSH *BusStopHeap) string{
+func busTimingResponse (BSH *BusStopHeap) string{
 	returnMessage := ""
 	//Iteratively get data for each closest bus stop.
 	for i := 0; i < 3; i++ {
@@ -249,7 +249,7 @@ func (h BusStopHeap) Len() int {
 }
 
 func (h BusStopHeap) Less(i, j int) bool {
-	return DistanceBetween2(h.location,h.busStopList[i]) < DistanceBetween2(h.location, h.busStopList[j])
+	return distanceBetween2(h.location,h.busStopList[i]) < distanceBetween2(h.location, h.busStopList[j])
 }
 
 func (h BusStopHeap) Swap(i, j int) {
@@ -289,7 +289,7 @@ func getBusStops(loc tgbotapi.Location) BusStopHeap {
 	return BSH
 }
 
-func DistanceBetween2 (Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
+func distanceBetween2(Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
 
 	loc2Lat,_:=strconv.ParseFloat(Loc2.Latitude,32)
 	loc2Lon,_:=strconv.ParseFloat(Loc2.Longitude,32)

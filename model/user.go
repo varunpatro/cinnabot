@@ -4,9 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"time"
-	"strings"
-	"log"
-	"errors"
+
 )
 
 // User is an ORM compatible struct that serializes a telegram user's information.
@@ -42,47 +40,4 @@ func (db *Database) UserGroup (tags []string) []User {
 
 
 	return users
-}
-
-//CheckTagExists takes in an id and a tag and returns whether the tag exists
-func (db *Database) CheckTagExists (id int, tag string) bool {
-	check := db.Where("user_id = ?", id)
-	var usr User
-	if err2 := check.Where(tag+" = ?", "placebo").First(&usr).Error; err2 != gorm.ErrRecordNotFound {
-		if strings.Contains(err2.Error(), "no such column") {
-			return false
-		}
-
-		log.Fatal(err2)
-		return false
-	}
-	return true
-}
-
-//CheckSubscribed takes in an id and a tag and returns true if user is subscribed, false otherwise
-func (db *Database) CheckSubscribed (id int, tag string) bool{
-	check := db.Where("user_id = ?", id)
-	var usr User
-	if err := check.Where(tag + " = ?", true).First(&usr).Error; err != gorm.ErrRecordNotFound {
-		return true
-	}
-	return false
-}
-
-
-
-//Update updates the flag for the tag for an User which is determined by the id
-func (db *Database) UpdateTag (id int, tag string, flag bool) error{
-	check := db.Where("user_id = ?", id)
-	var usr User
-	bannedFields := []string{"user_id", "created_at", "deleted_at"}
-	for _,field := range bannedFields {
-		if field == tag {
-			return errors.New("banned field")
-		}
-	}
-	if err := check.Model(&usr).Update(tag, flag).Error; err != nil {
-		return err
-	}
-	return nil
 }
