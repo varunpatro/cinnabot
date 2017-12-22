@@ -12,7 +12,7 @@ type User struct {
 	UserID int `gorm:"primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletetedAt time.Time
+	DeletedAt time.Time
 	FirstName string
 	LastName  string
 	UserName  string

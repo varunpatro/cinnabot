@@ -45,8 +45,11 @@ func main() {
 
 	for update := range updates {
 		if update.Message != nil {
-			modelMsg := model.FromTelegramMessage(*update.Message)
+			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
 			env.db.Add(&modelMsg)
+			if env.db.NewRecord(modelUsr) {
+				env.db.Add(&modelUsr)
+			}
 			cb.Router(*update.Message)
 		}
 	}
