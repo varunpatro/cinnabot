@@ -328,35 +328,35 @@ func EventBetweenDays(start, end time.Time) func(Event) bool {
 // BookingsTodayMessage returns a string describing all bookings today.
 func (spaces Spaces) bookingsTodayMessage() string {
 	message := fmt.Sprintf("Displaying bookings for today:\n\n")
-	message += spaces.Restrict(eventToday).ToString()
+	message += spaces.Restrict(eventToday).toString()
 	return message
 }
 
 // BookingsNowMessage returns a string describing all bookings active this moment.
 func (spaces Spaces) bookingsNowMessage() string {
 	message := fmt.Sprintf("Displaying bookings ongoing right now (%s):\n\n", FormatTimeDate(time.Now()))
-	message += spaces.Restrict(eventNow).ToString()
+	message += spaces.Restrict(eventNow).toString()
 	return message
 }
 
 // BookingsComingWeekMessage returns a string describing bookings within 7 days.
 func (spaces Spaces) bookingsComingWeekMessage() string {
 	message := "Displaying bookings within 7 days from now:\n\n"
-	message += spaces.Restrict(eventComingWeek).ToString()
+	message += spaces.Restrict(eventComingWeek).toString()
 	return message
 }
 
 // BookingsOnDate returns a string describing bookings on the same day as the given time.Time.
 func (spaces Spaces) bookingsOnDate(t time.Time) string {
 	message := fmt.Sprintf("Displaying bookings on %s:\n\n", FormatDate(t))
-	message += spaces.Restrict(eventOnDay(t)).ToString()
+	message += spaces.Restrict(eventOnDay(t)).toString()
 	return message
 }
 
 // BookingsBetween returns a string describing bookings in the given interval.
 func (spaces Spaces) bookingsBetween(start, end time.Time) string {
 	message := fmt.Sprintf("Displaying bookings between %s and %s\n\n", FormatDate(start), FormatDate(end))
-	message += spaces.Restrict(EventBetweenDays(start, end)).ToString()
+	message += spaces.Restrict(EventBetweenDays(start, end)).toString()
 	return message
 }
 

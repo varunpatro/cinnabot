@@ -8,7 +8,7 @@ import (
 )
 
 type DataGroup interface {
-	Create(value interface{})
+	Add(value interface{})
 	UserGroup(tags []string) []User
 	CheckTagExists (id int, tag string) bool
 	CheckSubscribed (id int, tag string) bool

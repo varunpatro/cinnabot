@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"gopkg.in/telegram-bot-api.v4"
+	"github.com/varunpatro/cinnabot/model"
 )
 
 type bot interface {
@@ -26,7 +27,7 @@ type Cinnabot struct {
 	log  *log.Logger
 	fmap FuncMap
 	keys config
-
+	db *model.Database
 }
 
 // Configuration struct for setting up Cinnabot
@@ -95,6 +96,8 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 
 	cb := &Cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
 	cb.fmap = cb.getDefaultFuncMap()
+	cb.db = model.InitializeDB()
+
 
 	return cb
 }

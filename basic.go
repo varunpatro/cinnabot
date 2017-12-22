@@ -15,8 +15,7 @@ import (
 	"fmt"
 	"time"
 	"regexp"
-	"github.com/varunpatro/cinnabot/model"
-	"github.com/jinzhu/gorm"
+
 )
 
 // SayHello says hi.
@@ -321,14 +320,11 @@ func (cb *Cinnabot) Broadcast (msg *message) {
 		tags := strings.Fields(strings.ToLower(msg.Text[locReply[1]:]))
 
 		//Filter for valid tags
-		check := model.InitializeDB()
-		var sub model.User
 		var checkedTags []string
 		for i := 0; i < len(tags) ; i++ {
-			if err := check.Where(tags[i]+" = ?", "placebo").First(&sub).Error; err != gorm.ErrRecordNotFound {
-				continue
+			if cb.db.CheckTagExists(msg.From.ID,tags[i]) {
+				checkedTags = append(checkedTags, tags[i])
 			}
-			checkedTags = append(checkedTags, tags[i])
 		}
 
 		//Send in mark-up
@@ -339,9 +335,6 @@ func (cb *Cinnabot) Broadcast (msg *message) {
 		return
 
 	}
-	//Initialize DB
-	db := model.InitializeDB()
-	defer db.Close()
 
 
 	//Tags to send to
@@ -350,7 +343,7 @@ func (cb *Cinnabot) Broadcast (msg *message) {
 	tags := strings.Fields(msg.ReplyToMessage.Text[locReply[1]:])
 
 
-	userGroup := db.UserGroup(tags)
+	userGroup := cb.db.UserGroup(tags)
 
 	//Forwards message to everyone in the group
 	for j := 0; j < len(userGroup); j++ {
@@ -386,26 +379,25 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 		return
 	}
 
-	db := model.InitializeDB()
 	tag := msg.Args[0]
 	log.Print("Tag: " + tag)
 
 
 
 	//Check if tag exists.
-	//Placebo used as a placebo value. no such column error thrown if does not exist.
-	if !db.CheckTagExists(msg.From.ID,tag) {
+	if !cb.db.CheckTagExists(msg.From.ID,tag) {
 		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
 		return
 	}
 
-
-	if db.CheckSubscribed(msg.From.ID, tag) {
+	//Check if user is already subscribed to
+	if cb.db.CheckSubscribed(msg.From.ID, tag) {
 		cb.SendTextMessage(msg.From.ID, "🤖 You are already subscribed to " + tag)
 		return
 	}
 
-	if err := db.UpdateTag(msg.From.ID, tag, true); err != nil{ //Need to try what happens someone updates user_id field.
+	//Check if there are other errors
+	if err := cb.db.UpdateTag(msg.From.ID, tag, true); err != nil{ //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
 		log.Fatal(err.Error())
 	}

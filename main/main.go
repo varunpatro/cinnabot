@@ -24,6 +24,7 @@ func main() {
 
 	cb := cinnabot.InitCinnabot(configJSON, logger)
 	db := model.InitializeDB()
+
 	env := &Env{db}
 
 

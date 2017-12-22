@@ -12,6 +12,7 @@ import (
 
 	"github.com/varunpatro/cinnabot/model"
 
+	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -236,8 +237,9 @@ func (mdb *mockDB) UpdateTag (id int, tag string, flag bool) error{
 	return nil
 }
 
-//TestBroadcast tests broadcast function
 /**
+//TestBroadcast tests broadcast function
+
 //Two ways to test broadcast
 //1. Ensure that a reply mock-up is sent when an empty message is sent
 //2. Test that the right individuals are called up [database]
@@ -246,6 +248,7 @@ func TestBroadcast(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
 		bot: &mb,
+		db : mockDB{},
 	}
 	//Mock Msg requires a mock-up
 	replyMessage := &tgbotapi.Message{
@@ -269,7 +272,6 @@ func TestBroadcast(t *testing.T) {
 		},
 
 	}
-	mdb := mockDB{}
 
 	oldinit := model.InitializeDB
 	model.InitializeDB = func () *gorm.DB {
