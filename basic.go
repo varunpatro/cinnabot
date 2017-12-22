@@ -124,7 +124,7 @@ func (cb *Cinnabot) Weather(msg *message){
 			nameMinLoc = wf.AM[i].Name
 		}
 	}
-	log.Print("🤖 The closest location is " + nameMinLoc)
+	log.Print("The closest location is " + nameMinLoc)
 
 	var forecast string
 	for i,_ := range wf.FD[0].FMD {
@@ -204,7 +204,10 @@ func BusTimingResponse (BSH *BusStopHeap) string{
 		req.Header.Set("AccountKey", "l88uTu9nRjSO6VYUUwilWg==")
 
 		resp, _ := client.Do(req)
-		responseData, _ := ioutil.ReadAll(resp.Body)
+		responseData, err := ioutil.ReadAll(resp.Body);
+		if err!=nil {
+			panic(err)
+		}
 
 		bt := BusTimes{}
 		if err := json.Unmarshal(responseData, &bt); err != nil {
@@ -347,20 +350,14 @@ func (cb *Cinnabot) Broadcast (msg *message) {
 	tags := strings.Fields(msg.ReplyToMessage.Text[locReply[1]:])
 
 
-	log.Print("1")
 	userGroup := db.UserGroup(tags)
-	log.Print("2")
-	log.Print(tags)
-	log.Print(len(userGroup))
-	log.Print(msg.Chat.ID)
-	log.Print(msg.From.ID)
-	//Consider forwarding the message instead [using forward config]
+
+	//Forwards message to everyone in the group
 	for j := 0; j < len(userGroup); j++ {
 		forwardMess := 	tgbotapi.NewForward(int64(userGroup[j].UserID), msg.Chat.ID, msg.MessageID)
 		cb.SendMessage(forwardMess)
 	}
 
-	log.Print("3")
 	return
 }
 
@@ -393,38 +390,24 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 	tag := msg.Args[0]
 	log.Print("Tag: " + tag)
 
-	var user model.User
 
-	db.First(&user) //add error handling
-	log.Print(user)
-	//For Error handling
-	//Only way to check aside from direct SQL query
-
-	var sub model.User;
-	check := db.Where("user_id = ?", msg.From.ID)
 
 	//Check if tag exists.
 	//Placebo used as a placebo value. no such column error thrown if does not exist.
-	if err2 := check.Where(tag+" = ?", "placebo").First(&sub).Error; err2 != gorm.ErrRecordNotFound {
-		if strings.Contains(err2.Error(), "no such column") {
-			cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
-			return
-		}
-
-		cb.SendTextMessage(msg.From.ID,"🤖 UnknownError")
-		log.Fatal(err2)
-
+	if !db.CheckTagExists(msg.From.ID,tag) {
+		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
+		return
 	}
 
 
-	if err1 := check.Where(tag + " = ?", true).First(&sub).Error; err1 != gorm.ErrRecordNotFound {
+	if db.CheckSubscribed(msg.From.ID, tag) {
 		cb.SendTextMessage(msg.From.ID, "🤖 You are already subscribed to " + tag)
 		return
 	}
 
-	log.Print(user)
-	if err1 := check.Model(&user).Update(tag, true).Error; err1 != nil { //Need to try what happens someone updates user_id field.
-		log.Fatal(err1.Error())
+	if err := db.UpdateTag(msg.From.ID, tag, true); err != nil{ //Need to try what happens someone updates user_id field.
+		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
+		log.Fatal(err.Error())
 	}
 
 	cb.SendTextMessage(msg.From.ID, "🤖 You are now subscribed to " + tag)

@@ -6,7 +6,12 @@ import (
 )
 
 type DataGroup interface {
-	UserGroup() ([]*User, error)
+	Create(value interface{})
+	UserGroup(tags []string) []User
+	CheckTagExists (id int, tag string) bool
+	CheckSubscribed (id int, tag string) bool
+	UpdateTag (id int, tag string, flag bool) error
+
 }
 
 type Database struct {
@@ -32,5 +37,11 @@ func InitializeDB() *Database {
 
 	return database
 }
+
+func (db *Database) Add(value interface{}) {
+	db.Create(value)
+}
+
+
 
 

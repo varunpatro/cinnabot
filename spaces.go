@@ -31,6 +31,8 @@ type rawSpace struct {
 type Space []Event
 
 // Spaces contains all info about Spaces. Use spaces.Restrict(...) to select a subset to be displayed.
+//type Spaces []Space
+
 type Spaces []Space
 
 // ByStartDate implements sort.Interface for Space based on the space[i].Start field

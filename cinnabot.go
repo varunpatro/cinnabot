@@ -26,6 +26,7 @@ type Cinnabot struct {
 	log  *log.Logger
 	fmap FuncMap
 	keys config
+
 }
 
 // Configuration struct for setting up Cinnabot
