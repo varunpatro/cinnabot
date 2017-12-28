@@ -12,7 +12,6 @@ import (
 
 	"github.com/varunpatro/cinnabot/model"
 
-	"github.com/jinzhu/gorm"
 )
 
 var (

@@ -12,12 +12,12 @@ type User struct {
 	UserID int `gorm:"primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt time.Time
+	//DeletedAt time.Time
 	FirstName string
 	LastName  string
 	UserName  string
-	Everything bool `gorm:"default:'false'"`
-	Events bool `gorm:"default:'false'"`
+	Everything string //`sql:"default:'false'"`
+	Events string //`sql:"default:'false'"`
 
 }
 
@@ -31,9 +31,9 @@ func (db *Database) UserGroup (tags []string) []User {
 	defer rows.Close()
 
 	for i:=0;i<len(tags);i++ {
-		rows = rows.Where(tags[i]+" = ?",true)
+		rows = rows.Where(tags[i]+" = ?","true")
 	}
-	rows = rows.Or("everything = ?", true)
+	rows = rows.Or("everything = ?", "true")
 
 	var users []User
 	rows.Find(&users)

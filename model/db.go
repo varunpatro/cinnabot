@@ -34,7 +34,13 @@ func InitializeDB() *Database {
 	if !db.HasTable(User{}) {
 		db.CreateTable(User{})
 	}
+	var usr User
+	db.First(&usr)
+	log.Print("Init DB check")
+	log.Print(usr)
+
 	database := &Database{db}
+
 
 
 	return database
@@ -57,6 +63,7 @@ func (db *Database) CheckTagExists (id int, tag string) bool {
 		log.Fatal(err2)
 		return false
 	}
+	log.Print("1: True")
 	return true
 }
 
@@ -64,16 +71,17 @@ func (db *Database) CheckTagExists (id int, tag string) bool {
 func (db *Database) CheckSubscribed (id int, tag string) bool{
 	check := db.Where("user_id = ?", id)
 	var usr User
-	if err := check.Where(tag + " = ?", true).First(&usr).Error; err != gorm.ErrRecordNotFound {
+	if err := check.Where(tag + " = ?", "true").First(&usr).Error; err != gorm.ErrRecordNotFound {
 		return true
 	}
+	log.Print("2: True")
 	return false
 }
 
 
 
 //Update updates the flag for the tag for an User which is determined by the id
-func (db *Database) UpdateTag (id int, tag string, flag bool) error{
+func (db *Database) UpdateTag (id int, tag string, flag string) error{
 	check := db.Where("user_id = ?", id)
 	var usr User
 	bannedFields := []string{"user_id", "created_at", "deleted_at"}
@@ -82,9 +90,15 @@ func (db *Database) UpdateTag (id int, tag string, flag bool) error{
 			return errors.New("banned field")
 		}
 	}
+	log.Print(id)
+	check.First(&usr,id)
+	log.Print(usr)
+
 	if err := check.Model(&usr).Update(tag, flag).Error; err != nil {
 		return err
 	}
+
+	log.Print("3: True")
 	return nil
 }
 

@@ -16,6 +16,7 @@ import (
 	"time"
 	"regexp"
 
+	"github.com/varunpatro/cinnabot/model"
 )
 
 // SayHello says hi.
@@ -383,7 +384,8 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 	log.Print("Tag: " + tag)
 
 
-
+	newcb := model.InitializeDB()
+	defer newcb.Close()
 	//Check if tag exists.
 	if !cb.db.CheckTagExists(msg.From.ID,tag) {
 		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
@@ -397,7 +399,7 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 	}
 
 	//Check if there are other errors
-	if err := cb.db.UpdateTag(msg.From.ID, tag, true); err != nil{ //Need to try what happens someone updates user_id field.
+	if err := newcb.UpdateTag(msg.From.ID, tag, "true"); err != nil{ //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
 		log.Fatal(err.Error())
 	}

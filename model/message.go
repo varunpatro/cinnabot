@@ -9,7 +9,7 @@ import (
 type Message struct {
 	gorm.Model
 	MessageID int
-	User 	  User `gorm:"ForeignKey: UserID;AssociationForeignKey:UserID"`
+	//User 	  User `gorm:"ForeignKey: UserID;AssociationForeignKey:UserID"`
 	UserID    int
 	Text      string
 	Date      int
@@ -22,13 +22,15 @@ func FromTelegramMessage(tgbotMsg tgbotapi.Message) (Message, User) {
 		FirstName: tgbotMsg.From.FirstName,
 		LastName:  tgbotMsg.From.LastName,
 		UserName:  tgbotMsg.From.UserName,
+		Everything: "false",
+		Events: "false",
 	}
 	modelMsg := Message{
 		MessageID: tgbotMsg.MessageID,
 		Text:      tgbotMsg.Text,
 		Date:      tgbotMsg.Date,
 		UserID:    tgbotMsg.From.ID,
-		User: modelUsr,
+		//User: modelUsr,
 	}
 
 	return modelMsg, modelUsr
