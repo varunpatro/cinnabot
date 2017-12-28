@@ -47,9 +47,8 @@ func main() {
 		if update.Message != nil {
 			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
 			env.db.Add(&modelMsg)
-			if env.db.NewRecord(modelUsr) {
-				env.db.Add(&modelUsr)
-			}
+			log.Print(modelUsr)
+			env.db.Add(&modelUsr)
 			cb.Router(*update.Message)
 		}
 	}
