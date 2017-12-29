@@ -34,13 +34,8 @@ func InitializeDB() *Database {
 	if !db.HasTable(User{}) {
 		db.CreateTable(User{})
 	}
-	var usr User
-	db.First(&usr)
-	log.Print("Init DB check")
-	log.Print(usr)
 
 	database := &Database{db}
-
 
 
 	return database

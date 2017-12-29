@@ -29,16 +29,22 @@ func main() {
 
 
 	cb.AddFunction("/about", cb.About)
+	cb.AddFunction("/help", cb.Help)
+
 	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/hello", cb.SayHello)
 	cb.AddFunction("/capitalize", cb.Capitalize)
 	cb.AddFunction("/link", cb.Link)
 	cb.AddFunction("/bus", cb.BusTimings)
 	cb.AddFunction("/weather", cb.Weather)
+
 	cb.AddFunction("/broadcast", cb.Broadcast)
 	cb.AddFunction("/subscribe", cb.Subscribe)
-	cb.AddFunction("/spaces", cb.Spaces)
+	cb.AddFunction("/unsubscribe", cb.Unsubscribe)
+	cb.AddFunction("/cbs", cb.CBS)
 
+	cb.AddFunction("/spaces", cb.Spaces)
+	cb.AddFunction("/feedback", cb.Feedback)
 
 
 	updates := cb.Listen(60)
@@ -47,7 +53,6 @@ func main() {
 		if update.Message != nil {
 			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
 			env.db.Add(&modelMsg)
-			log.Print(modelUsr)
 			env.db.Add(&modelUsr)
 			cb.Router(*update.Message)
 		}

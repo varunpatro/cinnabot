@@ -16,12 +16,25 @@ import (
 	"time"
 	"regexp"
 
-	"github.com/varunpatro/cinnabot/model"
 )
 
 // SayHello says hi.
 func (cb *Cinnabot) SayHello(msg *message) {
 	cb.SendTextMessage(msg.From.ID, "Hello there, "+msg.From.FirstName+"!")
+}
+
+// Help gives a list of handles that the user may call along with a description of them
+func (cb *Cinnabot) Help (msg *message) {
+	text :=
+		"🤖: Hello there " + msg.From.FirstName + "!\n" +
+		"Here are a list of functions to get you started. (:. \n" +
+		"/cbs: cinnamon broadcast system\n" +
+		"/bus: public bus timings for bus stops around your location\n" +
+		"/weather: 2h weather forecast\n" +
+		"/link: list of important links!\n" +
+		"/spaces: list of space bookings\n" +
+		"/feedback: to give feedback"
+	cb.SendTextMessage(msg.From.ID, text)
 }
 
 // Echo parrots back the argument given by the user.
@@ -50,21 +63,20 @@ func (cb *Cinnabot) Capitalize(msg *message) {
 //Link returns useful links
 func (cb *Cinnabot) Link(msg *message) {
 	links := make(map[string]string)
-	links["usplife"] = "https://www.facebook.com"
-	links["food"]="https://www.google.com/food"//Ideally, to the RC meal bot chat group
+	links["usplife"] = "https://www.facebook.com/groups/usplife/"
+	links["food"]="@rcmealbot"//Ideally, to the RC meal bot chat group
 
 	var key string = strings.ToLower(strings.Join(msg.Args, " "))
 	_,ok := links[key]
 	if (ok) {
 		cb.SendTextMessage(msg.From.ID, links[key])
 	} else {
-		var possible_keys string = ""
+		var values string = ""
 		for key,_ := range links {
-			possible_keys += key
-			possible_keys += ", "
+			values += key + " : " + links[key] + "\n"
 		}
-		possible_keys = possible_keys[0:len(possible_keys)-2]
-		cb.SendTextMessage(msg.From.ID, "Here are the possible links:\n" + possible_keys)
+		values = values[0:len(values)-2] //To remove last "\n"
+		cb.SendTextMessage(msg.From.ID, "🤖: Here are the possible links:\n" + values)
 	}
 }
 
@@ -356,10 +368,6 @@ func (cb *Cinnabot) Broadcast (msg *message) {
 }
 
 
-
-
-
-
 func checkAdmin (cb *Cinnabot, msg *message) bool{
 	for _,admin := range cb.keys.Admins {
 		if admin == msg.From.ID {
@@ -369,10 +377,24 @@ func checkAdmin (cb *Cinnabot, msg *message) bool{
 	return false
 }
 
+func (cb *Cinnabot) CBS (msg *message) {
+	//Consider sending an image?
+	listText := "🤖: Welcome to Cinnabot's Broadcasting System!(CBS)\n" +
+		"These are the following commands that you can use:\n" +
+		"\\subscribe <tag>: to subscribe to a tag\n" +
+		"\\unsubcribe <tag>: to unsubscribe from a tag\n" +
+		"These channels will be used by a small group of humans to disseminate important information according to tags.\n" +
+		"List of tags:\n" +
+		"everything, events"
+
+	cb.SendTextMessage(msg.From.ID,listText)
+}
+
 //Subscribe subscribes the user to a broadcast channel [trial]
 func (cb *Cinnabot) Subscribe (msg *message) {
 
 	if len(msg.Args) == 0 {
+
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/subscribe 🤖 What do you want to subscribe to?\n\n")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
@@ -384,8 +406,6 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 	log.Print("Tag: " + tag)
 
 
-	newcb := model.InitializeDB()
-	defer newcb.Close()
 	//Check if tag exists.
 	if !cb.db.CheckTagExists(msg.From.ID,tag) {
 		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
@@ -399,7 +419,7 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 	}
 
 	//Check if there are other errors
-	if err := newcb.UpdateTag(msg.From.ID, tag, "true"); err != nil{ //Need to try what happens someone updates user_id field.
+	if err := cb.db.UpdateTag(msg.From.ID, tag, "true"); err != nil{ //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
 		log.Fatal(err.Error())
 	}
@@ -408,4 +428,55 @@ func (cb *Cinnabot) Subscribe (msg *message) {
 	return
 }
 
+//Unsubscribe unsubscribes the user from a broadcast channel [trial]
+func (cb *Cinnabot) Unsubscribe (msg *message) {
 
+	if len(msg.Args) == 0 {
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/unsubscribe 🤖 What do you want to unsubscribe from?\n\n")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+
+	tag := msg.Args[0]
+	log.Print("Tag: " + tag)
+
+
+	//Check if tag exists.
+	if !cb.db.CheckTagExists(msg.From.ID,tag) {
+		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
+		return
+	}
+
+	//Check if user is already NOT subscribed to
+	if !cb.db.CheckSubscribed(msg.From.ID, tag) {
+		cb.SendTextMessage(msg.From.ID, "🤖 You are already not subscribed to " + tag)
+		return
+	}
+
+	//Check if there are other errors
+	if err := cb.db.UpdateTag(msg.From.ID, tag, "false"); err != nil{ //Need to try what happens someone updates user_id field.
+		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
+		log.Fatal(err.Error())
+	}
+
+	cb.SendTextMessage(msg.From.ID, "🤖 You are now unsubscribed from " + tag)
+	return
+}
+
+//Feedback allows users an avenue to give feedback. Admins can retrieve by searching the /feedback handler in the db
+func (cb *Cinnabot) Feedback (msg *message) {
+	if len(msg.Args) == 0 {
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/feedback 🤖: My owner would love your feedback\n\n")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+	text := "🤖: Feedback received! I will now transmit feedback to owner\n\n " +
+			"We really appreciate you taking the time out to submit feedback.\n" +
+			"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
+	cb.SendTextMessage(msg.From.ID, text)
+
+}
