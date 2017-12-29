@@ -7,14 +7,16 @@ import (
 	"errors"
 )
 
+//For dependency injection
 type DataGroup interface {
 	Add(value interface{})
 	UserGroup(tags []string) []User
 	CheckTagExists (id int, tag string) bool
 	CheckSubscribed (id int, tag string) bool
-	UpdateTag (id int, tag string, flag bool) error
+	UpdateTag (id int, tag string, flag string) error
 
 }
+
 
 type Database struct {
 	*gorm.DB
@@ -36,7 +38,6 @@ func InitializeDB() *Database {
 	}
 
 	database := &Database{db}
-
 
 	return database
 }

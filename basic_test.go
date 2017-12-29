@@ -187,25 +187,35 @@ func TestWeather(t *testing.T) {
 
 //MockDB used to test broadcast and subscribe. Mock-up db
 type mockDB struct {}
+//For dependency injection
+/**
+type DataGroup interface {
+	Add(value interface{})
+	UserGroup(tags []string) []User
+	CheckTagExists (id int, tag string) bool
+	CheckSubscribed (id int, tag string) bool
+	UpdateTag (id int, tag string, flag string) error
 
+}
+*/
 //Helpers that allow to inherit DataGroup interface
 
-func (mdb *mockDB) Create(value interface{}) {}
+func (mdb *mockDB) Add(value interface{}) {}
 func (mdb *mockDB) UserGroup (tags []string) []model.User {
 	user1 := model.User{
 		UserID: 0001,
-		Everything: true,
-		Events: true,
+		Everything: "true",
+		Events: "true",
 	}
 	user2 := model.User{
 		UserID: 0002,
-		Everything: false,
-		Events: true,
+		Everything: "false",
+		Events: "true",
 	}
 	user3 := model.User{
 		UserID: 0001,
-		Everything: true,
-		Events: false,
+		Everything: "true",
+		Events: "false",
 	}
 	if tags == nil {
 		return []model.User{user1,user2,user3}
@@ -218,6 +228,7 @@ func (mdb *mockDB) UserGroup (tags []string) []model.User {
 			return []model.User{user2, user3}
 		}
 	}
+	return nil
 }
 
 //CheckTagExists takes in an id and a tag and returns whether the tag exists
@@ -232,11 +243,12 @@ func (mdb *mockDB) CheckSubscribed (id int, tag string) bool{
 
 
 //Update updates the flag for the tag for an User which is determined by the id
-func (mdb *mockDB) UpdateTag (id int, tag string, flag bool) error{
+func (mdb *mockDB) UpdateTag (id int, tag string, flag string) error{
 	return nil
 }
 
-/**
+
+
 //TestBroadcast tests broadcast function
 
 //Two ways to test broadcast
@@ -247,7 +259,7 @@ func TestBroadcast(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
 		bot: &mb,
-		db : mockDB{},
+		db : &mockDB{},
 	}
 	//Mock Msg requires a mock-up
 	replyMessage := &tgbotapi.Message{
@@ -273,9 +285,10 @@ func TestBroadcast(t *testing.T) {
 	}
 
 	oldinit := model.InitializeDB
-	model.InitializeDB = func () *gorm.DB {
-		return
+	model.InitializeDB = func () *model.Database {
+		return nil
 	}
+	defer func() { model.InitializeDB = oldinit }()
 	//Potential problem: a text of forwarded message might not match expected message
 	expectedMsg:= "Test Message"
 	mb.On("Send", expectedMsg).Return(nil)
@@ -285,4 +298,3 @@ func TestBroadcast(t *testing.T) {
 func TestSubscribe(t *testing.T) {
 
 }
-*/

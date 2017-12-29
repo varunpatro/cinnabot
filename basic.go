@@ -317,7 +317,7 @@ func distanceBetween2(Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
 func (cb *Cinnabot) Broadcast (msg *message) {
 	val := checkAdmin(cb,msg)
 	if !val {
-		cb.SendTextMessage(msg.From.ID, "🤖 Im sorry! You do not seem to be an admin")
+		cb.SendTextMessage(msg.From.ID, "🤖 Im sorry! You do not seem to be one of my overlords")
 		return
 	}
 
@@ -338,6 +338,11 @@ func (cb *Cinnabot) Broadcast (msg *message) {
 			if cb.db.CheckTagExists(msg.From.ID,tags[i]) {
 				checkedTags = append(checkedTags, tags[i])
 			}
+		}
+
+		if len(checkedTags) == 0 {
+			cb.SendTextMessage(msg.From.ID, "🤖 No valid tags found")
+			return
 		}
 
 		//Send in mark-up

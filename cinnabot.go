@@ -27,7 +27,7 @@ type Cinnabot struct {
 	log  *log.Logger
 	fmap FuncMap
 	keys config
-	db *model.Database
+	db model.DataGroup
 }
 
 // Configuration struct for setting up Cinnabot
