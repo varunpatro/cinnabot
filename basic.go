@@ -470,18 +470,93 @@ func (cb *Cinnabot) Unsubscribe (msg *message) {
 	return
 }
 
+//The different feedback functions are broken to four different functions so that responses can be easily personalised.
+
 //Feedback allows users an avenue to give feedback. Admins can retrieve by searching the /feedback handler in the db
 func (cb *Cinnabot) Feedback (msg *message) {
+	opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/cinnabotFeedback"))
+	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/uscFeedback"))
+	opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/diningFeedback"))
+	opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/residentialFeedback"))
+
+	options := tgbotapi.NewReplyKeyboard(opt1,opt2,opt3,opt4)
+
+	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: What will you like to give feedback to?\n\n")
+	replyMsg.ReplyMarkup = options
+	cb.SendMessage(replyMsg)
+	return
+}
+
+func (cb *Cinnabot) CinnabotFeedback (msg *message){
 	if len(msg.Args) == 0 {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/feedback 🤖: My owner would love your feedback\n\n")
+		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: My owner would love your feedback\n\n")
+		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		cb.SendMessage(close)
+
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/cinnabotFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
 		return
 	}
 	text := "🤖: Feedback received! I will now transmit feedback to owner\n\n " +
-			"We really appreciate you taking the time out to submit feedback.\n" +
-			"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
+		"We really appreciate you taking the time out to submit feedback.\n" +
+		"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
 	cb.SendTextMessage(msg.From.ID, text)
+	return
+}
 
+
+func (cb *Cinnabot) USCFeedback (msg *message){
+	if len(msg.Args) == 0 {
+		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: USC committee would love your feedback\n\n")
+		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		cb.SendMessage(close)
+
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/uscFeedback")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+	text := "🤖: Feedback received! I will now transmit feedback to USC\n\n " +
+		"We really appreciate you taking the time out to submit feedback.\n"
+	cb.SendTextMessage(msg.From.ID, text)
+	return
+}
+
+func (cb *Cinnabot) DiningFeedback (msg *message) {
+	if len(msg.Args) == 0 {
+		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Dining Hall committee would love your feedback\n\n")
+		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		cb.SendMessage(close)
+
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/diningFeedback")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+	text := "🤖: Feedback received! I will now transmit feedback to dining hall committeel\n\n " +
+		"We really appreciate you taking the time out to submit feedback.\n"
+	cb.SendTextMessage(msg.From.ID, text)
+	return
+}
+
+func (cb *Cinnabot) ResidentialFeedback (msg *message) {
+	if len(msg.Args) == 0 {
+		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Residential committee would love your feedback\n\n")
+		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		cb.SendMessage(close)
+
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/residentialFeedback")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+	text := "🤖: Feedback received! I will now transmit feedback to residential committeel\n\n " +
+		"We really appreciate you taking the time out to submit feedback.\n"
+	cb.SendTextMessage(msg.From.ID, text)
+	return
 }

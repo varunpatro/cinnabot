@@ -38,14 +38,18 @@ func main() {
 	cb.AddFunction("/bus", cb.BusTimings)
 	cb.AddFunction("/weather", cb.Weather)
 
+	cb.AddFunction("/cbs", cb.CBS)
 	cb.AddFunction("/broadcast", cb.Broadcast)
 	cb.AddFunction("/subscribe", cb.Subscribe)
 	cb.AddFunction("/unsubscribe", cb.Unsubscribe)
-	cb.AddFunction("/cbs", cb.CBS)
 
 	cb.AddFunction("/spaces", cb.Spaces)
-	cb.AddFunction("/feedback", cb.Feedback)
 
+	cb.AddFunction("/feedback", cb.Feedback)
+	cb.AddFunction("/cinnabotfeedback", cb.CinnabotFeedback)
+	cb.AddFunction("/uscfeedback",cb.USCFeedback)
+	cb.AddFunction("/diningfeedback", cb.DiningFeedback)
+	cb.AddFunction("/residentialfeedback",cb.ResidentialFeedback)
 
 	updates := cb.Listen(60)
 
