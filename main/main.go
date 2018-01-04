@@ -27,15 +27,20 @@ func main() {
 
 	env := &Env{db}
 
-
-	cb.AddFunction("/about", cb.About)
-	cb.AddFunction("/help", cb.Help)
-
+	//Junk functions
 	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/hello", cb.SayHello)
 	cb.AddFunction("/capitalize", cb.Capitalize)
+
+	//Main functions
+	cb.AddFunction("/start", cb.Start)
+	cb.AddFunction("/about", cb.About)
+	cb.AddFunction("/help", cb.Help)
+
 	cb.AddFunction("/link", cb.Link)
+
 	cb.AddFunction("/bus", cb.BusTimings)
+
 	cb.AddFunction("/weather", cb.Weather)
 
 	cb.AddFunction("/cbs", cb.CBS)

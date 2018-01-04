@@ -17,26 +17,11 @@ import (
 	"regexp"
 
 )
-
+//Test functions [Not meant to be used in bot]
 // SayHello says hi.
 func (cb *Cinnabot) SayHello(msg *message) {
 	cb.SendTextMessage(msg.From.ID, "Hello there, "+msg.From.FirstName+"!")
 }
-
-// Help gives a list of handles that the user may call along with a description of them
-func (cb *Cinnabot) Help (msg *message) {
-	text :=
-		"🤖: Hello there " + msg.From.FirstName + "!\n" +
-		"Here are a list of functions to get you started. (:. \n" +
-		"/cbs: cinnamon broadcast system\n" +
-		"/bus: public bus timings for bus stops around your location\n" +
-		"/weather: 2h weather forecast\n" +
-		"/link: list of important links!\n" +
-		"/spaces: list of space bookings\n" +
-		"/feedback: to give feedback"
-	cb.SendTextMessage(msg.From.ID, text)
-}
-
 // Echo parrots back the argument given by the user.
 func (cb *Cinnabot) Echo(msg *message) {
 	if len(msg.Args) == 0 {
@@ -49,16 +34,43 @@ func (cb *Cinnabot) Echo(msg *message) {
 	response := "🤖: " + strings.Join(msg.Args, " ")
 	cb.SendTextMessage(msg.From.ID, response)
 }
+// Capitalize returns a capitalized form of the input string.
+func (cb *Cinnabot) Capitalize(msg *message) {
+	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args, " ")))
+}
+
+//Start initializes the bot
+func (cb *Cinnabot) Start (msg *message) {
+	text := "Hello there " + msg.From.FirstName + "!\n\n" +
+		"Im Cinnabot🤖. I am made by my owners to serve the residents of Cinnamon college!" +
+			"Im always here to /help if you need it!"
+	cb.SendTextMessage(msg.From.ID, text)
+}
+
+
+// Help gives a list of handles that the user may call along with a description of them
+func (cb *Cinnabot) Help (msg *message) {
+	text :=
+
+		"Here are a list of functions to get you started. (:. \n" +
+		"/about: to find out more about me" +
+		"/cbs: cinnamon broadcast system\n" +
+		"/bus: public bus timings for bus stops around your location\n" +
+		"/weather: 2h weather forecast\n" +
+		"/link: list of important links!\n" +
+		"/spaces: list of space bookings\n" +
+		"/feedback: to give feedback"
+	cb.SendTextMessage(msg.From.ID, text)
+}
+
+
 
 // About returns a link to Cinnabot's source code.
 func (cb *Cinnabot) About(msg *message) {
 	cb.SendTextMessage(msg.From.ID, "Touch me: https://github.com/varunpatro/Cinnabot")
 }
 
-// Capitalize returns a capitalized form of the input string.
-func (cb *Cinnabot) Capitalize(msg *message) {
-	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args, " ")))
-}
+
 
 //Link returns useful links
 func (cb *Cinnabot) Link(msg *message) {
@@ -489,9 +501,9 @@ func (cb *Cinnabot) Feedback (msg *message) {
 
 func (cb *Cinnabot) CinnabotFeedback (msg *message){
 	if len(msg.Args) == 0 {
-		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: My owner would love your feedback\n\n")
-		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		cb.SendMessage(close)
+		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: My owner would love your feedback\n\n")
+		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		//cb.SendMessage(close)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/cinnabotFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
@@ -509,9 +521,9 @@ func (cb *Cinnabot) CinnabotFeedback (msg *message){
 
 func (cb *Cinnabot) USCFeedback (msg *message){
 	if len(msg.Args) == 0 {
-		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: USC committee would love your feedback\n\n")
-		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		cb.SendMessage(close)
+		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: USC committee would love your feedback\n\n")
+		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		//cb.SendMessage(close)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/uscFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
@@ -527,9 +539,9 @@ func (cb *Cinnabot) USCFeedback (msg *message){
 
 func (cb *Cinnabot) DiningFeedback (msg *message) {
 	if len(msg.Args) == 0 {
-		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Dining Hall committee would love your feedback\n\n")
-		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		cb.SendMessage(close)
+		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Dining Hall committee would love your feedback\n\n")
+		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		//cb.SendMessage(close)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/diningFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
@@ -545,9 +557,9 @@ func (cb *Cinnabot) DiningFeedback (msg *message) {
 
 func (cb *Cinnabot) ResidentialFeedback (msg *message) {
 	if len(msg.Args) == 0 {
-		close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Residential committee would love your feedback\n\n")
-		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		cb.SendMessage(close)
+		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Residential committee would love your feedback\n\n")
+		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		//cb.SendMessage(close)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/residentialFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
