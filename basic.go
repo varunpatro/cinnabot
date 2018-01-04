@@ -50,16 +50,36 @@ func (cb *Cinnabot) Start (msg *message) {
 
 // Help gives a list of handles that the user may call along with a description of them
 func (cb *Cinnabot) Help (msg *message) {
-	text :=
+	if msg.Args[0] ==  "spaces" {
+		text :=
+			"/space: spaces booking today\n" +
+			"/space book: link to book spaces\n" +
+			"/space now: spaces booking at this moment\n" +
+			"/space week: spaces booking this week\n" +
+			"/space tomorrow: spaces booking tomorrow\n" +
+			"/space DDMMYY: spaces booking for a certain date"
+		cb.SendTextMessage(msg.From.ID,text)
+		return
 
-		"Here are a list of functions to get you started. (:. \n" +
+	} else if msg.Args[0] == "cbs" {
+		text :=
+			"/subscribe <tag>: subscribe to a tag" +
+			"/unsubscribe <tag>: unsubscribe from a tag\n" +
+			"/broadcast <tag>: broadcast to a tag [admin]\n"
+		cb.SendTextMessage(msg.From.ID,text)
+
+	}
+	text :=
+		"Here are a list of functions to get you started 😊 \n" +
 		"/about: to find out more about me" +
 		"/cbs: cinnamon broadcast system\n" +
 		"/bus: public bus timings for bus stops around your location\n" +
 		"/weather: 2h weather forecast\n" +
 		"/link: list of important links!\n" +
 		"/spaces: list of space bookings\n" +
-		"/feedback: to give feedback"
+		"/feedback: to give feedback\n\n" +
+		"My creator actually snuck in a few more functions. \n" +
+		"Try using /help <func name> to see what I really can do"
 	cb.SendTextMessage(msg.From.ID, text)
 }
 
@@ -77,6 +97,8 @@ func (cb *Cinnabot) Link(msg *message) {
 	links := make(map[string]string)
 	links["usplife"] = "https://www.facebook.com/groups/usplife/"
 	links["food"]="@rcmealbot"//Ideally, to the RC meal bot chat group
+	links["spaces"] = "http://www.nususc.com/Spaces.aspx"
+	links["usc"] = "http://www.nususc.com/MainPage.aspx"
 
 	var key string = strings.ToLower(strings.Join(msg.Args, " "))
 	_,ok := links[key]
@@ -116,7 +138,7 @@ type ForecastMetadata struct {
 func (cb *Cinnabot) Weather(msg *message){
 	//Check if weather was sent with location, if not reply with markup
 	if msg.Location == nil {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/weather Please send your location\n\n")
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/weather Please attach your location\n\n")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
@@ -194,7 +216,7 @@ type NextBus struct {
 func (cb *Cinnabot) BusTimings (msg *message) {
 	//Check if weather was sent with location, if not reply with markup
 	if msg.Location == nil {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/bus Please send your location\n\n")
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/bus Please attach your location\n\n")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)

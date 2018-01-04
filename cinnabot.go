@@ -194,6 +194,8 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 		}
 	}
 
+
+
 	return &message{Cmd: cmd, Args: args, Message: msg}
 }
 
