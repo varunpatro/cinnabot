@@ -40,6 +40,7 @@ func main() {
 	cb.AddFunction("/link", cb.Link)
 
 	cb.AddFunction("/bus", cb.BusTimings)
+	cb.AddFunction("/nusbus", cb.NUSBus)
 
 	cb.AddFunction("/weather", cb.Weather)
 
@@ -49,6 +50,7 @@ func main() {
 	cb.AddFunction("/unsubscribe", cb.Unsubscribe)
 
 	cb.AddFunction("/spaces", cb.Spaces)
+
 
 	cb.AddFunction("/feedback", cb.Feedback)
 	cb.AddFunction("/cinnabotfeedback", cb.CinnabotFeedback)

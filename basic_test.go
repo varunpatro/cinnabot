@@ -102,11 +102,11 @@ func TestBus(t *testing.T) {
 		bot: &mb,
 	}
 
-	BSH := getBusStops(*mockMsg.Location)
-	oldgetBusStops := getBusStops
-	defer func() {getBusStops=oldgetBusStops} ()
+	BSH := makeHeap(*mockMsg.Location)
+	oldgetBusStops := makeHeap
+	defer func() { makeHeap =oldgetBusStops} ()
 
-	getBusStops = func(loc tgbotapi.Location) (BusStopHeap) {
+	makeHeap = func(loc tgbotapi.Location) (BusStopHeap) {
 		return BSH
 	}
 

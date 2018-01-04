@@ -15,8 +15,7 @@ import (
 	"fmt"
 	"time"
 	"regexp"
-
-)
+	)
 //Test functions [Not meant to be used in bot]
 // SayHello says hi.
 func (cb *Cinnabot) SayHello(msg *message) {
@@ -52,12 +51,14 @@ func (cb *Cinnabot) Start (msg *message) {
 func (cb *Cinnabot) Help (msg *message) {
 	if msg.Args[0] ==  "spaces" {
 		text :=
-			"/space: spaces booking today\n" +
-			"/space book: link to book spaces\n" +
-			"/space now: spaces booking at this moment\n" +
-			"/space week: spaces booking this week\n" +
-			"/space tomorrow: spaces booking tomorrow\n" +
-			"/space DDMMYY: spaces booking for a certain date"
+			"/spaces: spaces booking today\n" +
+			"/spaces book: link to book spaces\n" +
+			"/spaces now: spaces booking at this moment\n" +
+			"/spaces week: spaces booking this week\n" +
+			"/spaces tomorrow: spaces booking tomorrow\n" +
+			"/spaces DD/MM(/YY): spaces booking for a certain date" +
+			"/spaces DD/MM(/YY) DD/MM(/YY): spaces booking for a certain range in date"
+
 		cb.SendTextMessage(msg.From.ID,text)
 		return
 
@@ -223,8 +224,11 @@ func (cb *Cinnabot) BusTimings (msg *message) {
 		return
 	}
 
+	resp,_ := http.Get("https://busrouter.sg/data/2/bus-stops.json")
+	responseData,_ := ioutil.ReadAll(resp.Body)
+
 	//Returns a heap of busstop data (sorted)
-	BSH := getBusStops(*msg.Location)
+	BSH := makeHeap(responseData, *msg.Location)
 	responseString := busTimingResponse(&BSH)
 	cb.SendTextMessage(msg.From.ID, responseString)
 }
@@ -315,22 +319,14 @@ func (h *BusStopHeap) Pop() interface{} {
 }
 
 
-func getBusStops(loc tgbotapi.Location) BusStopHeap {
-	//Send request to api.data.gov.sg for bus stops data
-	resp,_ := http.Get("https://busrouter.sg/data/2/bus-stops.json")
-	responseData,_ := ioutil.ReadAll(resp.Body)
+func makeHeap(data []byte, loc tgbotapi.Location) BusStopHeap {
 
 	points := []BusStop{}
-
-	if err := json.Unmarshal(responseData, &points); err != nil {
+	if err := json.Unmarshal(data, &points); err != nil {
 		panic(err)
 	}
-
-
 	BSH := BusStopHeap{points,loc}
-
 	heap.Init(&BSH)
-
 
 	return BSH
 }
@@ -343,6 +339,94 @@ func distanceBetween2(Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
 	x := math.Pow(Loc1.Latitude - loc2Lat,2)
 	y := math.Pow(Loc1.Longitude - loc2Lon,2)
 	return x+y
+}
+
+
+//NUSBusTimes
+type NUSResponse struct {
+	Result ServiceResult `json:"ShuttleServiceResult"`
+}
+type ServiceResult struct {
+	Shuttles []Shuttle `json:"shuttles"`
+}
+
+type Shuttle struct {
+	ArrivalTime string `json:"arrivalTime"`
+	Name string `json:"name"`
+}
+
+
+//NUSBus retrieves the next timing for NUS Shuttle buses
+func (cb *Cinnabot) NUSBus (msg *message) {
+	//Check if weather was sent with location, if not reply with markup
+	if msg.Location == nil {
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/nusbus Please attach your location\n\n")
+		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
+		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		cb.SendMessage(replyMsg)
+		return
+	}
+
+	nusStopsJson,_  := ioutil.ReadFile("nusstops.json")
+
+	//Returns a heap of busstop data (sorted)
+	BSH := makeHeap(nusStopsJson, *msg.Location)
+	responseString := nusBusTimingResponse(&BSH)
+	cb.SendTextMessage(msg.From.ID, responseString)
+}
+
+func nusBusTimingResponse(BSH *BusStopHeap) string {
+	returnMessage := ""
+	for i := 0; i < 3; i++ {
+		stop := BSH.Pop().(BusStop)
+
+		returnMessage += "=====" + stop.BusStopName + "====="
+
+		resp, _ := http.Get("http://nextbus.comfortdelgro.com.sg//testMethod.asmx/GetShuttleService?busstopname=" + stop.BusStopNumber)
+
+
+		responseData, err := ioutil.ReadAll(resp.Body);
+		if err!=nil {
+			log.Print("1")
+			panic(err)
+		}
+		s := string(responseData[:])
+
+		log.Print(s)
+		//To remove XML tag
+
+		args := strings.Split(s,">")
+		log.Print(args)
+
+
+
+
+		bt := NUSResponse{}
+		if err := json.Unmarshal([]byte(args[2]), &bt); err != nil {
+			log.Print(bt)
+			panic(err)
+		}
+
+
+		for j:= 0; j < len(bt.Result.Shuttles); j++ {
+			arrivalTime := bt.Result.Shuttles[j].ArrivalTime
+
+			if arrivalTime == "-" {
+				returnMessage += bt.Result.Shuttles[j].Name + " : Not running \n"
+				continue
+			}
+
+			returnMessage += bt.Result.Shuttles[j].Name + " : " + bt.Result.Shuttles[j].ArrivalTime + "\n"
+		}
+
+
+		returnMessage += "\n"
+
+
+	}
+
+	return returnMessage
+
 }
 
 
@@ -513,6 +597,7 @@ func (cb *Cinnabot) Feedback (msg *message) {
 	opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/diningFeedback"))
 	opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/residentialFeedback"))
 
+	opt1[0].RequestLocation = true
 	options := tgbotapi.NewReplyKeyboard(opt1,opt2,opt3,opt4)
 
 	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: What will you like to give feedback to?\n\n")
@@ -594,3 +679,5 @@ func (cb *Cinnabot) ResidentialFeedback (msg *message) {
 	cb.SendTextMessage(msg.From.ID, text)
 	return
 }
+
+
