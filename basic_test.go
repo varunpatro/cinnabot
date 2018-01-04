@@ -198,8 +198,7 @@ type DataGroup interface {
 
 }
 */
-//Helpers that allow to inherit DataGroup interface
-
+//Helpers that allow mockDB to inherit DataGroup interface
 func (mdb *mockDB) Add(value interface{}) {}
 func (mdb *mockDB) UserGroup (tags []string) []model.User {
 	user1 := model.User{
@@ -220,6 +219,7 @@ func (mdb *mockDB) UserGroup (tags []string) []model.User {
 	if tags == nil {
 		return []model.User{user1,user2,user3}
 	}
+	//Currently only allow a return if there is only one tag
 	for _,tag := range tags {
 		if tag == "everything" {
 			return []model.User{user1, user2, user3}
@@ -238,6 +238,9 @@ func (mdb *mockDB) CheckTagExists (id int, tag string) bool {
 
 //CheckSubscribed takes in an id and a tag and returns true if user is subscribed, false otherwise
 func (mdb *mockDB) CheckSubscribed (id int, tag string) bool{
+	if tag == "unsubTag" {
+		return true
+	}
 	return false
 }
 
@@ -250,11 +253,9 @@ func (mdb *mockDB) UpdateTag (id int, tag string, flag string) error{
 
 
 //TestBroadcast tests broadcast function
-
-//Two ways to test broadcast
-//1. Ensure that a reply mock-up is sent when an empty message is sent
-//2. Test that the right individuals are called up [database]
-//3. Ensure that the individuals receive the right messages
+//1. Ensure that a reply mock-up is sent when an empty message is sent. [not tested]
+//2. Test that the right individuals are called up [database] [not tested]
+//3. Ensure that only the tagged individuals receive the message [tested]
 func TestBroadcast(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
@@ -295,6 +296,57 @@ func TestBroadcast(t *testing.T) {
 	cb.Broadcast(&mockMsgBroadcast)
 }
 
+//Test subscribe
 func TestSubscribe(t *testing.T) {
+	mb := mockBot{}
+	cb := Cinnabot{
+		bot: &mb,
+		db: &mockDB{},
+	}
+	mockMsgSubscribe := message{
+		Message: &tgbotapi.Message{
+			MessageID: 1,
+			From: &tgbotapi.User{
+				ID:        999,
+				FirstName: "test_first_name_user",
 
+			},
+			Location: &tgbotapi.Location{
+				Latitude:1.31760778241046,
+				Longitude:103.76768583722071,
+			},
+			Text: "/subscribe subTag",
+		},
+	}
+
+	expectedMessage := "🤖 You are now subscribed to everything"
+	mb.On("Send",expectedMessage).Return(nil)
+	cb.Subscribe(&mockMsgSubscribe)
+}
+
+//Test unsubscribe
+func TestUnsubscribe(t *testing.T) {
+	mb := mockBot{}
+	cb := Cinnabot{
+		bot: &mb,
+		db: &mockDB{},
+	}
+	mockMsgUnsubscribe := message{
+		Message: &tgbotapi.Message{
+			MessageID: 1,
+			From: &tgbotapi.User{
+				ID:        999,
+				FirstName: "test_first_name_user",
+
+			},
+			Location: &tgbotapi.Location{
+				Latitude:1.31760778241046,
+				Longitude:103.76768583722071,
+			},
+			Text: "/unsubscribe unsubTag",
+		},
+	}
+	expectedMessage := "🤖 You are now unsubscribed from everything"
+	mb.On("Send",expectedMessage).Return(nil)
+	cb.Unsubscribe(&mockMsgUnsubscribe)
 }
