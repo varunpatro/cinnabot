@@ -23,9 +23,6 @@ func main() {
 	logger := log.New(os.Stdout, "[cinnabot] ", 0)
 
 	cb := cinnabot.InitCinnabot(configJSON, logger)
-	db := model.InitializeDB()
-
-	env := &Env{db}
 
 	//Junk functions
 	cb.AddFunction("/echo", cb.Echo)
@@ -51,24 +48,21 @@ func main() {
 
 	cb.AddFunction("/spaces", cb.Spaces)
 
-
 	cb.AddFunction("/feedback", cb.Feedback)
 	cb.AddFunction("/cinnabotfeedback", cb.CinnabotFeedback)
-	cb.AddFunction("/uscfeedback",cb.USCFeedback)
+	cb.AddFunction("/uscfeedback", cb.USCFeedback)
 	cb.AddFunction("/diningfeedback", cb.DiningFeedback)
-	cb.AddFunction("/residentialfeedback",cb.ResidentialFeedback)
+	cb.AddFunction("/residentialfeedback", cb.ResidentialFeedback)
 
 	updates := cb.Listen(60)
 
 	for update := range updates {
 		if update.Message != nil {
 			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
-			env.db.Add(&modelMsg)
-			env.db.Add(&modelUsr)
+			cb.db.Add(&modelMsg)
+			cb.db.Add(&modelUsr)
 			cb.Router(*update.Message)
 		}
 	}
 
 }
-
-
