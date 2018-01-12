@@ -10,10 +10,6 @@ import (
 	"github.com/varunpatro/cinnabot/model"
 )
 
-type Env struct { //Consider removing as database is the only dependency is needed.
-	db *model.Database
-}
-
 func main() {
 	configJSON, err := ioutil.ReadFile("config.json")
 	if err != nil {
