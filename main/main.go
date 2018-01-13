@@ -19,6 +19,7 @@ func main() {
 	logger := log.New(os.Stdout, "[cinnabot] ", 0)
 
 	cb := cinnabot.InitCinnabot(configJSON, logger)
+	db := model.InitializeDB()
 
 	//Junk functions
 	cb.AddFunction("/echo", cb.Echo)
@@ -55,8 +56,8 @@ func main() {
 	for update := range updates {
 		if update.Message != nil {
 			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
-			cb.db.Add(&modelMsg)
-			cb.db.Add(&modelUsr)
+			db.Add(&modelMsg)
+			db.Add(&modelUsr)
 			cb.Router(*update.Message)
 		}
 	}

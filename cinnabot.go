@@ -11,8 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/patrickmn/go-cache"
 	"github.com/varunpatro/cinnabot/model"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 type bot interface {
@@ -22,12 +23,13 @@ type bot interface {
 
 // Cinnabot is main struct that processes user requests.
 type Cinnabot struct {
-	Name string // The name of the bot registered with Botfather
-	bot  bot
-	log  *log.Logger
-	fmap FuncMap
-	keys config
-	db model.DataGroup
+	Name  string // The name of the bot registered with Botfather
+	bot   bot
+	log   *log.Logger
+	fmap  FuncMap
+	keys  config
+	db    model.DataGroup
+	cache *cache.Cache
 }
 
 // Configuration struct for setting up Cinnabot
@@ -59,8 +61,6 @@ type FuncMap map[string]ResponseFunc
 
 // ResponseFunc is a handler for a bot command.
 type ResponseFunc func(m *message)
-
-
 
 // InitCinnabot initializes an instance of Cinnabot.
 func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
@@ -97,7 +97,7 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 	cb := &Cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
 	cb.fmap = cb.getDefaultFuncMap()
 	cb.db = model.InitializeDB()
-
+	cb.cache = cache.New(1*time.Minute, 2*time.Minute)
 
 	return cb
 }
@@ -128,6 +128,7 @@ func (cb *Cinnabot) AddFunction(command string, resp ResponseFunc) error {
 }
 
 // Router routes Telegram messages to the appropriate response functions.
+//Hack: Cache to store previous function information
 func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 	// Don't respond to forwarded commands
 	if msg.ForwardFrom != nil {
@@ -141,9 +142,43 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 
 	if execFn != nil {
 		cb.GoSafely(func() { execFn(cmsg) })
+		cb.cache.Set(string(msg.From.ID), cmsg.Cmd, cache.DefaultExpiration)
 	} else {
+
+		//Retrieve command from cache
+		cmdRaw, bool := cb.cache.Get(string(msg.From.ID))
+		cmd := cmdRaw.(string)
+		log.Print(bool)
+		val := strings.ToLower(cmsg.Text)
+		//If cmd in cache and arg matches command
+		if bool && checkArgCmdPair(cmd, val) {
+			//Get function from previous command
+			execFn = cb.fmap[cmd]
+
+			//Ensure tokens is in order [unecessary]
+			cmsg.Args = append([]string{cmsg.Cmd}, cmsg.Args...)
+			cmsg.Cmd = cmd
+
+			cb.GoSafely(func() { execFn(cmsg) })
+			return
+		}
 		cb.SendTextMessage(msg.From.ID, "No such command!")
 	}
+}
+
+//Checks if arg can be used with command
+func checkArgCmdPair(cmd string, arg string) bool {
+	checkMap := make(map[string][]string)
+	//Args must always be lower cased
+	checkMap["/feedback"] = []string{"cinnabot", "dininghall", "residential", "usc"}
+
+	arr := checkMap[cmd]
+	for i := 0; i < len(arr); i++ {
+		if arr[i] == arg {
+			return true
+		}
+	}
+	return false
 }
 
 // GoSafely is a utility wrapper to recover and log panics in goroutines.
@@ -193,8 +228,6 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 			cmd = c[0]
 		}
 	}
-
-
 
 	return &message{Cmd: cmd, Args: args, Message: msg}
 }
