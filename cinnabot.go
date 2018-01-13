@@ -148,10 +148,9 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 		//Retrieve command from cache
 		cmdRaw, bool := cb.cache.Get(string(msg.From.ID))
 		cmd := cmdRaw.(string)
-		log.Print(bool)
-		val := strings.ToLower(cmsg.Text)
+		val := cmsg.Args
 		//If cmd in cache and arg matches command
-		if bool && checkArgCmdPair(cmd, val) {
+		if bool && CheckArgCmdPair(cmd, val) {
 			//Get function from previous command
 			execFn = cb.fmap[cmd]
 
@@ -167,14 +166,30 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 }
 
 //Checks if arg can be used with command
-func checkArgCmdPair(cmd string, arg string) bool {
+//Used to supplement cache as cache only records functions as states
+func CheckArgCmdPair(cmd string, args []string) bool {
+	key := "" //Messages with no text in message
+	if len(args) > 0 {
+		key = args[0]
+	}
 	checkMap := make(map[string][]string)
 	//Args must always be lower cased
 	checkMap["/feedback"] = []string{"cinnabot", "dininghall", "residential", "usc"}
+	checkMap["/cinnabotfeedback"] = []string{"anything"}
+	checkMap["/uscfeedback"] = []string{"anything"}
+	checkMap["/diningfeedback"] = []string{"anything"}
+	checkMap["/residentialfeedback"] = []string{"anything"}
+
+	checkMap["/bus"] = []string{"cinnamon", ""}
 
 	arr := checkMap[cmd]
 	for i := 0; i < len(arr); i++ {
-		if arr[i] == arg {
+		//If tag is anything, accept it
+		if arr[i] == "anything" {
+			return true
+		}
+		//Check tags
+		if arr[i] == key {
 			return true
 		}
 	}

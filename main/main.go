@@ -34,6 +34,7 @@ func main() {
 	cb.AddFunction("/link", cb.Link)
 
 	cb.AddFunction("/bus", cb.BusTimings)
+
 	cb.AddFunction("/nusbus", cb.NUSBus)
 
 	cb.AddFunction("/weather", cb.Weather)
