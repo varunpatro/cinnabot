@@ -100,7 +100,7 @@ func (cb *Cinnabot) About(msg *message) {
 func (cb *Cinnabot) Link(msg *message) {
 	links := make(map[string]string)
 	links["usplife"] = "https://www.facebook.com/groups/usplife/"
-	links["food"] = "@rcmealbot" //Ideally, to the RC meal bot chat group
+	links["food"] = "@rcmealbot"
 	links["spaces"] = "http://www.nususc.com/Spaces.aspx"
 	links["usc"] = "http://www.nususc.com/MainPage.aspx"
 	links["study group"] = "@uyp_bot"
@@ -148,7 +148,6 @@ func (cb *Cinnabot) Weather(msg *message) {
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
 		return
-
 	}
 
 	//Send request to api.data.gov.sg for weather data
@@ -189,7 +188,7 @@ func (cb *Cinnabot) Weather(msg *message) {
 	words := strings.Fields(forecast)
 	forecast = strings.ToLower(strings.Join(words[:len(words)-1], " "))
 
-	cb.SendTextMessage(msg.From.ID, "🤖 The forecast is "+forecast+" for "+nameMinLoc)
+	cb.SendTextMessage(msg.From.ID, "🤖: The forecast is "+forecast+" for "+nameMinLoc)
 
 }
 
@@ -354,8 +353,8 @@ func distanceBetween2(Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
 	return x + y
 }
 
-//NUSBusTimes
-type NUSResponse struct {
+//NUSBusTimes structs for unmarshalling
+type Response struct {
 	Result ServiceResult `json:"ShuttleServiceResult"`
 }
 type ServiceResult struct {
@@ -377,41 +376,43 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 		cb.SendMessage(replyMsg)
 		return
 	}
-
-	//nusStopsJson, _ := ioutil.ReadFile("nusstops.json")
-
 	//Returns a heap of busstop data (sorted)
-	BSH := makeHeap(*msg.Location)
+	BSH := makeNUSHeap(*msg.Location)
 	responseString := nusBusTimingResponse(&BSH)
-	cb.SendTextMessage(msg.From.ID, responseString)
+	returnMsg := tgbotapi.NewMessage(int64(msg.From.ID), responseString)
+	returnMsg.ParseMode = "Markdown"
+	cb.SendMessage(returnMsg)
+}
+func makeNUSHeap(loc tgbotapi.Location) BusStopHeap {
+	responseData, err := ioutil.ReadFile("nusstops.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	points := []BusStop{}
+	if err := json.Unmarshal(responseData, &points); err != nil {
+		panic(err)
+	}
+	BSH := BusStopHeap{points, loc}
+	heap.Init(&BSH)
+	return BSH
 }
 
 func nusBusTimingResponse(BSH *BusStopHeap) string {
-	returnMessage := ""
+	returnMessage := "🤖: Here are the bus timings\n"
 	for i := 0; i < 3; i++ {
 		stop := BSH.Pop().(BusStop)
 
-		returnMessage += "=====" + stop.BusStopName + "====="
+		returnMessage += "_*" + stop.BusStopName + "*_\n"
 
-		resp, _ := http.Get("http://nextbus.comfortdelgro.com.sg//testMethod.asmx/GetShuttleService?busstopname=" + stop.BusStopNumber)
+		resp, _ := http.Get("https://nextbus.comfortdelgro.com.sg/eventservice.svc/Shuttleservice?busstopname=" + stop.BusStopNumber)
 
 		responseData, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Print("1")
 			panic(err)
 		}
-		s := string(responseData[:])
-
-		log.Print(s)
-		//To remove XML tag
-
-		args := strings.Split(s, ">")
-		log.Print(args)
-
-		bt := NUSResponse{}
-		if err := json.Unmarshal([]byte(args[2]), &bt); err != nil {
-			log.Print(bt)
-			panic(err)
+		var bt Response
+		if err := json.Unmarshal(responseData, &bt); err != nil {
+			log.Fatal(err)
 		}
 
 		for j := 0; j < len(bt.Result.Shuttles); j++ {
@@ -424,13 +425,9 @@ func nusBusTimingResponse(BSH *BusStopHeap) string {
 
 			returnMessage += bt.Result.Shuttles[j].Name + " : " + bt.Result.Shuttles[j].ArrivalTime + "\n"
 		}
-
 		returnMessage += "\n"
-
 	}
-
 	return returnMessage
-
 }
 
 //Broadcast broadcasts a message after checking for admin status [trial]
