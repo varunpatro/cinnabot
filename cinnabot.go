@@ -24,13 +24,14 @@ type bot interface {
 
 // Cinnabot is main struct that processes user requests.
 type Cinnabot struct {
-	Name  string // The name of the bot registered with Botfather
-	bot   bot
-	log   *log.Logger
-	fmap  FuncMap
-	keys  config
-	db    model.DataGroup
-	cache *cache.Cache
+	Name    string // The name of the bot registered with Botfather
+	bot     bot
+	log     *log.Logger
+	fmap    FuncMap
+	keys    config
+	db      model.DataGroup
+	cache   *cache.Cache
+	allTags []string
 }
 
 // Configuration struct for setting up Cinnabot
@@ -99,6 +100,7 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 	cb.fmap = cb.getDefaultFuncMap()
 	cb.db = model.InitializeDB()
 	cb.cache = cache.New(1*time.Minute, 2*time.Minute)
+	cb.allTags = []string{"everything", "events"}
 
 	return cb
 }
@@ -146,15 +148,14 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 
 		cb.cache.Set(strconv.Itoa(msg.From.ID), cmsg.Cmd, cache.DefaultExpiration)
 
-	} else {
-		//Retrieve command from cache
-		cmdRaw, bool := cb.cache.Get(strconv.Itoa(msg.From.ID))
+	} else if cmdRaw, check := cb.cache.Get(strconv.Itoa(msg.From.ID)); check {
+		//Have to typecast
 		cmd := cmdRaw.(string)
 		//If cmd in cache and arg matches command
 
 		cmsg.Args = append([]string{cmsg.Cmd}, cmsg.Args...)
 
-		if bool && CheckArgCmdPair(cmd, cmsg.Args) {
+		if CheckArgCmdPair(cmd, cmsg.Args) {
 			//Get function from previous command
 			execFn = cb.fmap[cmd]
 			//Ensure tokens is in order [unecessary]
@@ -190,6 +191,7 @@ func CheckArgCmdPair(cmd string, args []string) bool {
 
 	checkMap["/bus"] = []string{"cinnamon", ""}
 	checkMap["/nusbus"] = []string{"cinnamon", ""}
+	checkMap["/weather"] = []string{"cinnamon", ""}
 
 	arr := checkMap[cmd]
 	for i := 0; i < len(arr); i++ {

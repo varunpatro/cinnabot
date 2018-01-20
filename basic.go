@@ -4,14 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"container/heap"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"math"
 	"regexp"
 	"strconv"
-	"time"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/patrickmn/go-cache"
@@ -142,12 +140,26 @@ type ForecastMetadata struct {
 //Weather checks the weather based on given location
 func (cb *Cinnabot) Weather(msg *message) {
 	//Check if weather was sent with location, if not reply with markup
-	if msg.Location == nil {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/weather Please attach your location\n\n")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+	log.Print(len(msg.Args) == 0)
+	if len(msg.Args) == 0 || !CheckArgCmdPair("/weather", msg.Args) {
+		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
+		opt2B := tgbotapi.NewKeyboardButton("Here")
+		opt2B.RequestLocation = true
+		opt2 := tgbotapi.NewKeyboardButtonRow(opt2B)
+
+		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
+
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
+		replyMsg.ReplyMarkup = options
 		cb.SendMessage(replyMsg)
 		return
+	}
+
+	//Default loc: Cinnamon
+	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
+
+	if msg.Location != nil {
+		loc = msg.Location
 	}
 
 	//Send request to api.data.gov.sg for weather data
@@ -164,11 +176,10 @@ func (cb *Cinnabot) Weather(msg *message) {
 		panic(err)
 	}
 
-	log.Print(msg.Location)
-	lowestDistance := distanceBetween(wf.AM[0].Loc, *msg.Location)
+	lowestDistance := distanceBetween(wf.AM[0].Loc, *loc)
 	nameMinLoc := wf.AM[0].Name
 	for i := 1; i < len(wf.AM); i++ {
-		currDistance := distanceBetween(wf.AM[i].Loc, *msg.Location)
+		currDistance := distanceBetween(wf.AM[i].Loc, *loc)
 		if currDistance < lowestDistance {
 			lowestDistance = currDistance
 			nameMinLoc = wf.AM[i].Name
@@ -197,244 +208,6 @@ func distanceBetween(Loc1 tgbotapi.Location, Loc2 tgbotapi.Location) float64 {
 	x := math.Pow((float64(Loc1.Latitude - Loc2.Latitude)), 2)
 	y := math.Pow((float64(Loc1.Longitude - Loc2.Longitude)), 2)
 	return x + y
-}
-
-//Structs for BusTiming
-type BusTimes struct {
-	Services []Service `json:"Services"`
-}
-
-type Service struct {
-	ServiceNum string  `json:"ServiceNo"`
-	Next       NextBus `json:"NextBus"`
-}
-
-type NextBus struct {
-	EstimatedArrival string `json:"EstimatedArrival"`
-}
-
-//BusTimings checks the bus timings based on given location
-func (cb *Cinnabot) BusTimings(msg *message) {
-	if len(msg.Args) == 0 || !CheckArgCmdPair("/bus", msg.Args) {
-		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
-		opt2B := tgbotapi.NewKeyboardButton("Here")
-		opt2B.RequestLocation = true
-		opt2 := tgbotapi.NewKeyboardButtonRow(opt2B)
-
-		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
-
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
-		replyMsg.ReplyMarkup = options
-		cb.SendMessage(replyMsg)
-		return
-	}
-	//Default loc: Cinnamon
-	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
-
-	if msg.Location != nil {
-		loc = msg.Location
-	}
-	//Returns a heap of busstop data (sorted)
-	BSH := makeHeap(*loc)
-	replyMsg := tgbotapi.NewMessage(int64(msg.From.ID), busTimingResponse(&BSH))
-	replyMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-	cb.SendMessage(replyMsg)
-	return
-}
-
-//busTimingResponse returns string given a busstopheap
-func busTimingResponse(BSH *BusStopHeap) string {
-	returnMessage := ""
-	//Iteratively get data for each closest bus stop.
-	for i := 0; i < 4; i++ {
-
-		busStop := heap.Pop(BSH).(BusStop)
-
-		busStopCode := busStop.BusStopNumber
-
-		returnMessage += busStop.BusStopName + "\n================\n"
-
-		//Send request to my transport sg for bus timing data
-		client := &http.Client{}
-
-		req, _ := http.NewRequest("GET",
-			"http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode="+busStopCode, nil)
-		req.Header.Set("AccountKey", "l88uTu9nRjSO6VYUUwilWg==")
-
-		resp, _ := client.Do(req)
-		responseData, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		bt := BusTimes{}
-		if err := json.Unmarshal(responseData, &bt); err != nil {
-			panic(err)
-		}
-		for j := 0; j < len(bt.Services); j++ {
-			arrivalTime := bt.Services[j].Next.EstimatedArrival
-
-			layout := "2006-01-02T15:04:05-07:00"
-			t, _ := time.Parse(layout, arrivalTime)
-			duration := int(t.Sub(time.Now()).Minutes())
-			returnMessage += "Bus " + bt.Services[j].ServiceNum + " : " + strconv.Itoa(duration+1) + " minutes\n"
-		}
-		returnMessage += "\n"
-	}
-	return returnMessage
-}
-
-//Bus stop structs
-type BusStop struct {
-	BusStopNumber string `json:"no"`
-	Latitude      string `json:"lat"`
-	Longitude     string `json:"lng"`
-	BusStopName   string `json:"name"`
-}
-
-type BusStopHeap struct {
-	busStopList []BusStop
-	location    tgbotapi.Location
-}
-
-func (h BusStopHeap) Len() int {
-	return len(h.busStopList)
-}
-
-func (h BusStopHeap) Less(i, j int) bool {
-	return distanceBetween2(h.location, h.busStopList[i]) < distanceBetween2(h.location, h.busStopList[j])
-}
-
-func (h BusStopHeap) Swap(i, j int) {
-	h.busStopList[i], h.busStopList[j] = h.busStopList[j], h.busStopList[i]
-}
-
-func (h *BusStopHeap) Push(x interface{}) {
-	h.busStopList = append(h.busStopList, x.(BusStop))
-}
-
-func (h *BusStopHeap) Pop() interface{} {
-	oldh := h.busStopList
-	n := len(oldh)
-	x := oldh[n-1]
-	h.busStopList = oldh[0 : n-1]
-
-	return x
-}
-
-func makeHeap(loc tgbotapi.Location) BusStopHeap {
-	resp, _ := http.Get("https://busrouter.sg/data/2/bus-stops.json")
-	responseData, _ := ioutil.ReadAll(resp.Body)
-	points := []BusStop{}
-	if err := json.Unmarshal(responseData, &points); err != nil {
-		panic(err)
-	}
-	BSH := BusStopHeap{points, loc}
-	heap.Init(&BSH)
-	return BSH
-}
-
-func distanceBetween2(Loc1 tgbotapi.Location, Loc2 BusStop) float64 {
-
-	loc2Lat, _ := strconv.ParseFloat(Loc2.Latitude, 32)
-	loc2Lon, _ := strconv.ParseFloat(Loc2.Longitude, 32)
-
-	x := math.Pow(Loc1.Latitude-loc2Lat, 2)
-	y := math.Pow(Loc1.Longitude-loc2Lon, 2)
-	return x + y
-}
-
-//NUSBusTimes structs for unmarshalling
-type Response struct {
-	Result ServiceResult `json:"ShuttleServiceResult"`
-}
-type ServiceResult struct {
-	Shuttles []Shuttle `json:"shuttles"`
-}
-
-type Shuttle struct {
-	ArrivalTime string `json:"arrivalTime"`
-	Name        string `json:"name"`
-}
-
-//NUSBus retrieves the next timing for NUS Shuttle buses
-func (cb *Cinnabot) NUSBus(msg *message) {
-	if len(msg.Args) == 0 || !CheckArgCmdPair("/bus", msg.Args) {
-		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
-		opt2B := tgbotapi.NewKeyboardButton("Here")
-		opt2B.RequestLocation = true
-		opt2 := tgbotapi.NewKeyboardButtonRow(opt2B)
-
-		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
-
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
-		replyMsg.ReplyMarkup = options
-		cb.SendMessage(replyMsg)
-		return
-	}
-
-	//Default loc: Cinnamon
-	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
-
-	if msg.Location != nil {
-		loc = msg.Location
-	}
-	//Returns a heap of busstop data (sorted)
-	BSH := makeNUSHeap(*loc)
-	responseString := nusBusTimingResponse(&BSH)
-	returnMsg := tgbotapi.NewMessage(int64(msg.From.ID), responseString)
-	returnMsg.ParseMode = "Markdown"
-	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-	cb.SendMessage(returnMsg)
-}
-
-//makeNUSHeap returns a heap for NUS Bus timings
-func makeNUSHeap(loc tgbotapi.Location) BusStopHeap {
-	responseData, err := ioutil.ReadFile("nusstops.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	points := []BusStop{}
-	if err := json.Unmarshal(responseData, &points); err != nil {
-		panic(err)
-	}
-	BSH := BusStopHeap{points, loc}
-	heap.Init(&BSH)
-	return BSH
-}
-
-func nusBusTimingResponse(BSH *BusStopHeap) string {
-	returnMessage := "🤖: Here are the bus timings\n\n"
-	for i := 0; i < 3; i++ {
-
-		stop := heap.Pop(BSH).(BusStop)
-
-		returnMessage += "*" + stop.BusStopName + "*\n"
-
-		resp, _ := http.Get("https://nextbus.comfortdelgro.com.sg/eventservice.svc/Shuttleservice?busstopname=" + stop.BusStopNumber)
-
-		responseData, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		var bt Response
-		if err := json.Unmarshal(responseData, &bt); err != nil {
-			log.Fatal(err)
-		}
-
-		for j := 0; j < len(bt.Result.Shuttles); j++ {
-			arrivalTime := bt.Result.Shuttles[j].ArrivalTime
-
-			if arrivalTime == "-" {
-				returnMessage += "🛑" + bt.Result.Shuttles[j].Name + " : Not running \n"
-				continue
-			}
-
-			returnMessage += "🚍" + bt.Result.Shuttles[j].Name + " : " + bt.Result.Shuttles[j].ArrivalTime + "\n"
-		}
-		returnMessage += "\n"
-	}
-	return returnMessage
 }
 
 //Broadcast broadcasts a message after checking for admin status [trial]
@@ -512,7 +285,7 @@ func (cb *Cinnabot) CBS(msg *message) {
 		"/unsubcribe <tag>: to unsubscribe from a tag\n" +
 		"These channels will be used by a small group of humans to disseminate important information according to tags.\n" +
 		"List of tags:\n" +
-		"everything, events"
+		strings.Join(cb.allTags, " ")
 
 	cb.SendTextMessage(msg.From.ID, listText)
 }
@@ -520,12 +293,12 @@ func (cb *Cinnabot) CBS(msg *message) {
 //Subscribe subscribes the user to a broadcast channel [trial]
 func (cb *Cinnabot) Subscribe(msg *message) {
 
-	if len(msg.Args) == 0 {
-
+	if len(msg.Args) == 0 || CheckArgCmdPair("/Subscribe", msg.Args) {
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/subscribe 🤖 What do you want to subscribe to?\n\n")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
+
 		return
 	}
 
