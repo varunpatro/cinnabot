@@ -43,6 +43,8 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 		cb.SendMessage(replyMsg)
 		return
 	}
+	//Asynchronous
+
 	//Default loc: Cinnamon
 	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
 
@@ -54,12 +56,13 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 	replyMsg := tgbotapi.NewMessage(msg.Chat.ID, busTimingResponse(&BSH))
 	replyMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	cb.SendMessage(replyMsg)
+
 	return
 }
 
 func makeHeap(loc tgbotapi.Location) BusStopHeap {
-	resp, _ := http.Get("https://busrouter.sg/data/2/bus-stops.json")
-	responseData, _ := ioutil.ReadAll(resp.Body)
+	//resp, _ := http.Get("https://busrouter.sg/data/2/bus-stops.json")
+	responseData, _ := ioutil.ReadFile("publicstops.json")
 	points := []BusStop{}
 	if err := json.Unmarshal(responseData, &points); err != nil {
 		panic(err)
@@ -154,6 +157,7 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 	returnMsg.ParseMode = "Markdown"
 	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	cb.SendMessage(returnMsg)
+
 }
 
 //makeNUSHeap returns a heap for NUS Bus timings
