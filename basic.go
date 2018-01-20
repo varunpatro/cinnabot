@@ -19,7 +19,7 @@ import (
 //Test functions [Not meant to be used in bot]
 // SayHello says hi.
 func (cb *Cinnabot) SayHello(msg *message) {
-	cb.SendTextMessage(msg.From.ID, "Hello there, "+msg.From.FirstName+"!")
+	cb.SendTextMessage(int(msg.Chat.ID), "Hello there, "+msg.From.FirstName+"!")
 }
 
 // Echo parrots back the argument given by the user.
@@ -32,21 +32,21 @@ func (cb *Cinnabot) Echo(msg *message) {
 		return
 	}
 	response := "🤖: " + strings.Join(msg.Args, " ")
-	cb.SendTextMessage(msg.From.ID, response)
+	cb.SendTextMessage(int(msg.Chat.ID), response)
 }
 
 // Capitalize returns a capitalized form of the input string.
 func (cb *Cinnabot) Capitalize(msg *message) {
-	cb.SendTextMessage(msg.From.ID, strings.ToUpper(strings.Join(msg.Args, " ")))
+	cb.SendTextMessage(int(msg.Chat.ID), strings.ToUpper(strings.Join(msg.Args, " ")))
 }
 
 //Start initializes the bot
 func (cb *Cinnabot) Start(msg *message) {
 	text := "Hello there " + msg.From.FirstName + "!\n\n" +
-		"Im Cinnabot🤖. I am made by my owners to serve the residents of Cinnamon college!" +
+		"Im Cinnabot🤖. I am made by my owners to serve the residents of Cinnamon college!\n" +
 		"Im always here to /help if you need it!"
 
-	cb.SendTextMessage(msg.From.ID, text)
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 }
 
 // Help gives a list of handles that the user may call along with a description of them
@@ -70,7 +70,7 @@ func (cb *Cinnabot) Help(msg *message) {
 				"/subscribe <tag>: subscribe to a tag" +
 					"/unsubscribe <tag>: unsubscribe from a tag\n" +
 					"/broadcast <tag>: broadcast to a tag [admin]\n"
-			cb.SendTextMessage(msg.From.ID, text)
+			cb.SendTextMessage(int(msg.Chat.ID), text)
 
 		}
 	}
@@ -86,12 +86,12 @@ func (cb *Cinnabot) Help(msg *message) {
 			"/feedback: to give feedback\n\n" +
 			"My creator actually snuck in a few more functions. \n" +
 			"Try using /help <func name> to see what I really can do"
-	cb.SendTextMessage(msg.From.ID, text)
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 }
 
 // About returns a link to Cinnabot's source code.
 func (cb *Cinnabot) About(msg *message) {
-	cb.SendTextMessage(msg.From.ID, "Touch me: https://github.com/varunpatro/Cinnabot")
+	cb.SendTextMessage(int(msg.Chat.ID), "Touch me: https://github.com/varunpatro/Cinnabot")
 }
 
 //Link returns useful links
@@ -106,14 +106,14 @@ func (cb *Cinnabot) Link(msg *message) {
 	var key string = strings.ToLower(strings.Join(msg.Args, " "))
 	_, ok := links[key]
 	if ok {
-		cb.SendTextMessage(msg.From.ID, links[key])
+		cb.SendTextMessage(int(msg.Chat.ID), links[key])
 	} else {
 		var values string = ""
 		for key, _ := range links {
 			values += key + " : " + links[key] + "\n"
 		}
 		values = values[0 : len(values)-1] //To remove last "\n"
-		cb.SendTextMessage(msg.From.ID, "🤖: Here are the possible links:\n"+values)
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Here are the possible links:\n"+values)
 	}
 }
 
@@ -140,7 +140,6 @@ type ForecastMetadata struct {
 //Weather checks the weather based on given location
 func (cb *Cinnabot) Weather(msg *message) {
 	//Check if weather was sent with location, if not reply with markup
-	log.Print(len(msg.Args) == 0)
 	if len(msg.Args) == 0 || !CheckArgCmdPair("/weather", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
 		opt2B := tgbotapi.NewKeyboardButton("Here")
@@ -196,10 +195,15 @@ func (cb *Cinnabot) Weather(msg *message) {
 	}
 
 	//Parsing forecast
+
 	words := strings.Fields(forecast)
 	forecast = strings.ToLower(strings.Join(words[:len(words)-1], " "))
 
-	cb.SendTextMessage(msg.From.ID, "🤖: The forecast is "+forecast+" for "+nameMinLoc)
+	responseString := "🤖: The forecast is " + forecast + " for " + nameMinLoc
+	returnMsg := tgbotapi.NewMessage(msg.Chat.ID, responseString)
+	returnMsg.ParseMode = "Markdown"
+	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+	cb.SendMessage(returnMsg)
 
 }
 
@@ -215,12 +219,12 @@ func distanceBetween(Loc1 tgbotapi.Location, Loc2 tgbotapi.Location) float64 {
 func (cb *Cinnabot) Broadcast(msg *message) {
 	val := checkAdmin(cb, msg)
 	if !val {
-		cb.SendTextMessage(msg.From.ID, "🤖 Im sorry! You do not seem to be one of my overlords")
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Im sorry! You do not seem to be one of my overlords")
 		return
 	}
 
 	if len(msg.Args) == 0 {
-		cb.SendTextMessage(msg.From.ID, "🤖 Please include text in the message")
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Please include text in the message")
 		return
 	}
 	//Used to initialize tags in a mark-up. Ensure that people check their tags
@@ -233,13 +237,13 @@ func (cb *Cinnabot) Broadcast(msg *message) {
 		//Filter for valid tags
 		var checkedTags []string
 		for i := 0; i < len(tags); i++ {
-			if cb.db.CheckTagExists(msg.From.ID, tags[i]) {
+			if cb.db.CheckTagExists(int(msg.Chat.ID), tags[i]) {
 				checkedTags = append(checkedTags, tags[i])
 			}
 		}
 
 		if len(checkedTags) == 0 {
-			cb.SendTextMessage(msg.From.ID, "🤖 No valid tags found")
+			cb.SendTextMessage(int(msg.Chat.ID), "🤖 No valid tags found")
 			return
 		}
 
@@ -272,6 +276,8 @@ func checkAdmin(cb *Cinnabot, msg *message) bool {
 	for _, admin := range cb.keys.Admins {
 		if admin == msg.From.ID {
 			return true
+		} else if admin == int(msg.Chat.ID) {
+			return true
 		}
 	}
 	return false
@@ -287,7 +293,7 @@ func (cb *Cinnabot) CBS(msg *message) {
 		"List of tags:\n" +
 		strings.Join(cb.allTags, " ")
 
-	cb.SendTextMessage(msg.From.ID, listText)
+	cb.SendTextMessage(int(msg.Chat.ID), listText)
 }
 
 //Subscribe subscribes the user to a broadcast channel [trial]
@@ -307,23 +313,23 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 
 	//Check if tag exists.
 	if !cb.db.CheckTagExists(msg.From.ID, tag) {
-		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Invalid tag")
 		return
 	}
 
 	//Check if user is already subscribed to
 	if cb.db.CheckSubscribed(msg.From.ID, tag) {
-		cb.SendTextMessage(msg.From.ID, "🤖 You are already subscribed to "+tag)
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 You are already subscribed to "+tag)
 		return
 	}
 
 	//Check if there are other errors
 	if err := cb.db.UpdateTag(msg.From.ID, tag, "true"); err != nil { //Need to try what happens someone updates user_id field.
-		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Oh no there is an error")
 		log.Fatal(err.Error())
 	}
 
-	cb.SendTextMessage(msg.From.ID, "🤖 You are now subscribed to "+tag)
+	cb.SendTextMessage(int(msg.Chat.ID), "🤖 You are now subscribed to "+tag)
 	return
 }
 
@@ -343,23 +349,23 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 
 	//Check if tag exists.
 	if !cb.db.CheckTagExists(msg.From.ID, tag) {
-		cb.SendTextMessage(msg.From.ID, "🤖 Invalid tag")
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Invalid tag")
 		return
 	}
 
 	//Check if user is already NOT subscribed to
 	if !cb.db.CheckSubscribed(msg.From.ID, tag) {
-		cb.SendTextMessage(msg.From.ID, "🤖 You are already not subscribed to "+tag)
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 You are already not subscribed to "+tag)
 		return
 	}
 
 	//Check if there are other errors
 	if err := cb.db.UpdateTag(msg.From.ID, tag, "false"); err != nil { //Need to try what happens someone updates user_id field.
-		cb.SendTextMessage(msg.From.ID, "🤖 Oh no there is an error")
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Oh no there is an error")
 		log.Fatal(err.Error())
 	}
 
-	cb.SendTextMessage(msg.From.ID, "🤖 You are now unsubscribed from "+tag)
+	cb.SendTextMessage(int(msg.Chat.ID), "🤖 You are now unsubscribed from "+tag)
 	return
 }
 
@@ -407,7 +413,7 @@ func (cb *Cinnabot) CinnabotFeedback(msg *message) {
 	text := "🤖: Feedback received! I will now transmit feedback to owner\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n" +
 		"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
-	cb.SendTextMessage(msg.From.ID, text)
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 	forwardMess := tgbotapi.NewForward(-315255349, msg.Chat.ID, msg.MessageID)
 
 	cb.SendMessage(forwardMess)
@@ -428,7 +434,7 @@ func (cb *Cinnabot) USCFeedback(msg *message) {
 	}
 	text := "🤖: Feedback received! I will now transmit feedback to USC\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
-	cb.SendTextMessage(msg.From.ID, text)
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 	return
 }
 
@@ -446,7 +452,7 @@ func (cb *Cinnabot) DiningFeedback(msg *message) {
 	}
 	text := "🤖: Feedback received! I will now transmit feedback to dining hall committeel\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
-	cb.SendTextMessage(msg.From.ID, text)
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 	return
 }
 
@@ -464,6 +470,6 @@ func (cb *Cinnabot) ResidentialFeedback(msg *message) {
 	}
 	text := "🤖: Feedback received! I will now transmit feedback to residential committeel\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
-	cb.SendTextMessage(msg.From.ID, text)
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 	return
 }

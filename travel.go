@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -39,7 +38,7 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 
 		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
 
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
+		replyMsg := tgbotapi.NewMessage(msg.Chat.ID, "🤖: Where are you?\n\n")
 		replyMsg.ReplyMarkup = options
 		cb.SendMessage(replyMsg)
 		return
@@ -52,7 +51,7 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 	}
 	//Returns a heap of busstop data (sorted)
 	BSH := makeHeap(*loc)
-	replyMsg := tgbotapi.NewMessage(int64(msg.From.ID), busTimingResponse(&BSH))
+	replyMsg := tgbotapi.NewMessage(msg.Chat.ID, busTimingResponse(&BSH))
 	replyMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	cb.SendMessage(replyMsg)
 	return
@@ -92,12 +91,12 @@ func busTimingResponse(BSH *BusStopHeap) string {
 		resp, _ := client.Do(req)
 		responseData, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		bt := BusTimes{}
 		if err := json.Unmarshal(responseData, &bt); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 		for j := 0; j < len(bt.Services); j++ {
 			arrivalTime := bt.Services[j].Next.EstimatedArrival
@@ -136,7 +135,7 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 
 		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
 
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
+		replyMsg := tgbotapi.NewMessage(int64(msg.Chat.ID), "🤖: Where are you?\n\n")
 		replyMsg.ReplyMarkup = options
 		cb.SendMessage(replyMsg)
 		return
@@ -151,7 +150,7 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 	//Returns a heap of busstop data (sorted)
 	BSH := makeNUSHeap(*loc)
 	responseString := nusBusTimingResponse(&BSH)
-	returnMsg := tgbotapi.NewMessage(int64(msg.From.ID), responseString)
+	returnMsg := tgbotapi.NewMessage(msg.Chat.ID, responseString)
 	returnMsg.ParseMode = "Markdown"
 	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	cb.SendMessage(returnMsg)
@@ -190,30 +189,32 @@ func nusBusTimingResponse(BSH *BusStopHeap) string {
 		if err := json.Unmarshal(responseData, &bt); err != nil {
 			log.Fatal(err)
 		}
+		/**
 
-		var min int
-		var at string
-		for j := 0; j < len(bt.Result.Shuttles); j++ {
-			min = j
-			for k := j; k < len(bt.Result.Shuttles); k++ {
-				at = bt.Result.Shuttles[k].ArrivalTime
-				log.Print(at, bt.Result.Shuttles[k].Name)
+				var min int
+				var at string
+				for j := 0; j < len(bt.Result.Shuttles); j++ {
+					min = j
+					for k := j; k < len(bt.Result.Shuttles); k++ {
+						at = bt.Result.Shuttles[k].ArrivalTime
+						log.Print(at, bt.Result.Shuttles[k].Name)
 
-				if at == "-" {
-					continue
-				} else if at == "Arr" {
-					min = k
-					continue
+						if at == "-" {
+							continue
+						} else if at == "Arr" {
+							min = k
+							continue
+						}
+
+						val := strings.Compare(at, bt.Result.Shuttles[min].ArrivalTime)
+						if val == -1 {
+							log.Print("A")
+							min = k
+						}
+					}
+					bt.Result.Shuttles[j], bt.Result.Shuttles[min] = bt.Result.Shuttles[min], bt.Result.Shuttles[j]
 				}
-
-				val := strings.Compare(at, bt.Result.Shuttles[min].ArrivalTime)
-				if val == -1 {
-					log.Print("A")
-					min = k
-				}
-			}
-			bt.Result.Shuttles[j], bt.Result.Shuttles[min] = bt.Result.Shuttles[min], bt.Result.Shuttles[j]
-		}
+		        **/
 
 		for j := 0; j < len(bt.Result.Shuttles); j++ {
 			arrivalTime := bt.Result.Shuttles[j].ArrivalTime
