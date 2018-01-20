@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -142,26 +143,32 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 
 	if execFn != nil {
 		cb.GoSafely(func() { execFn(cmsg) })
-		cb.cache.Set(string(msg.From.ID), cmsg.Cmd, cache.DefaultExpiration)
-	} else {
 
+		cb.cache.Set(strconv.Itoa(msg.From.ID), cmsg.Cmd, cache.DefaultExpiration)
+
+	} else {
 		//Retrieve command from cache
-		cmdRaw, bool := cb.cache.Get(string(msg.From.ID))
+		cmdRaw, bool := cb.cache.Get(strconv.Itoa(msg.From.ID))
 		cmd := cmdRaw.(string)
-		val := cmsg.Args
 		//If cmd in cache and arg matches command
-		if bool && CheckArgCmdPair(cmd, val) {
+
+		cmsg.Args = append([]string{cmsg.Cmd}, cmsg.Args...)
+
+		if bool && CheckArgCmdPair(cmd, cmsg.Args) {
 			//Get function from previous command
 			execFn = cb.fmap[cmd]
-
 			//Ensure tokens is in order [unecessary]
-			cmsg.Args = append([]string{cmsg.Cmd}, cmsg.Args...)
 			cmsg.Cmd = cmd
 
 			cb.GoSafely(func() { execFn(cmsg) })
 			return
 		}
-		cb.SendTextMessage(msg.From.ID, "No such command!")
+		log.Print("Out")
+		log.Print(cmd)
+		replyMessage := tgbotapi.NewMessage(int64(msg.From.ID), "No such command!")
+		replyMessage.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		cb.SendMessage(replyMessage)
+
 	}
 }
 
@@ -171,6 +178,7 @@ func CheckArgCmdPair(cmd string, args []string) bool {
 	key := "" //Messages with no text in message
 	if len(args) > 0 {
 		key = args[0]
+		log.Print(key)
 	}
 	checkMap := make(map[string][]string)
 	//Args must always be lower cased
@@ -181,6 +189,7 @@ func CheckArgCmdPair(cmd string, args []string) bool {
 	checkMap["/residentialfeedback"] = []string{"anything"}
 
 	checkMap["/bus"] = []string{"cinnamon", ""}
+	checkMap["/nusbus"] = []string{"cinnamon", ""}
 
 	arr := checkMap[cmd]
 	for i := 0; i < len(arr); i++ {
@@ -221,7 +230,7 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 
 	if msg.ReplyToMessage != nil {
 		// We use a hack. All reply-to messages have the command it's replying to as the
-		// part of the message.
+		// part of the message. [to be removed]
 		r := regexp.MustCompile(`\/\w*`)
 		res := r.FindString(msg.ReplyToMessage.Text)
 		for k := range cb.fmap {

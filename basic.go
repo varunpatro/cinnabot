@@ -6,7 +6,6 @@ import (
 
 	"container/heap"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
@@ -48,6 +47,7 @@ func (cb *Cinnabot) Start(msg *message) {
 	text := "Hello there " + msg.From.FirstName + "!\n\n" +
 		"Im Cinnabot🤖. I am made by my owners to serve the residents of Cinnamon college!" +
 		"Im always here to /help if you need it!"
+
 	cb.SendTextMessage(msg.From.ID, text)
 }
 
@@ -64,8 +64,7 @@ func (cb *Cinnabot) Help(msg *message) {
 					"/spaces tomorrow: spaces booking tomorrow\n" +
 					"/spaces DD/MM(/YY): spaces booking for a certain date" +
 					"/spaces DD/MM(/YY) DD/MM(/YY): spaces booking for a certain range in date"
-
-			cb.SendTextMessage(msg.From.ID, text)
+			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 
 		} else if msg.Args[0] == "cbs" {
@@ -79,9 +78,10 @@ func (cb *Cinnabot) Help(msg *message) {
 	}
 	text :=
 		"Here are a list of functions to get you started 😊 \n" +
-			"/about: to find out more about me" +
+			"/about: to find out more about me\n" +
 			"/cbs: cinnamon broadcast system\n" +
 			"/bus: public bus timings for bus stops around your location\n" +
+			"/nusbus: nus bus timings for bus stops around your location\n" +
 			"/weather: 2h weather forecast\n" +
 			"/link: list of important links!\n" +
 			"/spaces: list of space bookings\n" +
@@ -215,14 +215,6 @@ type NextBus struct {
 
 //BusTimings checks the bus timings based on given location
 func (cb *Cinnabot) BusTimings(msg *message) {
-	//Check if weather was sent with location, if not reply with markup
-	// if msg.Location == nil {
-	// 	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/bus Please attach your location\n\n")
-	// 	replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-	// 	replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
-	// 	cb.SendMessage(replyMsg)
-	// 	return
-	// }
 	if len(msg.Args) == 0 || !CheckArgCmdPair("/bus", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
 		opt2B := tgbotapi.NewKeyboardButton("Here")
@@ -231,15 +223,14 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 
 		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
 
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where do you want the bus timings of?\n\n")
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
 		replyMsg.ReplyMarkup = options
 		cb.SendMessage(replyMsg)
 		return
 	}
 	//Default loc: Cinnamon
-	loc := &tgbotapi.Location{Latitude: 1.3067052, Longitude: 103.772012}
+	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
 
-	log.Print(loc)
 	if msg.Location != nil {
 		loc = msg.Location
 	}
@@ -249,7 +240,6 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 	replyMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	cb.SendMessage(replyMsg)
 	return
-
 }
 
 //busTimingResponse returns string given a busstopheap
@@ -257,9 +247,9 @@ func busTimingResponse(BSH *BusStopHeap) string {
 	returnMessage := ""
 	//Iteratively get data for each closest bus stop.
 	for i := 0; i < 4; i++ {
+
 		busStop := heap.Pop(BSH).(BusStop)
 
-		fmt.Println(busStop)
 		busStopCode := busStop.BusStopNumber
 
 		returnMessage += busStop.BusStopName + "\n================\n"
@@ -287,7 +277,7 @@ func busTimingResponse(BSH *BusStopHeap) string {
 			layout := "2006-01-02T15:04:05-07:00"
 			t, _ := time.Parse(layout, arrivalTime)
 			duration := int(t.Sub(time.Now()).Minutes())
-			returnMessage += "Bus " + bt.Services[j].ServiceNum + " : " + strconv.Itoa(duration) + " minutes\n"
+			returnMessage += "Bus " + bt.Services[j].ServiceNum + " : " + strconv.Itoa(duration+1) + " minutes\n"
 		}
 		returnMessage += "\n"
 	}
@@ -328,6 +318,7 @@ func (h *BusStopHeap) Pop() interface{} {
 	n := len(oldh)
 	x := oldh[n-1]
 	h.busStopList = oldh[0 : n-1]
+
 	return x
 }
 
@@ -368,21 +359,36 @@ type Shuttle struct {
 
 //NUSBus retrieves the next timing for NUS Shuttle buses
 func (cb *Cinnabot) NUSBus(msg *message) {
-	//Check if weather was sent with location, if not reply with markup
-	if msg.Location == nil {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/nusbus Please attach your location\n\n")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+	if len(msg.Args) == 0 || !CheckArgCmdPair("/bus", msg.Args) {
+		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
+		opt2B := tgbotapi.NewKeyboardButton("Here")
+		opt2B.RequestLocation = true
+		opt2 := tgbotapi.NewKeyboardButtonRow(opt2B)
+
+		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
+
+		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Where are you?\n\n")
+		replyMsg.ReplyMarkup = options
 		cb.SendMessage(replyMsg)
 		return
 	}
+
+	//Default loc: Cinnamon
+	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
+
+	if msg.Location != nil {
+		loc = msg.Location
+	}
 	//Returns a heap of busstop data (sorted)
-	BSH := makeNUSHeap(*msg.Location)
+	BSH := makeNUSHeap(*loc)
 	responseString := nusBusTimingResponse(&BSH)
 	returnMsg := tgbotapi.NewMessage(int64(msg.From.ID), responseString)
 	returnMsg.ParseMode = "Markdown"
+	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	cb.SendMessage(returnMsg)
 }
+
+//makeNUSHeap returns a heap for NUS Bus timings
 func makeNUSHeap(loc tgbotapi.Location) BusStopHeap {
 	responseData, err := ioutil.ReadFile("nusstops.json")
 	if err != nil {
@@ -398,11 +404,12 @@ func makeNUSHeap(loc tgbotapi.Location) BusStopHeap {
 }
 
 func nusBusTimingResponse(BSH *BusStopHeap) string {
-	returnMessage := "🤖: Here are the bus timings\n"
+	returnMessage := "🤖: Here are the bus timings\n\n"
 	for i := 0; i < 3; i++ {
-		stop := BSH.Pop().(BusStop)
 
-		returnMessage += "_*" + stop.BusStopName + "*_\n"
+		stop := heap.Pop(BSH).(BusStop)
+
+		returnMessage += "*" + stop.BusStopName + "*\n"
 
 		resp, _ := http.Get("https://nextbus.comfortdelgro.com.sg/eventservice.svc/Shuttleservice?busstopname=" + stop.BusStopNumber)
 
@@ -419,11 +426,11 @@ func nusBusTimingResponse(BSH *BusStopHeap) string {
 			arrivalTime := bt.Result.Shuttles[j].ArrivalTime
 
 			if arrivalTime == "-" {
-				returnMessage += bt.Result.Shuttles[j].Name + " : Not running \n"
+				returnMessage += "🛑" + bt.Result.Shuttles[j].Name + " : Not running \n"
 				continue
 			}
 
-			returnMessage += bt.Result.Shuttles[j].Name + " : " + bt.Result.Shuttles[j].ArrivalTime + "\n"
+			returnMessage += "🚍" + bt.Result.Shuttles[j].Name + " : " + bt.Result.Shuttles[j].ArrivalTime + "\n"
 		}
 		returnMessage += "\n"
 	}
@@ -501,8 +508,8 @@ func (cb *Cinnabot) CBS(msg *message) {
 	//Consider sending an image?
 	listText := "🤖: Welcome to Cinnabot's Broadcasting System!(CBS)\n" +
 		"These are the following commands that you can use:\n" +
-		"\\subscribe <tag>: to subscribe to a tag\n" +
-		"\\unsubcribe <tag>: to unsubscribe from a tag\n" +
+		"/subscribe <tag>: to subscribe to a tag\n" +
+		"/unsubcribe <tag>: to unsubscribe from a tag\n" +
 		"These channels will be used by a small group of humans to disseminate important information according to tags.\n" +
 		"List of tags:\n" +
 		"everything, events"
@@ -589,7 +596,7 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 func (cb *Cinnabot) Feedback(msg *message) {
 	if CheckArgCmdPair("/feedback", msg.Args) {
 		//Set Cache
-		cb.cache.Set(string(msg.From.ID), "/"+msg.Args[0]+"feedback", cache.DefaultExpiration)
+		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+msg.Args[0]+"feedback", cache.DefaultExpiration)
 
 		close := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Please send a message with your feedback. \nMy owner would love your feedback\n\n")
 		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
@@ -628,6 +635,9 @@ func (cb *Cinnabot) CinnabotFeedback(msg *message) {
 		"We really appreciate you taking the time out to submit feedback.\n" +
 		"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
 	cb.SendTextMessage(msg.From.ID, text)
+	forwardMess := tgbotapi.NewForward(-315255349, msg.Chat.ID, msg.MessageID)
+
+	cb.SendMessage(forwardMess)
 	return
 }
 
