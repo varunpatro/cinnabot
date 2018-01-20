@@ -30,7 +30,7 @@ type NextBus struct {
 
 //BusTimings checks the bus timings based on given location
 func (cb *Cinnabot) BusTimings(msg *message) {
-	if len(msg.Args) == 0 || !CheckArgCmdPair("/bus", msg.Args) {
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/bus", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
 		opt2B := tgbotapi.NewKeyboardButton("Here")
 		opt2B.RequestLocation = true
@@ -130,7 +130,7 @@ type Shuttle struct {
 //NUSBus retrieves the next timing for NUS Shuttle buses
 func (cb *Cinnabot) NUSBus(msg *message) {
 	//If no args in nusbus and arg not relevant to bus
-	if len(msg.Args) == 0 || !CheckArgCmdPair("/bus", msg.Args) {
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/bus", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
 		opt2B := tgbotapi.NewKeyboardButton("Here")
 		opt2B.RequestLocation = true
@@ -153,10 +153,7 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 	//Returns a heap of busstop data (sorted)
 	BSH := makeNUSHeap(*loc)
 	responseString := nusBusTimingResponse(&BSH)
-	returnMsg := tgbotapi.NewMessage(msg.Chat.ID, responseString)
-	returnMsg.ParseMode = "Markdown"
-	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-	cb.SendMessage(returnMsg)
+	cb.SendTextMessage(int(msg.Chat.ID), responseString)
 
 }
 

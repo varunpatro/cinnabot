@@ -55,13 +55,10 @@ func (cb *Cinnabot) Help(msg *message) {
 
 		if msg.Args[0] == "spaces" {
 			text :=
-				"/spaces: spaces booking today\n" +
-					"/spaces book: link to book spaces\n" +
-					"/spaces now: spaces booking at this moment\n" +
-					"/spaces week: spaces booking this week\n" +
-					"/spaces tomorrow: spaces booking tomorrow\n" +
-					"/spaces DD/MM(/YY): spaces booking for a certain date" +
-					"/spaces DD/MM(/YY) DD/MM(/YY): spaces booking for a certain range in date"
+				"To use the '/spaces' command, type one of the following:\n" +
+					"'/spaces' : to view all bookings for today\n'/spaces now' : to view bookings active at this very moment\n" +
+					"'/spaces week' : to view all bookings for this week\n'/spaces dd/mm(/yy)' : to view all bookings on a specific day\n" +
+					"'/spaces dd/mm(/yy) dd/mm(/yy)' : to view all bookings in a specific range of dates"
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 
@@ -71,6 +68,7 @@ func (cb *Cinnabot) Help(msg *message) {
 					"/unsubscribe <tag>: unsubscribe from a tag\n" +
 					"/broadcast <tag>: broadcast to a tag [admin]\n"
 			cb.SendTextMessage(int(msg.Chat.ID), text)
+			return
 
 		}
 	}
@@ -140,7 +138,7 @@ type ForecastMetadata struct {
 //Weather checks the weather based on given location
 func (cb *Cinnabot) Weather(msg *message) {
 	//Check if weather was sent with location, if not reply with markup
-	if len(msg.Args) == 0 || !CheckArgCmdPair("/weather", msg.Args) {
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/weather", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
 		opt2B := tgbotapi.NewKeyboardButton("Here")
 		opt2B.RequestLocation = true
@@ -224,7 +222,11 @@ func (cb *Cinnabot) Broadcast(msg *message) {
 	}
 
 	if len(msg.Args) == 0 {
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖 Please include text in the message")
+		text := "🤖 Please do /broadcast <tag>\n*Tags:*\n"
+		for i := 0; i < len(cb.allTags); i += 2 {
+			text += cb.allTags[i] + " "
+		}
+		cb.SendTextMessage(int(msg.Chat.ID), text)
 		return
 	}
 	//Used to initialize tags in a mark-up. Ensure that people check their tags
@@ -286,23 +288,30 @@ func checkAdmin(cb *Cinnabot, msg *message) bool {
 func (cb *Cinnabot) CBS(msg *message) {
 	//Consider sending an image?
 	listText := "🤖: Welcome to Cinnabot's Broadcasting System!(CBS)\n" +
+		"These channels will be used by a small group of humans to disseminate important information according to tags.\n" +
+		"We will also try to sneak in a few cool functions using this system too.\n" +
 		"These are the following commands that you can use:\n" +
 		"/subscribe <tag>: to subscribe to a tag\n" +
-		"/unsubcribe <tag>: to unsubscribe from a tag\n" +
-		"These channels will be used by a small group of humans to disseminate important information according to tags.\n" +
-		"List of tags:\n" +
-		strings.Join(cb.allTags, " ")
+		"/unsubcribe <tag>: to unsubscribe from a tag\n\n" +
+		"*List of tags:*\n"
+	for i := 0; i < len(cb.allTags); i += 2 {
+		listText += cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
+	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), listText)
 }
 
 //Subscribe subscribes the user to a broadcast channel [trial]
 func (cb *Cinnabot) Subscribe(msg *message) {
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/subscribe", msg.Args) {
+		var rowList [][]tgbotapi.KeyboardButton
+		for i := 0; i < len(cb.allTags); i += 2 {
+			rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+		}
 
-	if len(msg.Args) == 0 || CheckArgCmdPair("/Subscribe", msg.Args) {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/subscribe 🤖 What do you want to subscribe to?\n\n")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
+		options := tgbotapi.NewReplyKeyboard(rowList...)
+		replyMsg := tgbotapi.NewMessage(msg.Chat.ID, "🤖: What would you like to subscribe to?\n\n")
+		replyMsg.ReplyMarkup = options
 		cb.SendMessage(replyMsg)
 
 		return
@@ -373,13 +382,10 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 
 //Feedback allows users an avenue to give feedback. Admins can retrieve by searching the /feedback handler in the db
 func (cb *Cinnabot) Feedback(msg *message) {
-	if CheckArgCmdPair("/feedback", msg.Args) {
+	if cb.CheckArgCmdPair("/feedback", msg.Args) {
 		//Set Cache
 		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+msg.Args[0]+"feedback", cache.DefaultExpiration)
-
-		close := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: Please send a message with your feedback. \nMy owner would love your feedback\n\n")
-		close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		cb.SendMessage(close)
+		cb.SendTextMessage(msg.Message.From.ID, "🤖: Please send a message with your feedback. \nMy owner would love your feedback\n\n")
 
 		//Sets cache to the corresponding feedback
 		return
@@ -400,10 +406,6 @@ func (cb *Cinnabot) Feedback(msg *message) {
 
 func (cb *Cinnabot) CinnabotFeedback(msg *message) {
 	if len(msg.Args) == 0 {
-		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: My owner would love your feedback\n\n")
-		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		//cb.SendMessage(close)
-
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/cinnabotFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
@@ -415,17 +417,12 @@ func (cb *Cinnabot) CinnabotFeedback(msg *message) {
 		"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
 	cb.SendTextMessage(int(msg.Chat.ID), text)
 	forwardMess := tgbotapi.NewForward(-315255349, msg.Chat.ID, msg.MessageID)
-
 	cb.SendMessage(forwardMess)
 	return
 }
 
 func (cb *Cinnabot) USCFeedback(msg *message) {
 	if len(msg.Args) == 0 {
-		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: USC committee would love your feedback\n\n")
-		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		//cb.SendMessage(close)
-
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/uscFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
@@ -435,14 +432,13 @@ func (cb *Cinnabot) USCFeedback(msg *message) {
 	text := "🤖: Feedback received! I will now transmit feedback to USC\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
+	forwardMess := tgbotapi.NewForward(-218198924, msg.Chat.ID, msg.MessageID)
+	cb.SendMessage(forwardMess)
 	return
 }
 
 func (cb *Cinnabot) DiningFeedback(msg *message) {
 	if len(msg.Args) == 0 {
-		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Dining Hall committee would love your feedback\n\n")
-		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		//cb.SendMessage(close)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/diningFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
@@ -453,19 +449,20 @@ func (cb *Cinnabot) DiningFeedback(msg *message) {
 	text := "🤖: Feedback received! I will now transmit feedback to dining hall committeel\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
+	forwardMess := tgbotapi.NewForward(-295443996, msg.Chat.ID, msg.MessageID)
+	cb.SendMessage(forwardMess)
 	return
 }
 
 func (cb *Cinnabot) ResidentialFeedback(msg *message) {
 	if len(msg.Args) == 0 {
-		//close := tgbotapi.NewMessage(int64(msg.Message.From.ID),"🤖: Residential committee would love your feedback\n\n")
-		//close.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		//cb.SendMessage(close)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/residentialFeedback")
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
+		forwardMess := tgbotapi.NewForward(-278463800, msg.Chat.ID, msg.MessageID)
+		cb.SendMessage(forwardMess)
 		return
 	}
 	text := "🤖: Feedback received! I will now transmit feedback to residential committeel\n\n " +

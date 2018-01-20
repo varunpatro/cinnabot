@@ -100,7 +100,8 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 	cb.fmap = cb.getDefaultFuncMap()
 	cb.db = model.InitializeDB()
 	cb.cache = cache.New(1*time.Minute, 2*time.Minute)
-	cb.allTags = []string{"everything", "events"}
+	//tag alternates with tag description
+	cb.allTags = []string{"EVERYTHING", "EVERY tag!! Only for the daring", "EVENTS", "Events of cinnamon college"}
 
 	return cb
 }
@@ -142,7 +143,7 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 		cb.log.Printf("[%s][id: %d] command: %s, args: %s", time.Now().Format(time.RFC3339), cmsg.MessageID, cmsg.Cmd, cmsg.GetArgString())
 	}
 	execFn := cb.fmap[cmsg.Cmd]
-
+	log.Print(msg.Chat.ID)
 	if execFn != nil {
 		cb.GoSafely(func() { execFn(cmsg) })
 
@@ -155,7 +156,7 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 
 		cmsg.Args = append([]string{cmsg.Cmd}, cmsg.Args...)
 
-		if CheckArgCmdPair(cmd, cmsg.Args) {
+		if cb.CheckArgCmdPair(cmd, cmsg.Args) {
 			//Get function from previous command
 			execFn = cb.fmap[cmd]
 			//Ensure tokens is in order [unecessary]
@@ -175,7 +176,7 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 
 //Checks if arg can be used with command
 //Used to supplement cache as cache only records functions as states
-func CheckArgCmdPair(cmd string, args []string) bool {
+func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	key := "" //Messages with no text in message
 	if len(args) > 0 {
 		key = args[0]
@@ -192,6 +193,9 @@ func CheckArgCmdPair(cmd string, args []string) bool {
 	checkMap["/bus"] = []string{"cinnamon", ""}
 	checkMap["/nusbus"] = []string{"cinnamon", ""}
 	checkMap["/weather"] = []string{"cinnamon", ""}
+
+	checkMap["/subscribe"] = cb.allTags
+	checkMap["/unsubscribe"] = cb.allTags
 
 	arr := checkMap[cmd]
 	for i := 0; i < len(arr); i++ {
@@ -261,6 +265,8 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 // SendTextMessage sends a basic text message back to the specified user.
 func (cb *Cinnabot) SendTextMessage(recipient int, text string) error {
 	msg := tgbotapi.NewMessage(int64(recipient), text)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+	msg.ParseMode = "Markdown"
 	_, err := cb.bot.Send(msg)
 	return err
 }
