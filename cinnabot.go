@@ -101,7 +101,7 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 	cb.db = model.InitializeDB()
 	cb.cache = cache.New(1*time.Minute, 2*time.Minute)
 	//tag alternates with tag description
-	cb.allTags = []string{"EVERYTHING", "EVERY tag!! Only for the daring", "EVENTS", "Events of cinnamon college"}
+	cb.allTags = []string{"everything", "EVERY tag!! Only for the daring", "events", "EVENTS of cinnamon college", "food", "Free/not free FOOD updates of all kind for the hungry", "weather", "Weather updates. Im not sure why you would want it actually.", "warm", "If you want some nice warm things occasionally"}
 
 	return cb
 }

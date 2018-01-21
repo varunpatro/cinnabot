@@ -74,7 +74,7 @@ func makeHeap(loc tgbotapi.Location) BusStopHeap {
 
 //busTimingResponse returns string given a busstopheap
 func busTimingResponse(BSH *BusStopHeap) string {
-	returnMessage := "🤖: Here are the timings:\n"
+	returnMessage := "🤖: Here are the timings:\n\n"
 	//Iteratively get data for each closest bus stop.
 	for i := 0; i < 4; i++ {
 
@@ -82,7 +82,7 @@ func busTimingResponse(BSH *BusStopHeap) string {
 
 		busStopCode := busStop.BusStopNumber
 
-		returnMessage += busStop.BusStopName + "\n================\n"
+		returnMessage += "*" + busStop.BusStopName + "*\n"
 
 		//Send request to my transport sg for bus timing data
 		client := &http.Client{}
