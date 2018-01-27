@@ -184,14 +184,14 @@ func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	}
 	checkMap := make(map[string][]string)
 	//Args must always be lower cased
-	checkMap["/feedback"] = []string{"cinnabot", "dininghall", "residential", "usc"}
+	checkMap["/feedback"] = []string{"cinnabot", "dining", "residential", "usc", "general(usc)"}
 	checkMap["/cinnabotfeedback"] = []string{"anything"}
 	checkMap["/uscfeedback"] = []string{"anything"}
 	checkMap["/diningfeedback"] = []string{"anything"}
 	checkMap["/residentialfeedback"] = []string{"anything"}
 
-	checkMap["/bus"] = []string{"cinnamon", ""}
-	checkMap["/nusbus"] = []string{"cinnamon", ""}
+	checkMap["/publicbus"] = []string{"cinnamon", ""}
+	checkMap["/nusbus"] = []string{"utown", "science", "arts", "museum/engin", "cenlib", "biz", "yih", "kr-mrt", "mpsh", "comp", ""}
 	checkMap["/weather"] = []string{"cinnamon", ""}
 
 	checkMap["/subscribe"] = cb.allTags

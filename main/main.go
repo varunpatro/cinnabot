@@ -31,9 +31,9 @@ func main() {
 	cb.AddFunction("/about", cb.About)
 	cb.AddFunction("/help", cb.Help)
 
-	cb.AddFunction("/links", cb.Link)
+	cb.AddFunction("/resources", cb.Resources)
 
-	cb.AddFunction("/bus", cb.BusTimings)
+	cb.AddFunction("/publicbus", cb.BusTimings)
 
 	cb.AddFunction("/nusbus", cb.NUSBus)
 

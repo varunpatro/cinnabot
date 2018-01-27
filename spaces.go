@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sort"
 	"time"
@@ -23,10 +24,10 @@ type Event struct {
 
 //String constants
 const (
-	TR1 = "THEME ROOM 1"
-	TR2 = "THEME ROOM 2"
-	CTPH = "CHUA THIAN POH HALL"
-	AMPH = "AMPHITHEATRE"
+	TR1     = "THEME ROOM 1"
+	TR2     = "THEME ROOM 2"
+	CTPH    = "CHUA THIAN POH HALL"
+	AMPH    = "AMPHITHEATRE"
 	CHATTER = "CHATTERBOX"
 )
 
@@ -71,13 +72,15 @@ func scanRawSpace(rawSpacePointer *rawSpace, facilityID int) {
 		spacesURL,
 		bytes.NewBuffer(requestBody))
 	if requestErr != nil {
-		panic("Error in spaces.go while creating HTTP request")
+		log.Fatal("Error in spaces.go while creating HTTP request")
+		return
 	}
 	request.Header.Set("Content-Type", "application/json")
 
 	response, responseError := client.Do(request)
 	if responseError != nil {
-		panic("Error in spaces.go while receiving HTTP response")
+		log.Fatal("Error in spaces.go while receiving HTTP response")
+		return
 	}
 
 	defer response.Body.Close() //Close buffer
@@ -85,7 +88,8 @@ func scanRawSpace(rawSpacePointer *rawSpace, facilityID int) {
 	//Get raw json data
 	rawData, rawDataError := ioutil.ReadAll(response.Body)
 	if rawDataError != nil {
-		panic("Error in spaces.go while reading HTTP response body")
+		log.Fatal("Error in spaces.go while reading HTTP response body")
+		return
 	}
 
 	//Unmarshal json data
@@ -114,7 +118,7 @@ func ParseJSONDate(date string) time.Time {
 	format := "2006-01-02T15:04:05"
 	t, err := time.Parse(format, date)
 	if err != nil {
-		panic(fmt.Sprintf("Error in spaces.go while parsing %s as a JSON date", date))
+		log.Fatal(fmt.Sprintf("Error in spaces.go while parsing %s as a JSON date", date))
 	}
 	return t
 }
@@ -216,7 +220,8 @@ func SpaceName(facilityID int) string {
 	case 5:
 		return CHATTER
 	default:
-		panic(fmt.Sprintf("ERROR: SpaceName(facilityID int) expects {0,1,2,3,5} but received %d", facilityID))
+		log.Fatal(fmt.Sprintf("ERROR: SpaceName(facilityID int) expects {0,1,2,3,5} but received %d", facilityID))
+		return "NONE"
 	}
 }
 

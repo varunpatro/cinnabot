@@ -72,10 +72,16 @@ func (cb *Cinnabot) Help(msg *message) {
 					"/unsubscribe for a button list\n"
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
-		} else if msg.Args[0] == "links" {
+		} else if msg.Args[0] == "resources" {
 			text :=
-				"/links <tag>: searches links for a specific tag\n" +
-					"/links: returns all tags"
+				"/resources <tag>: searches resources for a specific tag\n" +
+					"/resources: returns all tags"
+			cb.SendTextMessage(int(msg.Chat.ID), text)
+			return
+		} else if msg.Args[0] == "publicbus" {
+			text :=
+				"/publicbus : publicbus\n" +
+					"Sending your location (ignore the buttons) after running the above command will allow to get bus timings for bus stops around any location."
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 		}
@@ -84,10 +90,10 @@ func (cb *Cinnabot) Help(msg *message) {
 		"Here are a list of functions to get you started 🤸 \n" +
 			"/about: to find out more about me\n" +
 			"/cbs: cinnamon broadcast system\n" +
-			"/bus: public bus timings for bus stops around your location\n" +
+			"/publicbus: public bus timings for bus stops around your location\n" +
 			"/nusbus: nus bus timings for bus stops around your location\n" +
 			"/weather: 2h weather forecast\n" +
-			"/links: list of important links!\n" +
+			"/resources: list of important resources!\n" +
 			"/spaces: list of space bookings\n" +
 			"/feedback: to give feedback\n\n" +
 			"_*My creator actually snuck in a few more functions🕺 *_\n" +
@@ -100,24 +106,24 @@ func (cb *Cinnabot) About(msg *message) {
 	cb.SendTextMessage(int(msg.Chat.ID), "Touch me: https://github.com/varunpatro/Cinnabot")
 }
 
-//Link returns useful links
-func (cb *Cinnabot) Link(msg *message) {
-	links := make(map[string]string)
-	links["usplife"] = "[fb page](https://www.facebook.com/groups/usplife/)"
-	links["food"] = "@rcmealbot"
-	links["spaces"] = "[spaces web](http://www.nususc.com/Spaces.aspx)"
-	links["usc"] = "[usc web](http://www.nususc.com/MainPage.aspx)"
-	links["study groups"] = "@uyp\\_bot"
+//Link returns useful resources
+func (cb *Cinnabot) Resources(msg *message) {
+	resources := make(map[string]string)
+	resources["usplife"] = "[fb page](https://www.facebook.com/groups/usplife/)"
+	resources["food"] = "@rcmealbot"
+	resources["spaces"] = "[spaces web](http://www.nususc.com/Spaces.aspx)"
+	resources["usc"] = "[usc web](http://www.nususc.com/MainPage.aspx)"
+	resources["study groups"] = "@uyp\\_bot"
 
 	var key string = strings.ToLower(strings.Join(msg.Args, " "))
 	log.Print(key)
-	_, ok := links[key]
+	_, ok := resources[key]
 	if ok {
-		cb.SendTextMessage(int(msg.Chat.ID), links[key])
+		cb.SendTextMessage(int(msg.Chat.ID), resources[key])
 	} else {
 		var values string = ""
-		for key, _ := range links {
-			values += key + " : " + links[key] + "\n"
+		for key, _ := range resources {
+			values += key + " : " + resources[key] + "\n"
 		}
 		cb.SendTextMessage(int(msg.Chat.ID), values)
 	}
@@ -178,7 +184,8 @@ func (cb *Cinnabot) Weather(msg *message) {
 
 	wf := WeatherForecast{}
 	if err := json.Unmarshal(responseData, &wf); err != nil {
-		panic(err)
+		log.Fatal(err)
+		return
 	}
 
 	lowestDistance := distanceBetween(wf.AM[0].Loc, *loc)
@@ -232,7 +239,7 @@ func (cb *Cinnabot) Broadcast(msg *message) {
 	if len(msg.Args) == 0 {
 		text := "🤖: Please do /broadcast <tag>\n*Tags:*\n"
 		for i := 0; i < len(cb.allTags); i += 2 {
-			text += cb.allTags[i] + " "
+			text += cb.allTags[i] + "\n"
 		}
 		cb.SendTextMessage(int(msg.Chat.ID), text)
 		return
@@ -295,12 +302,10 @@ func checkAdmin(cb *Cinnabot, msg *message) bool {
 
 func (cb *Cinnabot) CBS(msg *message) {
 	//Consider sending an image?
-	listText := "🤖: Welcome to Cinnabot's Broadcasting System!(CBS)\n" +
-		"These channels will be used by **a small group of humans** to disseminate important information according to tags.\n" +
-		"We will also try to sneak in a few cool functions using this system too.\n" +
+	listText := "🤖: The Cinnamon Broadcast System (CBS) is your one stop shop for information in USP! Subscribe to the tags you want to receive notifications about!\n" +
 		"These are the following commands that you can use:\n" +
-		"/subscribe <tag>: to subscribe to a tag\n" +
-		"/unsubcribe <tag>: to unsubscribe from a tag\n\n" +
+		"/subscribe : to subscribe to a tag\n" +
+		"/unsubcribe : to unsubscribe from a tag\n\n" +
 		"*Subscribe status*\n" + "(sub status) tag: description\n"
 	for i := 0; i < len(cb.allTags); i += 2 {
 		if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
@@ -348,6 +353,7 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 	if err := cb.db.UpdateTag(msg.From.ID, tag, "true"); err != nil { //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
 		log.Fatal(err.Error())
+		return
 	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now subscribed to "+tag)
@@ -390,6 +396,7 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 	if err := cb.db.UpdateTag(msg.From.ID, tag, "false"); err != nil { //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
 		log.Fatal(err.Error())
+		return
 	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now unsubscribed from "+tag)
@@ -402,18 +409,23 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 func (cb *Cinnabot) Feedback(msg *message) {
 	if cb.CheckArgCmdPair("/feedback", msg.Args) {
 		//Set Cache
-		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+msg.Args[0]+"feedback", cache.DefaultExpiration)
+		log.Print(msg.Args[0])
+		key := msg.Args[0]
+		if msg.Args[0] == "general(usc)" {
+			key = "usc"
+		}
+		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+key+"feedback", cache.DefaultExpiration)
 		cb.SendTextMessage(msg.Message.From.ID, "🤖: Please send a message with your feedback. \nMy owner would love your feedback\n\n")
 
 		//Sets cache to the corresponding feedback
 		return
 	}
 	opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnabot"))
-	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Usc"))
+	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("General(USC)"))
 	opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Dining"))
 	opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Residential"))
 
-	options := tgbotapi.NewReplyKeyboard(opt1, opt2, opt3, opt4)
+	options := tgbotapi.NewReplyKeyboard(opt2, opt3, opt4, opt1)
 
 	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: What will you like to give feedback to?\n\n")
 	replyMsg.ReplyMarkup = options

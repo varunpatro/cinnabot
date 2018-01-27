@@ -30,7 +30,7 @@ type NextBus struct {
 
 //BusTimings checks the bus timings based on given location
 func (cb *Cinnabot) BusTimings(msg *message) {
-	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/bus", msg.Args) {
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/publicbus", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
 		opt2B := tgbotapi.NewKeyboardButton("Here")
 		opt2B.RequestLocation = true
@@ -65,7 +65,7 @@ func makeHeap(loc tgbotapi.Location) BusStopHeap {
 	responseData, _ := ioutil.ReadFile("publicstops.json")
 	points := []BusStop{}
 	if err := json.Unmarshal(responseData, &points); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	BSH := BusStopHeap{points, loc}
 	heap.Init(&BSH)
@@ -130,13 +130,18 @@ type Shuttle struct {
 //NUSBus retrieves the next timing for NUS Shuttle buses
 func (cb *Cinnabot) NUSBus(msg *message) {
 	//If no args in nusbus and arg not relevant to bus
-	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/bus", msg.Args) {
-		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnamon"))
-		opt2B := tgbotapi.NewKeyboardButton("Here")
-		opt2B.RequestLocation = true
-		opt2 := tgbotapi.NewKeyboardButtonRow(opt2B)
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/nusbus", msg.Args) {
+		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("UTown"), tgbotapi.NewKeyboardButton("Science"))
+		opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Arts"), tgbotapi.NewKeyboardButton("Museum/Engin"))
+		opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("CenLib"), tgbotapi.NewKeyboardButton("Biz"))
+		opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("YIH"), tgbotapi.NewKeyboardButton("KR-MRT"))
+		opt5 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("MPSH"), tgbotapi.NewKeyboardButton("Comp"))
 
-		options := tgbotapi.NewReplyKeyboard(opt1, opt2)
+		opt6B := tgbotapi.NewKeyboardButton("Here")
+		opt6B.RequestLocation = true
+		opt6 := tgbotapi.NewKeyboardButtonRow(opt6B)
+
+		options := tgbotapi.NewReplyKeyboard(opt6, opt2, opt3, opt4, opt5, opt1)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Chat.ID), "🤖: Where are you?\n\n")
 		replyMsg.ReplyMarkup = options
@@ -149,12 +154,42 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 
 	if msg.Location != nil {
 		loc = msg.Location
+		//Returns a heap of busstop data (sorted)
+		BSH := makeNUSHeap(*loc)
+		responseString := nusBusTimingResponse(&BSH)
+		cb.SendTextMessage(int(msg.Chat.ID), responseString)
+		return
+	} else if msg.Args[0] == "utown" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("UTOWN"))
+		return
+	} else if msg.Args[0] == "science" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("S17")+"\n\n"+getBusTimings("LT29"))
+		return
+	} else if msg.Args[0] == "kr-mrt" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("KR-MRT-OPP")+"\n\n"+getBusTimings("KR-MRT"))
+		return
+	} else if msg.Args[0] == "mpsh" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("STAFFCLUB")+"\n\n"+getBusTimings("STAFFCLUB-OPP"))
+		return
+	} else if msg.Args[0] == "museum/engin" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("MUSEUM")+"\n\n"+getBusTimings("RAFFLES"))
+		return
+	} else if msg.Args[0] == "arts" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("LT13-OPP")+"\n\n"+getBusTimings("LT13")+"\n\n"+getBusTimings("AS7"))
+		return
+	} else if msg.Args[0] == "yih" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("YIH-OPP")+"\n\n"+getBusTimings("YIH"))
+		return
+	} else if msg.Args[0] == "comp" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("COM2"))
+		return
+	} else if msg.Args[0] == "biz" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("HSSML-OPP")+"\n\n"+getBusTimings("BIZ2"))
+		return
+	} else if msg.Args[0] == "cenlib" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("COMCEN")+"\n\n"+getBusTimings("CENLIB"))
+		return
 	}
-	//Returns a heap of busstop data (sorted)
-	BSH := makeNUSHeap(*loc)
-	responseString := nusBusTimingResponse(&BSH)
-	cb.SendTextMessage(int(msg.Chat.ID), responseString)
-
 }
 
 //makeNUSHeap returns a heap for NUS Bus timings
@@ -165,11 +200,39 @@ func makeNUSHeap(loc tgbotapi.Location) BusStopHeap {
 	}
 	points := []BusStop{}
 	if err := json.Unmarshal(responseData, &points); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	BSH := BusStopHeap{points, loc}
 	heap.Init(&BSH)
 	return BSH
+}
+
+func getBusTimings(code string) string {
+	returnMessage := "*" + code + "*\n"
+	resp, _ := http.Get("https://nextbus.comfortdelgro.com.sg/eventservice.svc/Shuttleservice?busstopname=" + code)
+
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var bt Response
+	if err := json.Unmarshal(responseData, &bt); err != nil {
+		log.Fatal(err)
+	}
+	for j := 0; j < len(bt.Result.Shuttles); j++ {
+		arrivalTime := bt.Result.Shuttles[j].ArrivalTime
+
+		if arrivalTime == "-" {
+			returnMessage += "🛑" + bt.Result.Shuttles[j].Name + " : - mins\n"
+			continue
+		} else if arrivalTime == "Arr" {
+			returnMessage += "🚍" + bt.Result.Shuttles[j].Name + " : " + arrivalTime + "\n"
+			continue
+		}
+
+		returnMessage += "🚍" + bt.Result.Shuttles[j].Name + " : " + arrivalTime + " mins\n"
+	}
+	return returnMessage
 }
 
 func nusBusTimingResponse(BSH *BusStopHeap) string {
@@ -222,6 +285,9 @@ func nusBusTimingResponse(BSH *BusStopHeap) string {
 
 			if arrivalTime == "-" {
 				returnMessage += "🛑" + bt.Result.Shuttles[j].Name + " : - mins\n"
+				continue
+			} else if arrivalTime == "Arr" {
+				returnMessage += "🚍" + bt.Result.Shuttles[j].Name + " : " + arrivalTime + "\n"
 				continue
 			}
 
