@@ -129,16 +129,16 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 	//If no args in nusbus and arg not relevant to bus
 	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/nusbus", msg.Args) {
 		opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("UTown"), tgbotapi.NewKeyboardButton("Science"))
-		opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Arts"), tgbotapi.NewKeyboardButton("Museum/Engin"))
+		opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Arts"), tgbotapi.NewKeyboardButton("Comp"))
 		opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("CenLib"), tgbotapi.NewKeyboardButton("Biz"))
-		opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("YIH"), tgbotapi.NewKeyboardButton("KR-MRT"))
-		opt5 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("MPSH"), tgbotapi.NewKeyboardButton("Comp"))
+		opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Law"), tgbotapi.NewKeyboardButton("Yih/Engin"))
+		opt5 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("MPSH"), tgbotapi.NewKeyboardButton("KR-MRT"))
 
 		opt6B := tgbotapi.NewKeyboardButton("Here")
 		opt6B.RequestLocation = true
 		opt6 := tgbotapi.NewKeyboardButtonRow(opt6B)
 
-		options := tgbotapi.NewReplyKeyboard(opt6, opt2, opt3, opt4, opt5, opt1)
+		options := tgbotapi.NewReplyKeyboard(opt6, opt1, opt2, opt3, opt4, opt5)
 
 		replyMsg := tgbotapi.NewMessage(int64(msg.Chat.ID), "🤖: Where are you?\n\n")
 		replyMsg.ReplyMarkup = options
@@ -168,23 +168,23 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 	} else if msg.Args[0] == "mpsh" {
 		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("STAFFCLUB")+"\n\n"+getBusTimings("STAFFCLUB-OPP"))
 		return
-	} else if msg.Args[0] == "museum/engin" {
-		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("MUSEUM")+"\n\n"+getBusTimings("RAFFLES"))
-		return
 	} else if msg.Args[0] == "arts" {
 		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("LT13-OPP")+"\n\n"+getBusTimings("LT13")+"\n\n"+getBusTimings("AS7"))
 		return
-	} else if msg.Args[0] == "yih" {
-		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("YIH-OPP")+"\n\n"+getBusTimings("YIH"))
+	} else if msg.Args[0] == "yih/engin" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("YIH-OPP")+"\n\n"+getBusTimings("YIH")+"\n\n"+getBusTimings("MUSEUM")+"\n\n"+getBusTimings("RAFFLES"))
 		return
 	} else if msg.Args[0] == "comp" {
 		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("COM2"))
 		return
 	} else if msg.Args[0] == "biz" {
-		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("HSSML-OPP")+"\n\n"+getBusTimings("BIZ2"))
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("HSSML-OPP")+"\n\n"+getBusTimings("BIZ2")+"\n\n"+getBusTimings("NUSS-OPP"))
 		return
 	} else if msg.Args[0] == "cenlib" {
 		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("COMCEN")+"\n\n"+getBusTimings("CENLIB"))
+		return
+	} else if msg.Args[0] == "law" {
+		cb.SendTextMessage(int(msg.Chat.ID), getBusTimings("BUKITTIMAH-BTC2"))
 		return
 	}
 }
