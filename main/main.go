@@ -28,6 +28,7 @@ func main() {
 	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/hello", cb.SayHello)
 	cb.AddFunction("/capitalize", cb.Capitalize)
+	cb.AddFunction("/spaces", cb.Spaces)
 
 	updates := cb.Listen(60)
 
