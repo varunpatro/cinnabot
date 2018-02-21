@@ -53,10 +53,7 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 	}
 	//Returns a heap of busstop data (sorted)
 	BSH := makeHeap(*loc)
-	replyMsg := tgbotapi.NewMessage(msg.Chat.ID, busTimingResponse(&BSH))
-	replyMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-	cb.SendMessage(replyMsg)
-
+	cb.SendTextMessage(int(msg.Chat.ID), busTimingResponse(&BSH))
 	return
 }
 
@@ -106,7 +103,7 @@ func busTimingResponse(BSH *BusStopHeap) string {
 
 			layout := "2006-01-02T15:04:05-07:00"
 			t, _ := time.Parse(layout, arrivalTime)
-			duration := int(t.Sub(time.Now()).Minutes())
+			duration := int(t.Sub(time.Now()).Minutes()) + 480
 			returnMessage += "🚍Bus " + bt.Services[j].ServiceNum + " : " + strconv.Itoa(duration+1) + " minutes\n"
 		}
 		returnMessage += "\n"
