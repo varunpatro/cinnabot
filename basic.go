@@ -125,7 +125,10 @@ func (cb *Cinnabot) Resources(msg *message) {
 		for key, _ := range resources {
 			values += key + " : " + resources[key] + "\n"
 		}
-		cb.SendTextMessage(int(msg.Chat.ID), values)
+		msg := tgbotapi.NewMessage(msg.Chat.ID, values)
+		msg.DisableWebPagePreview = true
+		msg.ParseMode = "markdown"
+		cb.SendMessage(msg)
 	}
 }
 
@@ -212,7 +215,7 @@ func (cb *Cinnabot) Weather(msg *message) {
 	words := strings.Fields(forecast)
 	forecast = strings.ToLower(strings.Join(words[:len(words)-1], " "))
 
-	responseString := "🤖: The forecast is " + forecast + " for " + nameMinLoc
+	responseString := "🤖: The 2h forecast is " + forecast + " for " + nameMinLoc
 	returnMsg := tgbotapi.NewMessage(msg.Chat.ID, responseString)
 	returnMsg.ParseMode = "Markdown"
 	returnMsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
@@ -305,7 +308,7 @@ func (cb *Cinnabot) CBS(msg *message) {
 	listText := "🤖: The Cinnamon Broadcast System (CBS) is your one stop shop for information in USP! Subscribe to the tags you want to receive notifications about!\n" +
 		"These are the following commands that you can use:\n" +
 		"/subscribe : to subscribe to a tag\n" +
-		"/unsubcribe : to unsubscribe from a tag\n\n" +
+		"/unsubscribe : to unsubscribe from a tag\n\n" +
 		"*Subscribe status*\n" + "(sub status) tag: description\n"
 	for i := 0; i < len(cb.allTags); i += 2 {
 		if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
@@ -415,7 +418,17 @@ func (cb *Cinnabot) Feedback(msg *message) {
 			key = "usc"
 		}
 		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+key+"feedback", cache.DefaultExpiration)
-		cb.SendTextMessage(msg.Message.From.ID, "🤖: Please send a message with your feedback. \nMy owner would love your feedback\n\n")
+		text := ""
+		if key == "usc" {
+			text = "This feedback will be sent to the University Scholars Club. Please send your message."
+		} else if key == "dining" {
+			text = "This feedback will be sent to the Dining Hall Committee. Please send your message. \n(Indicate which stall you ate and whether it was Breakfast or Dinner)"
+		} else if key == "residential" {
+			text = "This feedback will be sent to the Residential Assistants. Please send your message."
+		} else if key == "cinnabot" {
+			text = "This feedback will be sent to USDevs, the developers of CinnaBot. Please send your message."
+		}
+		cb.SendTextMessage(msg.Message.From.ID, "🤖: "+text)
 
 		//Sets cache to the corresponding feedback
 		return
@@ -442,9 +455,10 @@ func (cb *Cinnabot) CinnabotFeedback(msg *message) {
 		cb.SendMessage(replyMsg)
 		return
 	}
-	text := "🤖: Feedback received! I will now transmit feedback to owner\n\n " +
+	text := "🤖: Feedback received! I will now transmit feedback to USDevs\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n" +
-		"If its urgent you may contact my owner at @sean_npn. He would love to have coffee with you."
+		"If you want to you may contact my owner at @sean_npn. He would love to have coffee with you."
+
 	cb.SendTextMessage(int(msg.Chat.ID), text)
 	forwardMess := tgbotapi.NewForward(-315255349, msg.Chat.ID, msg.MessageID)
 	cb.SendMessage(forwardMess)
@@ -491,12 +505,13 @@ func (cb *Cinnabot) ResidentialFeedback(msg *message) {
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
 		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
 		cb.SendMessage(replyMsg)
-		forwardMess := tgbotapi.NewForward(-278463800, msg.Chat.ID, msg.MessageID)
-		cb.SendMessage(forwardMess)
+
 		return
 	}
-	text := "🤖: Feedback received! I will now transmit feedback to residential committeel\n\n " +
+	text := "🤖: Feedback received! I will now transmit feedback to the residential committeel\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
+	forwardMess := tgbotapi.NewForward(-278463800, msg.Chat.ID, msg.MessageID)
+	cb.SendMessage(forwardMess)
 	return
 }
