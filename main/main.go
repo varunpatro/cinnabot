@@ -52,6 +52,8 @@ func main() {
 	cb.AddFunction("/diningfeedback", cb.DiningFeedback)
 	cb.AddFunction("/residentialfeedback", cb.ResidentialFeedback)
 
+	cb.AddFunction("/cancel", cb.Cancel)
+
 	updates := cb.Listen(60)
 
 	for update := range updates {

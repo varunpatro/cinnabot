@@ -189,9 +189,10 @@ func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	checkMap["/uscfeedback"] = []string{"anything"}
 	checkMap["/diningfeedback"] = []string{"anything"}
 	checkMap["/residentialfeedback"] = []string{"anything"}
+	checkMap["/cbs"] = []string{"subscribe", "unsubscribe"}
 
 	checkMap["/publicbus"] = []string{"cinnamon", ""}
-	checkMap["/nusbus"] = []string{"utown", "science", "arts", "museum/engin", "cenlib", "biz", "yih", "kr-mrt", "mpsh", "comp", ""}
+	checkMap["/nusbus"] = []string{"utown", "science", "arts", "law", "yih/engin", "cenlib", "biz", "yih", "kr-mrt", "mpsh", "comp", ""}
 	checkMap["/weather"] = []string{"cinnamon", ""}
 
 	checkMap["/subscribe"] = cb.allTags

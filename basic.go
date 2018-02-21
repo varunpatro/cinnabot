@@ -304,29 +304,58 @@ func checkAdmin(cb *Cinnabot, msg *message) bool {
 }
 
 func (cb *Cinnabot) CBS(msg *message) {
-	//Consider sending an image?
+
+	if cb.CheckArgCmdPair("/cbs", msg.Args) {
+		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+msg.Args[0], cache.DefaultExpiration)
+		if msg.Args[0] == "subscribe" {
+			cb.Subscribe(msg)
+		} else {
+			cb.Unsubscribe(msg)
+		}
+		return
+	}
+
+	opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Subscribe"))
+	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Unsubscribe"))
+	options := tgbotapi.NewReplyKeyboard(opt1, opt2)
+
 	listText := "🤖: The Cinnamon Broadcast System (CBS) is your one stop shop for information in USP! Subscribe to the tags you want to receive notifications about!\n" +
 		"These are the following commands that you can use:\n" +
 		"/subscribe : to subscribe to a tag\n" +
 		"/unsubscribe : to unsubscribe from a tag\n\n" +
 		"*Subscribe status*\n" + "(sub status) tag: description\n"
-	for i := 0; i < len(cb.allTags); i += 2 {
-		if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
+	if cb.db.CheckSubscribed(msg.From.ID, "everything") {
+		for i := 0; i < len(cb.allTags); i += 2 {
 			listText += "✅" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-		} else {
-			listText += "❎" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
+		}
+	} else {
+		for i := 0; i < len(cb.allTags); i += 2 {
+			if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
+				listText += "✅" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
+			} else {
+				listText += "❎" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
+			}
 		}
 	}
-
-	cb.SendTextMessage(int(msg.Chat.ID), listText)
+	newMsg := tgbotapi.NewMessage(msg.Chat.ID, listText)
+	newMsg.ReplyMarkup = options
+	newMsg.ParseMode = "markdown"
+	cb.SendMessage(newMsg)
 }
 
 //Subscribe subscribes the user to a broadcast channel [trial]
 func (cb *Cinnabot) Subscribe(msg *message) {
 	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/subscribe", msg.Args) {
+
 		var rowList [][]tgbotapi.KeyboardButton
 		for i := 0; i < len(cb.allTags); i += 2 {
-			rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+			if !cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
+				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+			}
+		}
+		if len(rowList) == 0 {
+			cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are subscribed to everything :)")
+			return
 		}
 
 		options := tgbotapi.NewReplyKeyboard(rowList...)
@@ -358,6 +387,11 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 		log.Fatal(err.Error())
 		return
 	}
+	if tag == "everything" {
+		for i := 0; i < len(cb.allTags); i += 2 {
+			cb.db.UpdateTag(msg.From.ID, cb.allTags[i], "true")
+		}
+	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now subscribed to "+tag)
 	return
@@ -365,11 +399,16 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 
 //Unsubscribe unsubscribes the user from a broadcast channel [trial]
 func (cb *Cinnabot) Unsubscribe(msg *message) {
-
-	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/subscribe", msg.Args) {
+	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/unsubscribe", msg.Args) {
 		var rowList [][]tgbotapi.KeyboardButton
 		for i := 0; i < len(cb.allTags); i += 2 {
-			rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+			if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
+				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+			}
+		}
+		if len(rowList) == 0 {
+			cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are not subscribed to anything. :(")
+			return
 		}
 
 		options := tgbotapi.NewReplyKeyboard(rowList...)
@@ -400,6 +439,14 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
 		log.Fatal(err.Error())
 		return
+	}
+	if cb.db.CheckSubscribed(msg.From.ID, "everything") {
+		cb.db.UpdateTag(msg.From.ID, "everything", "false")
+	}
+	if tag == "everything" {
+		for i := 0; i < len(cb.allTags); i += 2 {
+			cb.db.UpdateTag(msg.From.ID, cb.allTags[i], "false")
+		}
 	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now unsubscribed from "+tag)
@@ -440,7 +487,7 @@ func (cb *Cinnabot) Feedback(msg *message) {
 
 	options := tgbotapi.NewReplyKeyboard(opt2, opt3, opt4, opt1)
 
-	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: What will you like to give feedback to?\n\n")
+	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: What will you like to give feedback to?\nUse /cancel if you chicken out.")
 	replyMsg.ReplyMarkup = options
 	cb.SendMessage(replyMsg)
 
@@ -448,13 +495,8 @@ func (cb *Cinnabot) Feedback(msg *message) {
 }
 
 func (cb *Cinnabot) CinnabotFeedback(msg *message) {
-	if len(msg.Args) == 0 {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/cinnabotFeedback")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
-		cb.SendMessage(replyMsg)
-		return
-	}
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
+
 	text := "🤖: Feedback received! I will now transmit feedback to USDevs\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n" +
 		"If you want to you may contact my owner at @sean_npn. He would love to have coffee with you."
@@ -466,13 +508,7 @@ func (cb *Cinnabot) CinnabotFeedback(msg *message) {
 }
 
 func (cb *Cinnabot) USCFeedback(msg *message) {
-	if len(msg.Args) == 0 {
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/uscFeedback")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
-		cb.SendMessage(replyMsg)
-		return
-	}
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
 	text := "🤖: Feedback received! I will now transmit feedback to USC\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
@@ -482,14 +518,8 @@ func (cb *Cinnabot) USCFeedback(msg *message) {
 }
 
 func (cb *Cinnabot) DiningFeedback(msg *message) {
-	if len(msg.Args) == 0 {
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
 
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/diningFeedback")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
-		cb.SendMessage(replyMsg)
-		return
-	}
 	text := "🤖: Feedback received! I will now transmit feedback to dining hall committeel\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
@@ -499,19 +529,20 @@ func (cb *Cinnabot) DiningFeedback(msg *message) {
 }
 
 func (cb *Cinnabot) ResidentialFeedback(msg *message) {
-	if len(msg.Args) == 0 {
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
 
-		replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "/residentialFeedback")
-		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
-		replyMsg.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: true}
-		cb.SendMessage(replyMsg)
-
-		return
-	}
 	text := "🤖: Feedback received! I will now transmit feedback to the residential committeel\n\n " +
 		"We really appreciate you taking the time out to submit feedback.\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
 	forwardMess := tgbotapi.NewForward(-278463800, msg.Chat.ID, msg.MessageID)
 	cb.SendMessage(forwardMess)
+	return
+}
+
+func (cb *Cinnabot) Cancel(msg *message) {
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
+
+	text := "🤖: Command cancelled!\n"
+	cb.SendTextMessage(int(msg.Chat.ID), text)
 	return
 }
