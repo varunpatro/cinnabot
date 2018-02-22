@@ -103,7 +103,7 @@ func busTimingResponse(BSH *BusStopHeap) string {
 
 			layout := "2006-01-02T15:04:05-07:00"
 			t, _ := time.Parse(layout, arrivalTime)
-			duration := int(t.Sub(time.Now()).Minutes()) + 480
+			duration := int(t.Sub(time.Now()).Minutes())
 			returnMessage += "🚍Bus " + bt.Services[j].ServiceNum + " : " + strconv.Itoa(duration+1) + " minutes\n"
 		}
 		returnMessage += "\n"
