@@ -31,14 +31,13 @@ type Cinnabot struct {
 	keys    config
 	db      model.DataGroup
 	cache   *cache.Cache
-	allTags map[string]string
+	allTags []string
 }
 
 // Configuration struct for setting up Cinnabot
 type config struct {
 	Name           string `json:"name"`
 	TelegramAPIKey string `json:"telegram_api_key"`
-	WeatherAPIKey  string `json:weather_api_key`
 	Admins         []int  `json:"admins"`
 }
 
@@ -102,7 +101,7 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 	cb.db = model.InitializeDB()
 	cb.cache = cache.New(1*time.Minute, 2*time.Minute)
 	//tag alternates with tag description
-	cb.allTags = map[string]string{"events": "EVENTS of cinnamon college", "food": "Free/not free FOOD updates of all kind for the hungry", "weather": "Weather updates. Im not sure why you would want it actually.", "warm": "If you want some nice warm things occasionally"}
+	cb.allTags = []string{"everything", "EVERY tag!! Only for the daring", "events", "EVENTS of cinnamon college", "food", "Free/not free FOOD updates of all kind for the hungry", "weather", "Weather updates. Im not sure why you would want it actually.", "warm", "If you want some nice warm things occasionally"}
 
 	return cb
 }
@@ -133,7 +132,7 @@ func (cb *Cinnabot) AddFunction(command string, resp ResponseFunc) error {
 }
 
 // Router routes Telegram messages to the appropriate response functions.
-//HACK: Cache to store previous function information
+//Hack: Cache to store previous function information
 func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 	// Don't respond to forwarded commands
 	if msg.ForwardFrom != nil {
@@ -166,6 +165,8 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 			cb.GoSafely(func() { execFn(cmsg) })
 			return
 		}
+		log.Print("Out")
+		log.Print(cmd)
 		replyMessage := tgbotapi.NewMessage(int64(msg.From.ID), "No such command!")
 		replyMessage.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 		cb.SendMessage(replyMessage)
@@ -193,15 +194,9 @@ func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	checkMap["/publicbus"] = []string{"cinnamon", ""}
 	checkMap["/nusbus"] = []string{"utown", "science", "arts", "law", "yih/engin", "cenlib", "biz", "yih", "kr-mrt", "mpsh", "comp", ""}
 	checkMap["/weather"] = []string{"cinnamon", ""}
-	tags := make([]string, len(cb.allTags))
 
-	i := 0
-	for k := range cb.allTags {
-		tags[i] = k
-		i++
-	}
-	checkMap["/subscribe"] = append(tags, "everything")
-	checkMap["/unsubscribe"] = append(tags, "everything")
+	checkMap["/subscribe"] = cb.allTags
+	checkMap["/unsubscribe"] = cb.allTags
 
 	arr := checkMap[cmd]
 	for i := 0; i < len(arr); i++ {
@@ -241,11 +236,14 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 	args := []string{}
 
 	if msg.ReplyToMessage != nil {
+		// We use a hack. All reply-to messages have the command it's replying to as the
+		// part of the message. [to be removed]
 		r := regexp.MustCompile(`\/\w*`)
 		res := r.FindString(msg.ReplyToMessage.Text)
 		for k := range cb.fmap {
 			if res == k {
 				cmd = k
+				log.Println(cmd)
 				args = strings.Split(msg.Text, " ")
 				break
 			}

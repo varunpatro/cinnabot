@@ -46,7 +46,7 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 	//Asynchronous
 
 	//Default loc: Cinnamon
-	loc := &tgbotapi.Location{Latitude: CinnamonLat, Longitude: CinnamonLong}
+	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
 
 	if msg.Location != nil {
 		loc = msg.Location
@@ -58,6 +58,7 @@ func (cb *Cinnabot) BusTimings(msg *message) {
 }
 
 func makeHeap(loc tgbotapi.Location) BusStopHeap {
+	//resp, _ := http.Get("https://busrouter.sg/data/2/bus-stops.json")
 	responseData, _ := ioutil.ReadFile("publicstops.json")
 	points := []BusStop{}
 	if err := json.Unmarshal(responseData, &points); err != nil {
@@ -146,7 +147,7 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 	}
 
 	//Default loc: Cinnamon
-	loc := &tgbotapi.Location{Latitude: CinnamonLat, Longitude: CinnamonLong}
+	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
 
 	if msg.Location != nil {
 		loc = msg.Location
@@ -249,6 +250,32 @@ func nusBusTimingResponse(BSH *BusStopHeap) string {
 		if err := json.Unmarshal(responseData, &bt); err != nil {
 			log.Print(err)
 		}
+		/**
+
+				var min int
+				var at string
+				for j := 0; j < len(bt.Result.Shuttles); j++ {
+					min = j
+					for k := j; k < len(bt.Result.Shuttles); k++ {
+						at = bt.Result.Shuttles[k].ArrivalTime
+						log.Print(at, bt.Result.Shuttles[k].Name)
+
+						if at == "-" {
+							continue
+						} else if at == "Arr" {
+							min = k
+							continue
+						}
+
+						val := strings.Compare(at, bt.Result.Shuttles[min].ArrivalTime)
+						if val == -1 {
+							log.Print("A")
+							min = k
+						}
+					}
+					bt.Result.Shuttles[j], bt.Result.Shuttles[min] = bt.Result.Shuttles[min], bt.Result.Shuttles[j]
+				}
+		        **/
 
 		for j := 0; j < len(bt.Result.Shuttles); j++ {
 			arrivalTime := bt.Result.Shuttles[j].ArrivalTime

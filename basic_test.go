@@ -4,15 +4,14 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
-
-	"io"
-	"io/ioutil"
 
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/telegram-bot-api.v4"
+	"io/ioutil"
+	"io"
 
 	"github.com/varunpatro/cinnabot/model"
+
 )
 
 var (
@@ -41,10 +40,11 @@ func setup() {
 			From: &tgbotapi.User{
 				ID:        999,
 				FirstName: "test_first_name_user",
+
 			},
 			Location: &tgbotapi.Location{
-				Latitude:  1.31760778241046,
-				Longitude: 103.76768583722071,
+				Latitude:1.31760778241046,
+				Longitude:103.76768583722071,
 			},
 		},
 	}
@@ -104,29 +104,26 @@ func TestBus(t *testing.T) {
 
 	BSH := makeHeap(*mockMsg.Location)
 	oldgetBusStops := makeHeap
-	defer func() { makeHeap = oldgetBusStops }()
+	defer func() { makeHeap =oldgetBusStops} ()
 
-	makeHeap = func(loc tgbotapi.Location) BusStopHeap {
+	makeHeap = func(loc tgbotapi.Location) (BusStopHeap) {
 		return BSH
 	}
-	wayback := time.Date(2017, time.December, 01, 1, 2, 3, 4, time.UTC)
-	patch := monkey.Patch(time.Now, func() time.Time { return wayback })
-	defer patch.Unpatch()
 
 	oldreadall := ioutil.ReadAll
-	defer func() { ioutil.ReadAll = oldreadall }()
+	defer func() { ioutil.ReadAll = oldreadall} ()
 
 	//Simulates with a default response @ busStop code 19059
 	ioutil.ReadAll = func(r io.Reader) ([]byte, error) {
 		responseText := "{\"odata.metadata\":\"http://datamall2.mytransport.sg/ltaodataservice/$metadata#BusArrivalv2/" +
 			"@Element\",\"BusStopCode\":\"42109\",\"Services\":[{\"ServiceNo\":\"170\",\"Operator\":\"SBST\",\"NextBus" +
-			"\":{\"OriginCode\":\"46239\",\"DestinationCode\":\"01109\",\"EstimatedArrival\":\"2017-12-22T01:38:47" +
-			"+08:00\",\"Latitude\":\"1.4398775\",\"Longitude\":\"103.768522\",\"VisitNumber\":\"1\",\"Load\":\"" +
-			"SEA\",\"Feature\":\"WAB\",\"Type\":\"SD\"},\"NextBus2\":{\"OriginCode\":\"\",\"DestinationCode\"" +
-			":\"\",\"EstimatedArrival\":\"\",\"Latitude\":\"\",\"Longitude\":\"\",\"VisitNumber\":\"\",\"" +
-			"Load\":\"\",\"Feature\":\"\",\"Type\":\"\"},\"NextBus3\":{\"OriginCode\":\"\",\"Destin" +
-			"ationCode\":\"\",\"EstimatedArrival\":\"\",\"Latitude\":\"\",\"Longitude\":\"\",\"V" +
-			"isitNumber\":\"\",\"Load\":\"\",\"Feature\":\"\",\"Type\":\"\"}}]}"
+				"\":{\"OriginCode\":\"46239\",\"DestinationCode\":\"01109\",\"EstimatedArrival\":\"2017-12-22T01:38:47" +
+					"+08:00\",\"Latitude\":\"1.4398775\",\"Longitude\":\"103.768522\",\"VisitNumber\":\"1\",\"Load\":\"" +
+						"SEA\",\"Feature\":\"WAB\",\"Type\":\"SD\"},\"NextBus2\":{\"OriginCode\":\"\",\"DestinationCode\"" +
+							":\"\",\"EstimatedArrival\":\"\",\"Latitude\":\"\",\"Longitude\":\"\",\"VisitNumber\":\"\",\"" +
+								"Load\":\"\",\"Feature\":\"\",\"Type\":\"\"},\"NextBus3\":{\"OriginCode\":\"\",\"Destin" +
+									"ationCode\":\"\",\"EstimatedArrival\":\"\",\"Latitude\":\"\",\"Longitude\":\"\",\"V" +
+										"isitNumber\":\"\",\"Load\":\"\",\"Feature\":\"\",\"Type\":\"\"}}]}"
 		return []byte(responseText), nil
 	}
 
@@ -144,40 +141,40 @@ func TestWeather(t *testing.T) {
 		bot: &mb,
 	}
 	oldreadall := ioutil.ReadAll
-	defer func() { ioutil.ReadAll = oldreadall }()
+	defer func() { ioutil.ReadAll = oldreadall} ()
 
 	//Simulates with a default response
 
 	ioutil.ReadAll = func(r io.Reader) ([]byte, error) {
 		responseText := "{\"area_metadata\":[{\"name\":\"Bukit Batok\",\"label_location\":{\"latitude\":1.353,\"" +
 			"longitude\":103.754}},{\"name\":\"Bukit Merah\",\"label_location\":{\"latitude\":1.277,\"longitude\":103.8" +
-			"19}},{\"name\":\"Bukit Panjang\",\"label_location\":{\"latitude\":1.362,\"longitude\":103.77195}},{\"n" +
-			"ame\":\"Bukit Timah\",\"label_location\":{\"latitude\":1.325,\"longitude\":103.791}},{\"name\":\"C" +
-			"entral Water Catchment\",\"label_location\":{\"latitude\":1.38,\"longitude\":103.805}},{\"nam" +
-			"e\":\"Changi\",\"label_location\":{\"latitude\":1.357,\"longitude\":103.987}},{\"name\":\"" +
-			"Choa Chu Kang\",\"label_location\":{\"latitude\":1.377,\"longitude\":103.745}},{\"name" +
-			"\":\"Clementi\",\"label_location\":{\"latitude\":1.315,\"longitude\":103.76}},{" +
-			"\"name\":\"City\",\"label_location\":{\"latitude\":1.292,\"longitude\":1" +
-			"03.844}},{\"name\":\"Geylang\",\"label_location\":{\"latitude\":1.318" +
-			",\"longitude\":103.884}},{\"name\":\"Hougang\",\"label_location\":{\"" +
-			"latitude\":1.361218,\"longitude\":103.886}},{\"name\":\"Jalan " +
-			"Bahar\",\"label_location\":{\"latitude\":1.347,\"longitude\"" +
-			":103.67}}}],\"items\":[{\"update_timestamp\":\"2017-12-" +
-			"22T15:41:18+08:00\",\"timestamp\":\"2017-12-22T15:00:" +
-			"00+08:00\",\"valid_period\":{\"start\":\"2017-12-" +
-			"22T15:00:00+08:00\",\"end\":\"2017-12-22T17:0" +
-			"0:00+08:00\"},\"forecasts\":[{\"area\":\"" +
-			"Bukit Batok\",\"forecast\":\"Partly " +
-			"Cloudy (Day)\"},{\"area\":\"Bukit" +
-			" Merah\",\"forecast\":\"Partl" +
-			"y Cloudy (Day)\"},{\"area" +
-			"\":\"Bukit Panjang\"," +
-			"\"forecast\":\"Par" +
-			"tly Cloudy (Da" +
-			"y)\"},{\"a" +
-			"rea\":\"" +
-			"Buk" +
-			"it Timah\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"Central Water Catchment\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"Changi\",\"forecast\":\"Light Showers\"},{\"area\":\"Choa Chu Kang\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"Clementi\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"City\",\"forecast\":\"Light Showers\"},{\"area\":\"Geylang\",\"forecast\":\"Light Showers\"},{\"area\":\"Hougang\",\"forecast\":\"Light Showers\"},{\"area\":\"Jalan Bahar\",\"forecast\":\"Partly Cloudy (Day)\"}}"
+				"19}},{\"name\":\"Bukit Panjang\",\"label_location\":{\"latitude\":1.362,\"longitude\":103.77195}},{\"n" +
+					"ame\":\"Bukit Timah\",\"label_location\":{\"latitude\":1.325,\"longitude\":103.791}},{\"name\":\"C" +
+						"entral Water Catchment\",\"label_location\":{\"latitude\":1.38,\"longitude\":103.805}},{\"nam" +
+							"e\":\"Changi\",\"label_location\":{\"latitude\":1.357,\"longitude\":103.987}},{\"name\":\"" +
+								"Choa Chu Kang\",\"label_location\":{\"latitude\":1.377,\"longitude\":103.745}},{\"name" +
+									"\":\"Clementi\",\"label_location\":{\"latitude\":1.315,\"longitude\":103.76}},{" +
+										"\"name\":\"City\",\"label_location\":{\"latitude\":1.292,\"longitude\":1" +
+											"03.844}},{\"name\":\"Geylang\",\"label_location\":{\"latitude\":1.318" +
+												",\"longitude\":103.884}},{\"name\":\"Hougang\",\"label_location\":{\"" +
+													"latitude\":1.361218,\"longitude\":103.886}},{\"name\":\"Jalan " +
+														"Bahar\",\"label_location\":{\"latitude\":1.347,\"longitude\"" +
+															":103.67}}}],\"items\":[{\"update_timestamp\":\"2017-12-" +
+																"22T15:41:18+08:00\",\"timestamp\":\"2017-12-22T15:00:" +
+																	"00+08:00\",\"valid_period\":{\"start\":\"2017-12-" +
+																		"22T15:00:00+08:00\",\"end\":\"2017-12-22T17:0" +
+																			"0:00+08:00\"},\"forecasts\":[{\"area\":\"" +
+																				"Bukit Batok\",\"forecast\":\"Partly " +
+																					"Cloudy (Day)\"},{\"area\":\"Bukit" +
+																						" Merah\",\"forecast\":\"Partl" +
+																							"y Cloudy (Day)\"},{\"area" +
+																								"\":\"Bukit Panjang\"," +
+																									"\"forecast\":\"Par" +
+																										"tly Cloudy (Da" +
+																											"y)\"},{\"a" +
+																												"rea\":\"" +
+																													"Buk" +
+																														"it Timah\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"Central Water Catchment\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"Changi\",\"forecast\":\"Light Showers\"},{\"area\":\"Choa Chu Kang\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"Clementi\",\"forecast\":\"Partly Cloudy (Day)\"},{\"area\":\"City\",\"forecast\":\"Light Showers\"},{\"area\":\"Geylang\",\"forecast\":\"Light Showers\"},{\"area\":\"Hougang\",\"forecast\":\"Light Showers\"},{\"area\":\"Jalan Bahar\",\"forecast\":\"Partly Cloudy (Day)\"}}"
 		return []byte(responseText), nil
 	}
 
@@ -189,8 +186,7 @@ func TestWeather(t *testing.T) {
 }
 
 //MockDB used to test broadcast and subscribe. Mock-up db
-type mockDB struct{}
-
+type mockDB struct {}
 //For dependency injection
 /**
 type DataGroup interface {
@@ -204,27 +200,27 @@ type DataGroup interface {
 */
 //Helpers that allow mockDB to inherit DataGroup interface
 func (mdb *mockDB) Add(value interface{}) {}
-func (mdb *mockDB) UserGroup(tags []string) []model.User {
+func (mdb *mockDB) UserGroup (tags []string) []model.User {
 	user1 := model.User{
-		UserID:     0001,
+		UserID: 0001,
 		Everything: "true",
-		Events:     "true",
+		Events: "true",
 	}
 	user2 := model.User{
-		UserID:     0002,
+		UserID: 0002,
 		Everything: "false",
-		Events:     "true",
+		Events: "true",
 	}
 	user3 := model.User{
-		UserID:     0001,
+		UserID: 0001,
 		Everything: "true",
-		Events:     "false",
+		Events: "false",
 	}
 	if tags == nil {
-		return []model.User{user1, user2, user3}
+		return []model.User{user1,user2,user3}
 	}
 	//Currently only allow a return if there is only one tag
-	for _, tag := range tags {
+	for _,tag := range tags {
 		if tag == "everything" {
 			return []model.User{user1, user2, user3}
 		}
@@ -236,22 +232,25 @@ func (mdb *mockDB) UserGroup(tags []string) []model.User {
 }
 
 //CheckTagExists takes in an id and a tag and returns whether the tag exists
-func (mdb *mockDB) CheckTagExists(id int, tag string) bool {
+func (mdb *mockDB) CheckTagExists (id int, tag string) bool {
 	return true
 }
 
 //CheckSubscribed takes in an id and a tag and returns true if user is subscribed, false otherwise
-func (mdb *mockDB) CheckSubscribed(id int, tag string) bool {
+func (mdb *mockDB) CheckSubscribed (id int, tag string) bool{
 	if tag == "unsubTag" {
 		return true
 	}
 	return false
 }
 
+
 //Update updates the flag for the tag for an User which is determined by the id
-func (mdb *mockDB) UpdateTag(id int, tag string, flag string) error {
+func (mdb *mockDB) UpdateTag (id int, tag string, flag string) error{
 	return nil
 }
+
+
 
 //TestBroadcast tests broadcast function
 //1. Ensure that a reply mock-up is sent when an empty message is sent. [not tested]
@@ -261,7 +260,7 @@ func TestBroadcast(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
 		bot: &mb,
-		db:  &mockDB{},
+		db : &mockDB{},
 	}
 	//Mock Msg requires a mock-up
 	replyMessage := &tgbotapi.Message{
@@ -273,23 +272,26 @@ func TestBroadcast(t *testing.T) {
 			From: &tgbotapi.User{
 				ID:        999,
 				FirstName: "test_first_name_user",
+
 			},
 			Location: &tgbotapi.Location{
-				Latitude:  1.31760778241046,
-				Longitude: 103.76768583722071,
+				Latitude:1.31760778241046,
+				Longitude:103.76768583722071,
 			},
-			Text:           "Test Message",
-			ReplyToMessage: replyMessage,
+			Text: "Test Message",
+			ReplyToMessage:replyMessage,
+
 		},
+
 	}
 
 	oldinit := model.InitializeDB
-	model.InitializeDB = func() *model.Database {
+	model.InitializeDB = func () *model.Database {
 		return nil
 	}
 	defer func() { model.InitializeDB = oldinit }()
 	//Potential problem: a text of forwarded message might not match expected message
-	expectedMsg := "Test Message"
+	expectedMsg:= "Test Message"
 	mb.On("Send", expectedMsg).Return(nil)
 	cb.Broadcast(&mockMsgBroadcast)
 }
@@ -299,7 +301,7 @@ func TestSubscribe(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
 		bot: &mb,
-		db:  &mockDB{},
+		db: &mockDB{},
 	}
 	mockMsgSubscribe := message{
 		Message: &tgbotapi.Message{
@@ -307,17 +309,18 @@ func TestSubscribe(t *testing.T) {
 			From: &tgbotapi.User{
 				ID:        999,
 				FirstName: "test_first_name_user",
+
 			},
 			Location: &tgbotapi.Location{
-				Latitude:  1.31760778241046,
-				Longitude: 103.76768583722071,
+				Latitude:1.31760778241046,
+				Longitude:103.76768583722071,
 			},
 			Text: "/subscribe subTag",
 		},
 	}
 
 	expectedMessage := "🤖 You are now subscribed to everything"
-	mb.On("Send", expectedMessage).Return(nil)
+	mb.On("Send",expectedMessage).Return(nil)
 	cb.Subscribe(&mockMsgSubscribe)
 }
 
@@ -326,7 +329,7 @@ func TestUnsubscribe(t *testing.T) {
 	mb := mockBot{}
 	cb := Cinnabot{
 		bot: &mb,
-		db:  &mockDB{},
+		db: &mockDB{},
 	}
 	mockMsgUnsubscribe := message{
 		Message: &tgbotapi.Message{
@@ -334,15 +337,16 @@ func TestUnsubscribe(t *testing.T) {
 			From: &tgbotapi.User{
 				ID:        999,
 				FirstName: "test_first_name_user",
+
 			},
 			Location: &tgbotapi.Location{
-				Latitude:  1.31760778241046,
-				Longitude: 103.76768583722071,
+				Latitude:1.31760778241046,
+				Longitude:103.76768583722071,
 			},
 			Text: "/unsubscribe unsubTag",
 		},
 	}
 	expectedMessage := "🤖 You are now unsubscribed from everything"
-	mb.On("Send", expectedMessage).Return(nil)
+	mb.On("Send",expectedMessage).Return(nil)
 	cb.Unsubscribe(&mockMsgUnsubscribe)
 }
