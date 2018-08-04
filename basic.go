@@ -261,6 +261,9 @@ func (cb *Cinnabot) Broadcast(msg *message) {
 				checkedTags = append(checkedTags, tags[i])
 			}
 		}
+		if tags[0] == "all" {
+			checkedTags = append(checkedTags, "all")
+		}
 
 		if len(checkedTags) == 0 {
 			cb.SendTextMessage(int(msg.Chat.ID), "🤖: No valid tags found")
