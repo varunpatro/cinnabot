@@ -270,6 +270,9 @@ func (cb *Cinnabot) Broadcast(msg *message) {
 			return
 		}
 
+		reminderMsg := tgbotapi.NewMessage(msg.Chat.ID, "REMINDER: Please include tag at start of message. \n Format: #<tagname> <msg>")
+		cb.SendMessage(reminderMsg)
+
 		//Send in mark-up
 		replyMsg := tgbotapi.NewMessage(msg.Chat.ID, "/broadcast "+strings.Join(checkedTags, " "))
 		replyMsg.BaseChat.ReplyToMessageID = msg.MessageID
