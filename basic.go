@@ -16,6 +16,11 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
+const (
+	CinnamonLat  = 1.306671
+	CinnamonLong = 103.773556
+)
+
 //Test functions [Not meant to be used in bot]
 // SayHello says hi.
 func (cb *Cinnabot) SayHello(msg *message) {
@@ -43,8 +48,7 @@ func (cb *Cinnabot) Capitalize(msg *message) {
 //Start initializes the bot
 func (cb *Cinnabot) Start(msg *message) {
 	text := "Hello there " + msg.From.FirstName + "!\n\n" +
-		"Im Cinnabot🤖. I am made by my owners to serve the residents of Cinnamon college!\n" +
-		"Im always here to /help if you need it!"
+		`Im Cinnabot🤖. I am made by my owners to serve the residents of Cinnamon college!Im always here to /help if you need it!`
 
 	cb.SendTextMessage(int(msg.Chat.ID), text)
 }
@@ -55,55 +59,58 @@ func (cb *Cinnabot) Help(msg *message) {
 
 		if msg.Args[0] == "spaces" {
 			text :=
-				"To use the '/spaces' command, type one of the following:\n" +
-					"'/spaces' : to view all bookings for today\n'/spaces now' : to view bookings active at this very moment\n" +
-					"'/spaces week' : to view all bookings for this week\n'/spaces dd/mm(/yy)' : to view all bookings on a specific day\n" +
-					"'/spaces dd/mm(/yy) dd/mm(/yy)' : to view all bookings in a specific range of dates"
+				`To use the '/spaces' command, type one of the following:
+'/spaces' : to view all bookings for today
+'/spaces now' : to view bookings active at this very moment
+'/spaces week' : to view all bookings for this week
+'/spaces dd/mm(/yy)' : to view all bookings on a specific day
+'/spaces dd/mm(/yy) dd/mm(/yy)' : to view all bookings in a specific range of dates`
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 
 		} else if msg.Args[0] == "cbs" {
 			text :=
-				"/subscribe <tag>: subscribe to a tag\n" +
-					"/unsubscribe <tag>: unsubscribe from a tag\n" +
-					"/broadcast <tag>: broadcast to a tag [admin]\n" +
-					"Alternatively you can just type:\n" +
-					"/subscribe for a button list\n" +
-					"/unsubscribe for a button list\n"
+				`/subscribe <tag>: subscribe to a tag
+/unsubscribe <tag>: unsubscribe from a tag
+/broadcast <tag>: broadcast to a tag [admin]
+Alternatively you can just type:
+/subscribe for a button list
+/unsubscribe for a button list\n`
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 		} else if msg.Args[0] == "resources" {
 			text :=
-				"/resources <tag>: searches resources for a specific tag\n" +
-					"/resources: returns all tags"
+				`/resources <tag>: searches resources for a specific tag
+/resources: returns all tags`
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 		} else if msg.Args[0] == "publicbus" {
 			text :=
-				"/publicbus : publicbus\n" +
-					"Sending your location (ignore the buttons) after running the above command will allow to get bus timings for bus stops around any location."
+				`/publicbus : publicbus
+Sending your location (ignore the buttons) after running the above command will allow to get bus timings for bus stops around ANY location.`
 			cb.SendTextMessage(int(msg.Chat.ID), text)
 			return
 		}
 	}
 	text :=
-		"Here are a list of functions to get you started 🤸 \n" +
-			"/about: to find out more about me\n" +
-			"/cbs: cinnamon broadcast system\n" +
-			"/publicbus: public bus timings for bus stops around your location\n" +
-			"/nusbus: nus bus timings for bus stops around your location\n" +
-			"/weather: 2h weather forecast\n" +
-			"/resources: list of important resources!\n" +
-			"/spaces: list of space bookings\n" +
-			"/feedback: to give feedback\n\n" +
-			"_*My creator actually snuck in a few more functions🕺 *_\n" +
-			"Try using /help <func name> to see what I can _really_ do"
+		`Here are a list of functions to get you started 🤸
+/about: to find out more about me
+/cbs: cinnamon broadcast system
+/publicbus: public bus timings for bus stops around your location
+/nusbus: nus bus timings for bus stops around your location
+/weather: 2h weather forecast
+/resources: list of important resources!
+/spaces: list of space bookings
+/feedback: to give feedback
+_*My creator actually snuck in a few more functions🕺 *_
+Try using /help <func name> to see what I can _really_ do`
 	cb.SendTextMessage(int(msg.Chat.ID), text)
 }
 
 // About returns a link to Cinnabot's source code.
 func (cb *Cinnabot) About(msg *message) {
-	cb.SendTextMessage(int(msg.Chat.ID), "Touch me: https://github.com/varunpatro/Cinnabot")
+	cb.SendTextMessage(int(msg.Chat.ID), `Developed by https://github.com/pengnam
+and https://github.com/varunpatro/Cinnabot`)
 }
 
 //Link returns useful resources
@@ -116,7 +123,6 @@ func (cb *Cinnabot) Resources(msg *message) {
 	resources["study groups"] = "@uyp\\_bot"
 
 	var key string = strings.ToLower(strings.Join(msg.Args, " "))
-	log.Print(key)
 	_, ok := resources[key]
 	if ok {
 		cb.SendTextMessage(int(msg.Chat.ID), resources[key])
@@ -168,9 +174,8 @@ func (cb *Cinnabot) Weather(msg *message) {
 		cb.SendMessage(replyMsg)
 		return
 	}
-
 	//Default loc: Cinnamon
-	loc := &tgbotapi.Location{Latitude: 1.306671, Longitude: 103.773556}
+	loc := &tgbotapi.Location{Latitude: CinnamonLat, Longitude: CinnamonLong}
 
 	if msg.Location != nil {
 		loc = msg.Location
@@ -180,14 +185,14 @@ func (cb *Cinnabot) Weather(msg *message) {
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast", nil)
-	req.Header.Set("api-key", "d1Y8YtThOpkE5QUfQZmvuA3ktrHa1uWP")
+	req.Header.Set("api-key", cb.keys.WeatherAPIKey)
 
 	resp, _ := client.Do(req)
 	responseData, _ := ioutil.ReadAll(resp.Body)
 
 	wf := WeatherForecast{}
 	if err := json.Unmarshal(responseData, &wf); err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return
 	}
 
@@ -200,7 +205,6 @@ func (cb *Cinnabot) Weather(msg *message) {
 			nameMinLoc = wf.AM[i].Name
 		}
 	}
-	log.Print("The closest location is " + nameMinLoc)
 
 	var forecast string
 	for i, _ := range wf.FD[0].FMD {
@@ -241,8 +245,8 @@ func (cb *Cinnabot) Broadcast(msg *message) {
 
 	if len(msg.Args) == 0 {
 		text := "🤖: Please do /broadcast <tag>\n*Tags:*\n"
-		for i := 0; i < len(cb.allTags); i += 2 {
-			text += cb.allTags[i] + "\n"
+		for tag, _ := range cb.allTags {
+			text += tag + "\n"
 		}
 		cb.SendTextMessage(int(msg.Chat.ID), text)
 		return
@@ -322,22 +326,18 @@ func (cb *Cinnabot) CBS(msg *message) {
 	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Unsubscribe"))
 	options := tgbotapi.NewReplyKeyboard(opt1, opt2)
 
-	listText := "🤖: The Cinnamon Broadcast System (CBS) is your one stop shop for information in USP! Subscribe to the tags you want to receive notifications about!\n" +
-		"These are the following commands that you can use:\n" +
-		"/subscribe : to subscribe to a tag\n" +
-		"/unsubscribe : to unsubscribe from a tag\n\n" +
-		"*Subscribe status*\n" + "(sub status) tag: description\n"
-	if cb.db.CheckSubscribed(msg.From.ID, "everything") {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			listText += "✅" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-		}
-	} else {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
-				listText += "✅" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-			} else {
-				listText += "❎" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-			}
+	listText := `🤖: The Cinnamon Broadcast System (CBS) is your one stop shop for information in USP! Subscribe to the tags you want to receive notifications about!
+These are the following commands that you can use:
+/subscribe : to subscribe to a tag
+/unsubscribe : to unsubscribe from a tag
+*Subscribe status*
+(sub status) tag: description`
+
+	for tag, des := range cb.allTags {
+		if cb.db.CheckSubscribed(msg.From.ID, tag) {
+			listText += "✅ " + tag + " : " + des + "\n"
+		} else {
+			listText += "❌ " + tag + " : " + des + "\n"
 		}
 	}
 	newMsg := tgbotapi.NewMessage(msg.Chat.ID, listText)
@@ -351,9 +351,9 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/subscribe", msg.Args) {
 
 		var rowList [][]tgbotapi.KeyboardButton
-		for i := 0; i < len(cb.allTags); i += 2 {
-			if !cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
-				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+		for tag := range cb.allTags {
+			if !cb.db.CheckSubscribed(msg.From.ID, tag) {
+				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(tag)))
 			}
 		}
 		if len(rowList) == 0 {
@@ -370,8 +370,13 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 	}
 
 	tag := msg.Args[0]
-	log.Print("Tag: " + tag)
-
+	if tag == "everything" {
+		for tag, _ := range cb.allTags {
+			cb.db.UpdateTag(msg.From.ID, tag, "true")
+		}
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now ubscribed to everything :)")
+		return
+	}
 	//Check if tag exists.
 	if !cb.db.CheckTagExists(msg.From.ID, tag) {
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Invalid tag")
@@ -387,13 +392,8 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 	//Check if there are other errors
 	if err := cb.db.UpdateTag(msg.From.ID, tag, "true"); err != nil { //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
-		log.Fatal(err.Error())
+		log.Print(err.Error())
 		return
-	}
-	if tag == "everything" {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			cb.db.UpdateTag(msg.From.ID, cb.allTags[i], "true")
-		}
 	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now subscribed to "+tag)
@@ -404,9 +404,9 @@ func (cb *Cinnabot) Subscribe(msg *message) {
 func (cb *Cinnabot) Unsubscribe(msg *message) {
 	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/unsubscribe", msg.Args) {
 		var rowList [][]tgbotapi.KeyboardButton
-		for i := 0; i < len(cb.allTags); i += 2 {
-			if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
-				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
+		for tag, _ := range cb.allTags {
+			if cb.db.CheckSubscribed(msg.From.ID, tag) {
+				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(tag)))
 			}
 		}
 		if len(rowList) == 0 {
@@ -424,7 +424,13 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 
 	tag := msg.Args[0]
 	log.Print("Tag: " + tag)
-
+	if tag == "everything" {
+		for tag, _ := range cb.allTags {
+			cb.db.UpdateTag(msg.From.ID, tag, "false")
+		}
+		cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now unsubscribed from everything :(")
+		return
+	}
 	//Check if tag exists.
 	if !cb.db.CheckTagExists(msg.From.ID, tag) {
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Invalid tag")
@@ -440,16 +446,8 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 	//Check if there are other errors
 	if err := cb.db.UpdateTag(msg.From.ID, tag, "false"); err != nil { //Need to try what happens someone updates user_id field.
 		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
-		log.Fatal(err.Error())
+		log.Print(err.Error())
 		return
-	}
-	if cb.db.CheckSubscribed(msg.From.ID, "everything") {
-		cb.db.UpdateTag(msg.From.ID, "everything", "false")
-	}
-	if tag == "everything" {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			cb.db.UpdateTag(msg.From.ID, cb.allTags[i], "false")
-		}
 	}
 
 	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now unsubscribed from "+tag)
@@ -462,7 +460,6 @@ func (cb *Cinnabot) Unsubscribe(msg *message) {
 func (cb *Cinnabot) Feedback(msg *message) {
 	if cb.CheckArgCmdPair("/feedback", msg.Args) {
 		//Set Cache
-		log.Print(msg.Args[0])
 		key := msg.Args[0]
 		if msg.Args[0] == "general(usc)" {
 			key = "usc"
