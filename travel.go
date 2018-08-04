@@ -62,7 +62,7 @@ func makeHeap(loc tgbotapi.Location) BusStopHeap {
 	responseData, _ := ioutil.ReadFile("publicstops.json")
 	points := []BusStop{}
 	if err := json.Unmarshal(responseData, &points); err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	BSH := BusStopHeap{points, loc}
 	heap.Init(&BSH)
@@ -91,19 +91,19 @@ func busTimingResponse(BSH *BusStopHeap) string {
 		resp, _ := client.Do(req)
 		responseData, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 
 		bt := BusTimes{}
 		if err := json.Unmarshal(responseData, &bt); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 		for j := 0; j < len(bt.Services); j++ {
 			arrivalTime := bt.Services[j].Next.EstimatedArrival
 
 			layout := "2006-01-02T15:04:05-07:00"
 			t, _ := time.Parse(layout, arrivalTime)
-			duration := int(t.Sub(time.Now()).Minutes()) + 480
+			duration := int(t.Sub(time.Now()).Minutes())
 			returnMessage += "🚍Bus " + bt.Services[j].ServiceNum + " : " + strconv.Itoa(duration+1) + " minutes\n"
 		}
 		returnMessage += "\n"
@@ -193,11 +193,11 @@ func (cb *Cinnabot) NUSBus(msg *message) {
 func makeNUSHeap(loc tgbotapi.Location) BusStopHeap {
 	responseData, err := ioutil.ReadFile("nusstops.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	points := []BusStop{}
 	if err := json.Unmarshal(responseData, &points); err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	BSH := BusStopHeap{points, loc}
 	heap.Init(&BSH)
@@ -210,11 +210,11 @@ func getBusTimings(code string) string {
 
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	var bt Response
 	if err := json.Unmarshal(responseData, &bt); err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	for j := 0; j < len(bt.Result.Shuttles); j++ {
 		arrivalTime := bt.Result.Shuttles[j].ArrivalTime
@@ -244,11 +244,11 @@ func nusBusTimingResponse(BSH *BusStopHeap) string {
 
 		responseData, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 		var bt Response
 		if err := json.Unmarshal(responseData, &bt); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 		/**
 
