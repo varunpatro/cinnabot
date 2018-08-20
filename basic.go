@@ -113,7 +113,7 @@ func (cb *Cinnabot) Resources(msg *message) {
 	resources["food"] = "@rcmealbot"
 	resources["spaces"] = "[spaces web](http://www.nususc.com/Spaces.aspx)"
 	resources["usc"] = "[usc web](http://www.nususc.com/MainPage.aspx)"
-	resources["study groups"] = "@uyp\\_bot"
+	resources["study groups"] = "@USPhonebook\\_bot"
 
 	var key string = strings.ToLower(strings.Join(msg.Args, " "))
 	log.Print(key)
