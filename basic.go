@@ -552,3 +552,30 @@ func (cb *Cinnabot) Cancel(msg *message) {
 	cb.SendTextMessage(int(msg.Chat.ID), text)
 	return
 }
+
+func (cb *Cinnabot) DHSurvey(msg *message) {
+
+	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), `
+	Welcome to the Dining Hall Survey function! Please enter the following:
+
+	1. Breakfast or dinner?
+	2. Which stall did you have it from?
+	3. Rate from 1-10 (10 being the highest)
+	4. Any additional comments`)
+	cb.SendMessage(replyMsg)
+
+	// redirect to new function which takes the survey
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "/dhsurveyfeedback", cache.DefaultExpiration)
+	return
+}
+
+func (cb *Cinnabot) DHSurveyFeedback(msg *message) {
+
+	// cache must return to normal after this fuction
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
+	// split by points 1-4
+	splitRule := regexp.MustCompile(`([1-4]\.)`)
+	text := splitRule.Split(msg.Text, -1)
+	cb.SendTextMessage(int(msg.Chat.ID), text[0]+text[1]+text[2]+text[3])
+	return
+}

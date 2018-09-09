@@ -6,7 +6,7 @@ import (
 	"os"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/varunpatro/cinnabot"
+	"github.com/pengnam/cinnabot"
 	"github.com/varunpatro/cinnabot/model"
 )
 
@@ -32,11 +32,8 @@ func main() {
 	cb.AddFunction("/help", cb.Help)
 
 	cb.AddFunction("/resources", cb.Resources)
-
 	cb.AddFunction("/publicbus", cb.BusTimings)
-
 	cb.AddFunction("/nusbus", cb.NUSBus)
-
 	cb.AddFunction("/weather", cb.Weather)
 
 	cb.AddFunction("/cbs", cb.CBS)
@@ -47,10 +44,12 @@ func main() {
 	cb.AddFunction("/spaces", cb.Spaces)
 
 	cb.AddFunction("/feedback", cb.Feedback)
+	cb.AddFunction("/dhsurvey", cb.DHSurvey)
 	cb.AddFunction("/cinnabotfeedback", cb.CinnabotFeedback)
 	cb.AddFunction("/uscfeedback", cb.USCFeedback)
 	cb.AddFunction("/diningfeedback", cb.DiningFeedback)
 	cb.AddFunction("/residentialfeedback", cb.ResidentialFeedback)
+	cb.AddFunction("/dhsurveyfeedback", cb.DHSurveyFeedback)
 
 	cb.AddFunction("/cancel", cb.Cancel)
 
