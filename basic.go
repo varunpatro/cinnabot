@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/patrickmn/go-cache"
+	"github.com/pengnam/cinnabot/model"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -556,7 +557,7 @@ func (cb *Cinnabot) Cancel(msg *message) {
 func (cb *Cinnabot) DHSurvey(msg *message) {
 
 	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), `
-	Welcome to the Dining Hall Survey function! Please enter the following:
+	🤖: Welcome to the Dining Hall Survey function! Please enter the following:
 
 	1. Breakfast or dinner?
 	2. Which stall did you have it from?
@@ -571,11 +572,15 @@ func (cb *Cinnabot) DHSurvey(msg *message) {
 
 func (cb *Cinnabot) DHSurveyFeedback(msg *message) {
 
+	db := model.InitializeDB()
+
 	// cache must return to normal after this fuction
 	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-	// split by points 1-4
-	splitRule := regexp.MustCompile(`([1-4]\.)`)
-	text := splitRule.Split(msg.Text, -1)
-	cb.SendTextMessage(int(msg.Chat.ID), text[0]+text[1]+text[2]+text[3])
+
+	// add entry to database
+	modelFeedback := model.CreateFeedbackEntry(*msg.Message)
+	db.Add(&modelFeedback)
+
+	cb.SendTextMessage(int(msg.From.ID), "🤖: Thank you! The feedback will be sent to the dining hall committee. :)")
 	return
 }
