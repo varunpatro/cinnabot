@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/jinzhu/gorm"
@@ -18,18 +19,30 @@ type Feedback struct {
 	Date       int
 }
 
-func CreateFeedbackEntry(tgbotMsg tgbotapi.Message) Feedback {
+func CreateFeedbackEntry(tgbotMsg tgbotapi.Message) (Feedback, error) {
+
 	// split text
-	splitRule := regexp.MustCompile(`([1-4]\.)`)
+	splitRule := regexp.MustCompile("\n")
 	text := splitRule.Split(tgbotMsg.Text, -1)
-	modelFeedback := Feedback{
-		UserID:     tgbotMsg.From.ID,
-		MealType:   text[1],
-		Stall:      text[2],
-		Rating:     text[3],
-		Additional: text[4],
-		Date:       tgbotMsg.Date,
+
+	// return error if all things not entered
+	if len(text) < 3 {
+		return Feedback{}, errors.New("incorrect format entered")
 	}
 
-	return modelFeedback
+	modelFeedback := Feedback{
+		UserID:   tgbotMsg.From.ID,
+		MealType: (text[0])[2:],
+		Stall:    (text[1])[2:],
+		Rating:   (text[2])[2:],
+		Date:     tgbotMsg.Date,
+	}
+
+	if len(text) > 3 {
+		modelFeedback.Additional = (text[3])[2:]
+	} else {
+		modelFeedback.Additional = ""
+	}
+
+	return modelFeedback, nil
 }

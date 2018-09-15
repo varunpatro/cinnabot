@@ -554,6 +554,7 @@ func (cb *Cinnabot) Cancel(msg *message) {
 	return
 }
 
+// function to send message when someone enters dhsurvey tag
 func (cb *Cinnabot) DHSurvey(msg *message) {
 
 	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), `
@@ -562,7 +563,14 @@ func (cb *Cinnabot) DHSurvey(msg *message) {
 	1. Breakfast or dinner?
 	2. Which stall did you have it from?
 	3. Rate from 1-10 (10 being the highest)
-	4. Any additional comments`)
+	4. Any additional comments
+	
+	Here's a sample response:
+	
+	1. Breakfast
+	2. Asian
+	3. 7
+	4. Good food`)
 	cb.SendMessage(replyMsg)
 
 	// redirect to new function which takes the survey
@@ -570,17 +578,21 @@ func (cb *Cinnabot) DHSurvey(msg *message) {
 	return
 }
 
+// function to add DH survey entry to database
 func (cb *Cinnabot) DHSurveyFeedback(msg *message) {
-
-	db := model.InitializeDB()
 
 	// cache must return to normal after this fuction
 	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
 
 	// add entry to database
-	modelFeedback := model.CreateFeedbackEntry(*msg.Message)
-	db.Add(&modelFeedback)
+	db := model.InitializeDB()
+	modelFeedback, err := model.CreateFeedbackEntry(*msg.Message)
+	if err != nil {
+		cb.SendTextMessage(int(msg.From.ID), "🤖: Please enter correct format of feedback. :(")
+	} else {
+		db.Add(&modelFeedback)
+		cb.SendTextMessage(int(msg.From.ID), "🤖: Thank you! The feedback will be sent to the dining hall committee. :)")
+	}
 
-	cb.SendTextMessage(int(msg.From.ID), "🤖: Thank you! The feedback will be sent to the dining hall committee. :)")
 	return
 }
