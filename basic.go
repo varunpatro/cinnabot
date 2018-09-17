@@ -562,14 +562,14 @@ func (cb *Cinnabot) DHSurvey(msg *message) {
 
 	1. Breakfast or dinner?
 	2. Which stall did you have it from?
-	3. Rate from 1-10 (10 being the highest)
-	4. Any additional comments
+	3. Rate food from 1-5 (1: couldn't eat it, 5: would take another serving)
+	4. Any feedback or complaints?
 	
 	Here's a sample response:
 	
 	1. Breakfast
 	2. Asian
-	3. 7
+	3. 4
 	4. Good food`)
 	cb.SendMessage(replyMsg)
 
@@ -588,7 +588,7 @@ func (cb *Cinnabot) DHSurveyFeedback(msg *message) {
 	db := model.InitializeDB()
 	modelFeedback, err := model.CreateFeedbackEntry(*msg.Message)
 	if err != nil {
-		cb.SendTextMessage(int(msg.From.ID), "🤖: Please enter correct format of feedback. :(")
+		cb.SendTextMessage(int(msg.From.ID), "🤖: Please enter correct format for feedback. :(")
 	} else {
 		db.Add(&modelFeedback)
 		cb.SendTextMessage(int(msg.From.ID), "🤖: Thank you! The feedback will be sent to the dining hall committee. :)")
