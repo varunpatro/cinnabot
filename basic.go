@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/patrickmn/go-cache"
+	"github.com/pengnam/cinnabot/model"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -550,5 +551,48 @@ func (cb *Cinnabot) Cancel(msg *message) {
 
 	text := "🤖: Command cancelled!\n"
 	cb.SendTextMessage(int(msg.Chat.ID), text)
+	return
+}
+
+// function to send message when someone enters dhsurvey tag
+func (cb *Cinnabot) DHSurvey(msg *message) {
+
+	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), `
+	🤖: Welcome to the Dining Hall Survey function! Please enter the following:
+
+	1. Breakfast or dinner?
+	2. Which stall did you have it from?
+	3. Rate food from 1-5 (1: couldn't eat it, 5: would take another serving)
+	4. Any feedback or complaints?
+	
+	Here's a sample response:
+	
+	1. Breakfast
+	2. Asian
+	3. 4
+	4. Good food`)
+	cb.SendMessage(replyMsg)
+
+	// redirect to new function which takes the survey
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "/dhsurveyfeedback", cache.DefaultExpiration)
+	return
+}
+
+// function to add DH survey entry to database
+func (cb *Cinnabot) DHSurveyFeedback(msg *message) {
+
+	// cache must return to normal after this fuction
+	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
+
+	// add entry to database
+	db := model.InitializeDB()
+	modelFeedback, err := model.CreateFeedbackEntry(*msg.Message)
+	if err != nil {
+		cb.SendTextMessage(int(msg.From.ID), "🤖: Please enter correct format for feedback. :(")
+	} else {
+		db.Add(&modelFeedback)
+		cb.SendTextMessage(int(msg.From.ID), "🤖: Thank you! The feedback will be sent to the dining hall committee. :)")
+	}
+
 	return
 }

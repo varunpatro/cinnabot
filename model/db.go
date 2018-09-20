@@ -36,6 +36,10 @@ func InitializeDB() *Database {
 		db.CreateTable(User{})
 	}
 
+	// if !db.HasTable(Feedback{}) {
+	// 	db.CreateTable(Feedback{})
+	// }
+
 	database := &Database{db}
 
 	return database
