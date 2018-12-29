@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -15,6 +16,8 @@ type DataGroup interface {
 	CheckTagExists(id int, tag string) bool
 	CheckSubscribed(id int, tag string) bool
 	UpdateTag(id int, tag string, flag string) error
+	CountUsersAndMessages() (int, int)
+	GetMostUsedCommand() string
 }
 
 type Database struct {
@@ -96,4 +99,48 @@ func (db *Database) UpdateTag(id int, tag string, flag string) error {
 
 	log.Print("3: True")
 	return nil
+}
+
+// Get number of users from database
+func (db *Database) CountUsersAndMessages(period string) (int, int) {
+	var countUsers, countMessages int
+	if period == "forever" {
+		db.Table("users").Count(&countUsers)
+		db.Table("messages").Count(&countMessages)
+		return countUsers, countMessages
+	}
+	var timeSince string
+	switch period {
+	case "week":
+		timeSince = time.Now().Local().AddDate(0, 0, -8).Format("2006-01-02")
+	case "month":
+		timeSince = time.Now().Local().AddDate(0, -1, -1).Format("2006-01-02")
+	case "year":
+		timeSince = time.Now().Local().AddDate(-1, 0, -1).Format("2006-01-02")
+	}
+	db.Table("users").Where("created_at > ?", timeSince).Count(&countUsers)
+	db.Table("messages").Where("created_at > ?", timeSince).Count(&countMessages)
+	return countUsers, countMessages
+}
+
+// function to get most used command
+func (db *Database) GetMostUsedCommand(period string) string {
+	var msg Message
+	if period == "forever" {
+		db.Table("messages").Select("*").Group("text").Having("text like ?", "/%").
+			Order("count(text)").Scan(&msg)
+		return msg.Text
+	}
+	var timeSince string
+	switch period {
+	case "week":
+		timeSince = time.Now().Local().AddDate(0, 0, -8).Format("2006-01-02")
+	case "month":
+		timeSince = time.Now().Local().AddDate(0, -1, -1).Format("2006-01-02")
+	case "year":
+		timeSince = time.Now().Local().AddDate(-1, 0, -1).Format("2006-01-02")
+	}
+	db.Table("messages").Select("*").Group("text").Having("text like ?", "/%").
+		Having("created_at > ?", timeSince).Order("count(text)").Scan(&msg)
+	return msg.Text
 }

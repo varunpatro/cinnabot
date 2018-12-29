@@ -49,12 +49,8 @@ type message struct {
 }
 
 // GetArgStrings prints out the arguments for the message in one string.
-func (m message) GetArgString() string {
-	argString := ""
-	for _, s := range m.Args {
-		argString = argString + s + " "
-	}
-	return strings.TrimSpace(argString)
+func (msg message) GetArgString() string {
+	return strings.Join(msg.Args, " ")
 }
 
 // A FuncMap is a map of command strings to response functions.
@@ -174,8 +170,8 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 	}
 }
 
-//Checks if arg can be used with command
-//Used to supplement cache as cache only records functions as states
+// Checks if arg can be used with command
+// Used to supplement cache as cache only records functions as states
 func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	key := "" //Messages with no text in message
 	if len(args) > 0 {
@@ -184,12 +180,13 @@ func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	}
 	checkMap := make(map[string][]string)
 	//Args must always be lower cased
-	checkMap["/feedback"] = []string{"cinnabot", "dining", "residential", "usc", "general(usc)"}
+	checkMap["/feedback"] = []string{"cinnabot", "dining", "residential", "usc", "general(usc)", "ohs"}
+	checkMap["/stats"] = []string{"week", "month", "year", "forever"}
 	checkMap["/cinnabotfeedback"] = []string{"anything"}
 	checkMap["/uscfeedback"] = []string{"anything"}
 	checkMap["/diningfeedback"] = []string{"anything"}
 	checkMap["/residentialfeedback"] = []string{"anything"}
-	checkMap["/dhsurveyfeedback"] = []string{"anything"}
+	checkMap["/ohsfeedback"] = []string{"anything"}
 	checkMap["/cbs"] = []string{"subscribe", "unsubscribe"}
 
 	checkMap["/publicbus"] = []string{"cinnamon", ""}

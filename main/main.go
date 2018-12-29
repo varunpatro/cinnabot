@@ -6,8 +6,8 @@ import (
 	"os"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/varunpatro/cinnabot"
-	"github.com/varunpatro/cinnabot/model"
+	"github.com/pengnam/cinnabot"
+	"github.com/pengnam/cinnabot/model"
 )
 
 func main() {
@@ -30,6 +30,7 @@ func main() {
 	cb.AddFunction("/start", cb.Start)
 	cb.AddFunction("/about", cb.About)
 	cb.AddFunction("/help", cb.Help)
+	cb.AddFunction("/stats", cb.GetStats)
 
 	cb.AddFunction("/resources", cb.Resources)
 	cb.AddFunction("/publicbus", cb.BusTimings)

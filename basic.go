@@ -2,6 +2,7 @@ package cinnabot
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"encoding/json"
@@ -9,11 +10,9 @@ import (
 	"log"
 	"math"
 	"regexp"
-	"strconv"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/patrickmn/go-cache"
-	"github.com/varunpatro/cinnabot/model"
+	"github.com/pengnam/cinnabot/model"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -212,7 +211,6 @@ func (cb *Cinnabot) Weather(msg *message) {
 	}
 
 	//Parsing forecast
-
 	words := strings.Fields(forecast)
 	forecast = strings.ToLower(strings.Join(words[:len(words)-1], " "))
 
@@ -310,289 +308,40 @@ func checkAdmin(cb *Cinnabot, msg *message) bool {
 	return false
 }
 
-func (cb *Cinnabot) CBS(msg *message) {
+// function to count number of users and messages
+func (cb *Cinnabot) GetStats(msg *message) {
 
-	if cb.CheckArgCmdPair("/cbs", msg.Args) {
-		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+msg.Args[0], cache.DefaultExpiration)
-		if msg.Args[0] == "subscribe" {
-			cb.Subscribe(msg)
-		} else {
-			cb.Unsubscribe(msg)
-		}
-		return
-	}
+	db := model.InitializeDB()
 
-	opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Subscribe"))
-	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Unsubscribe"))
-	options := tgbotapi.NewReplyKeyboard(opt1, opt2)
-
-	listText := "🤖: The Cinnamon Broadcast System (CBS) is your one stop shop for information in USP! Subscribe to the tags you want to receive notifications about!\n" +
-		"These are the following commands that you can use:\n" +
-		"/subscribe : to subscribe to a tag\n" +
-		"/unsubscribe : to unsubscribe from a tag\n\n" +
-		"*Subscribe status*\n" + "(sub status) tag: description\n"
-	if cb.db.CheckSubscribed(msg.From.ID, "everything") {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			listText += "✅" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-		}
-	} else {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
-				listText += "✅" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-			} else {
-				listText += "❎" + cb.allTags[i] + " : " + cb.allTags[i+1] + "\n"
-			}
-		}
-	}
-	newMsg := tgbotapi.NewMessage(msg.Chat.ID, listText)
-	newMsg.ReplyMarkup = options
-	newMsg.ParseMode = "markdown"
-	cb.SendMessage(newMsg)
-}
-
-//Subscribe subscribes the user to a broadcast channel [trial]
-func (cb *Cinnabot) Subscribe(msg *message) {
-	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/subscribe", msg.Args) {
-
-		var rowList [][]tgbotapi.KeyboardButton
-		for i := 0; i < len(cb.allTags); i += 2 {
-			if !cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
-				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
-			}
-		}
-		if len(rowList) == 0 {
-			cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are subscribed to everything :)")
-			return
-		}
-
-		options := tgbotapi.NewReplyKeyboard(rowList...)
-		replyMsg := tgbotapi.NewMessage(msg.Chat.ID, "🤖: What would you like to subscribe to?\n\n")
-		replyMsg.ReplyMarkup = options
-		cb.SendMessage(replyMsg)
-
-		return
-	}
-
-	tag := msg.Args[0]
-	log.Print("Tag: " + tag)
-
-	//Check if tag exists.
-	if !cb.db.CheckTagExists(msg.From.ID, tag) {
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Invalid tag")
-		return
-	}
-
-	//Check if user is already subscribed to
-	if cb.db.CheckSubscribed(msg.From.ID, tag) {
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are already subscribed to "+tag)
-		return
-	}
-
-	//Check if there are other errors
-	if err := cb.db.UpdateTag(msg.From.ID, tag, "true"); err != nil { //Need to try what happens someone updates user_id field.
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
-		log.Fatal(err.Error())
-		return
-	}
-	if tag == "everything" {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			cb.db.UpdateTag(msg.From.ID, cb.allTags[i], "true")
-		}
-	}
-
-	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now subscribed to "+tag)
-	return
-}
-
-//Unsubscribe unsubscribes the user from a broadcast channel [trial]
-func (cb *Cinnabot) Unsubscribe(msg *message) {
-	if len(msg.Args) == 0 || !cb.CheckArgCmdPair("/unsubscribe", msg.Args) {
-		var rowList [][]tgbotapi.KeyboardButton
-		for i := 0; i < len(cb.allTags); i += 2 {
-			if cb.db.CheckSubscribed(msg.From.ID, cb.allTags[i]) {
-				rowList = append(rowList, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(cb.allTags[i])))
-			}
-		}
-		if len(rowList) == 0 {
-			cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are not subscribed to anything. :(")
-			return
-		}
-
-		options := tgbotapi.NewReplyKeyboard(rowList...)
-		replyMsg := tgbotapi.NewMessage(msg.Chat.ID, "🤖: What would you like to unsubscribe from?\n\n")
-		replyMsg.ReplyMarkup = options
-		cb.SendMessage(replyMsg)
-
-		return
-	}
-
-	tag := msg.Args[0]
-	log.Print("Tag: " + tag)
-
-	//Check if tag exists.
-	if !cb.db.CheckTagExists(msg.From.ID, tag) {
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Invalid tag")
-		return
-	}
-
-	//Check if user is already NOT subscribed to
-	if !cb.db.CheckSubscribed(msg.From.ID, tag) {
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are already not subscribed to "+tag)
-		return
-	}
-
-	//Check if there are other errors
-	if err := cb.db.UpdateTag(msg.From.ID, tag, "false"); err != nil { //Need to try what happens someone updates user_id field.
-		cb.SendTextMessage(int(msg.Chat.ID), "🤖: Oh no there is an error")
-		log.Fatal(err.Error())
-		return
-	}
-	if cb.db.CheckSubscribed(msg.From.ID, "everything") {
-		cb.db.UpdateTag(msg.From.ID, "everything", "false")
-	}
-	if tag == "everything" {
-		for i := 0; i < len(cb.allTags); i += 2 {
-			cb.db.UpdateTag(msg.From.ID, cb.allTags[i], "false")
-		}
-	}
-
-	cb.SendTextMessage(int(msg.Chat.ID), "🤖: You are now unsubscribed from "+tag)
-	return
-}
-
-//The different feedback functions are broken to four different functions so that responses can be easily personalised.
-
-//Feedback allows users an avenue to give feedback. Admins can retrieve by searching the /feedback handler in the db
-func (cb *Cinnabot) Feedback(msg *message) {
-	if cb.CheckArgCmdPair("/feedback", msg.Args) {
-		//Set Cache
-		log.Print(msg.Args[0])
+	if cb.CheckArgCmdPair("/stats", msg.Args) {
 		key := msg.Args[0]
-		if msg.Args[0] == "general(usc)" {
-			key = "usc"
-		}
-		cb.cache.Set(strconv.Itoa(msg.From.ID), "/"+key+"feedback", cache.DefaultExpiration)
-		text := ""
-		if key == "usc" {
-			text = "This feedback will be sent to the University Scholars Club. Please send your message."
-		} else if key == "dining" {
-			text = "This feedback will be sent to the Dining Hall Committee. Please send your message. \n(Indicate which stall you ate and whether it was Breakfast or Dinner)"
-		} else if key == "residential" {
-			text = "This feedback will be sent to the Residential Assistants. Please send your message."
-		} else if key == "cinnabot" {
-			text = "This feedback will be sent to USDevs, the developers of CinnaBot. Please send your message."
-		}
-		cb.SendTextMessage(msg.Message.From.ID, "🤖: "+text)
+		countUsers, countMessages := db.CountUsersAndMessages(key)
+		mostUsedCommand := db.GetMostUsedCommand(key)
 
-		//Sets cache to the corresponding feedback
+		extraString := ""
+		if key != "forever" {
+			extraString = " for the " + key
+		}
+
+		cb.SendTextMessage(int(msg.From.ID), "🤖: Here are some stats"+
+			extraString+"!\n\n"+
+			"Number of users registered on bot: "+strconv.Itoa(countUsers)+"\n"+
+			"Numbery of messages typed: "+strconv.Itoa(countMessages)+"\n"+
+			"Most used command: "+mostUsedCommand)
 		return
 	}
-	opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Cinnabot"))
-	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("General(USC)"))
-	opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Dining"))
-	opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Residential"))
 
-	options := tgbotapi.NewReplyKeyboard(opt2, opt3, opt4, opt1)
+	opt1 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Week"))
+	opt2 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Month"))
+	opt3 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Year"))
+	opt4 := tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("Forever"))
 
-	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), "🤖: What will you like to give feedback to?\nUse /cancel if you chicken out.")
+	options := tgbotapi.NewReplyKeyboard(opt1, opt2, opt3, opt4)
+
+	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID),
+		"🤖: Please select the time period.")
 	replyMsg.ReplyMarkup = options
 	cb.SendMessage(replyMsg)
-
-	return
-}
-
-func (cb *Cinnabot) CinnabotFeedback(msg *message) {
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-
-	text := "🤖: Feedback received! I will now transmit feedback to USDevs\n\n " +
-		"We really appreciate you taking the time out to submit feedback.\n" +
-		"If you want to you may contact my owner at @sean_npn. He would love to have coffee with you."
-
-	cb.SendTextMessage(int(msg.Chat.ID), text)
-	forwardMess := tgbotapi.NewForward(-315255349, msg.Chat.ID, msg.MessageID)
-	cb.SendMessage(forwardMess)
-	return
-}
-
-func (cb *Cinnabot) USCFeedback(msg *message) {
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-	text := "🤖: Feedback received! I will now transmit feedback to USC\n\n " +
-		"We really appreciate you taking the time out to submit feedback.\n"
-	cb.SendTextMessage(int(msg.Chat.ID), text)
-	forwardMess := tgbotapi.NewForward(-218198924, msg.Chat.ID, msg.MessageID)
-	cb.SendMessage(forwardMess)
-	return
-}
-
-func (cb *Cinnabot) DiningFeedback(msg *message) {
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-
-	text := "🤖: Feedback received! I will now transmit feedback to dining hall committeel\n\n " +
-		"We really appreciate you taking the time out to submit feedback.\n"
-	cb.SendTextMessage(int(msg.Chat.ID), text)
-	forwardMess := tgbotapi.NewForward(-295443996, msg.Chat.ID, msg.MessageID)
-	cb.SendMessage(forwardMess)
-	return
-}
-
-func (cb *Cinnabot) ResidentialFeedback(msg *message) {
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-
-	text := "🤖: Feedback received! I will now transmit feedback to the residential committeel\n\n " +
-		"We really appreciate you taking the time out to submit feedback.\n"
-	cb.SendTextMessage(int(msg.Chat.ID), text)
-	forwardMess := tgbotapi.NewForward(-278463800, msg.Chat.ID, msg.MessageID)
-	cb.SendMessage(forwardMess)
-	return
-}
-
-func (cb *Cinnabot) Cancel(msg *message) {
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-
-	text := "🤖: Command cancelled!\n"
-	cb.SendTextMessage(int(msg.Chat.ID), text)
-	return
-}
-
-// function to send message when someone enters dhsurvey tag
-func (cb *Cinnabot) DHSurvey(msg *message) {
-
-	replyMsg := tgbotapi.NewMessage(int64(msg.Message.From.ID), `
-	🤖: Welcome to the Dining Hall Survey function! Please enter the following:
-
-	1. Breakfast or dinner?
-	2. Which stall did you have it from?
-	3. Rate food from 1-5 (1: couldn't eat it, 5: would take another serving)
-	4. Any feedback or complaints?
-	
-	Here's a sample response:
-	
-	1. Breakfast
-	2. Asian
-	3. 4
-	4. Good food`)
-	cb.SendMessage(replyMsg)
-
-	// redirect to new function which takes the survey
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "/dhsurveyfeedback", cache.DefaultExpiration)
-	return
-}
-
-// function to add DH survey entry to database
-func (cb *Cinnabot) DHSurveyFeedback(msg *message) {
-
-	// cache must return to normal after this fuction
-	cb.cache.Set(strconv.Itoa(msg.From.ID), "", cache.DefaultExpiration)
-
-	// add entry to database
-	db := model.InitializeDB()
-	modelFeedback, err := model.CreateFeedbackEntry(*msg.Message)
-	if err != nil {
-		cb.SendTextMessage(int(msg.From.ID), "🤖: Please enter correct format for feedback. :(")
-	} else {
-		db.Add(&modelFeedback)
-		cb.SendTextMessage(int(msg.From.ID), "🤖: Thank you! The feedback will be sent to the dining hall committee. :)")
-	}
 
 	return
 }
