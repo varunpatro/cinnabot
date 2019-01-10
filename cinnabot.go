@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/patrickmn/go-cache"
-	"github.com/varunpatro/cinnabot/model"
+	"github.com/pengnam/cinnabot/model"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -184,6 +184,7 @@ func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
 	checkMap["/stats"] = []string{"week", "month", "year", "forever"}
 	checkMap["/cinnabotfeedback"] = []string{"anything"}
 	checkMap["/uscfeedback"] = []string{"anything"}
+	checkMap["/dhsurveyfeedback"] = []string{"anything"}
 	checkMap["/diningfeedback"] = []string{"anything"}
 	checkMap["/residentialfeedback"] = []string{"anything"}
 	checkMap["/ohsfeedback"] = []string{"anything"}

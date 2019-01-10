@@ -16,8 +16,8 @@ type DataGroup interface {
 	CheckTagExists(id int, tag string) bool
 	CheckSubscribed(id int, tag string) bool
 	UpdateTag(id int, tag string, flag string) error
-	CountUsersAndMessages() (int, int)
-	GetMostUsedCommand() string
+	CountUsersAndMessages(period string) (int, int)
+	GetMostUsedCommand(period string) string
 }
 
 type Database struct {
