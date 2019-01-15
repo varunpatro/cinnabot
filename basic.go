@@ -12,7 +12,7 @@ import (
 	"regexp"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/pengnam/cinnabot/model"
+	"github.com/varunpatro/cinnabot/model"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
