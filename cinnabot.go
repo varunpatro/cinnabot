@@ -8,9 +8,12 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/patrickmn/go-cache"
+	"github.com/varunpatro/cinnabot/model"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -21,11 +24,14 @@ type bot interface {
 
 // Cinnabot is main struct that processes user requests.
 type Cinnabot struct {
-	Name string // The name of the bot registered with Botfather
-	bot  bot
-	log  *log.Logger
-	fmap FuncMap
-	keys config
+	Name    string // The name of the bot registered with Botfather
+	bot     bot
+	log     *log.Logger
+	fmap    FuncMap
+	keys    config
+	db      model.DataGroup
+	cache   *cache.Cache
+	allTags []string
 }
 
 // Configuration struct for setting up Cinnabot
@@ -43,12 +49,8 @@ type message struct {
 }
 
 // GetArgStrings prints out the arguments for the message in one string.
-func (m message) GetArgString() string {
-	argString := ""
-	for _, s := range m.Args {
-		argString = argString + s + " "
-	}
-	return strings.TrimSpace(argString)
+func (msg message) GetArgString() string {
+	return strings.Join(msg.Args, " ")
 }
 
 // A FuncMap is a map of command strings to response functions.
@@ -92,6 +94,10 @@ func InitCinnabot(configJSON []byte, lg *log.Logger) *Cinnabot {
 
 	cb := &Cinnabot{Name: cfg.Name, bot: bot, log: lg, keys: cfg}
 	cb.fmap = cb.getDefaultFuncMap()
+	cb.db = model.InitializeDB()
+	cb.cache = cache.New(1*time.Minute, 2*time.Minute)
+	//tag alternates with tag description
+	cb.allTags = []string{"everything", "EVERY tag!! Only for the daring", "events", "EVENTS of cinnamon college", "food", "Free/not free FOOD updates of all kind for the hungry", "weather", "Weather updates. Im not sure why you would want it actually.", "warm", "If you want some nice warm things occasionally"}
 
 	return cb
 }
@@ -122,6 +128,7 @@ func (cb *Cinnabot) AddFunction(command string, resp ResponseFunc) error {
 }
 
 // Router routes Telegram messages to the appropriate response functions.
+//Hack: Cache to store previous function information
 func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 	// Don't respond to forwarded commands
 	if msg.ForwardFrom != nil {
@@ -132,12 +139,76 @@ func (cb *Cinnabot) Router(msg tgbotapi.Message) {
 		cb.log.Printf("[%s][id: %d] command: %s, args: %s", time.Now().Format(time.RFC3339), cmsg.MessageID, cmsg.Cmd, cmsg.GetArgString())
 	}
 	execFn := cb.fmap[cmsg.Cmd]
-
+	log.Print(msg.Chat.ID)
 	if execFn != nil {
 		cb.GoSafely(func() { execFn(cmsg) })
-	} else {
-		cb.SendTextMessage(msg.From.ID, "No such command!")
+
+		cb.cache.Set(strconv.Itoa(msg.From.ID), cmsg.Cmd, cache.DefaultExpiration)
+
+	} else if cmdRaw, check := cb.cache.Get(strconv.Itoa(msg.From.ID)); check {
+		//Have to typecast
+		cmd := cmdRaw.(string)
+		//If cmd in cache and arg matches command
+
+		cmsg.Args = append([]string{cmsg.Cmd}, cmsg.Args...)
+
+		if cb.CheckArgCmdPair(cmd, cmsg.Args) {
+			//Get function from previous command
+			execFn = cb.fmap[cmd]
+			//Ensure tokens is in order [unecessary]
+			cmsg.Cmd = cmd
+
+			cb.GoSafely(func() { execFn(cmsg) })
+			return
+		}
+		log.Print("Out")
+		log.Print(cmd)
+		replyMessage := tgbotapi.NewMessage(int64(msg.From.ID), "No such command!")
+		replyMessage.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+		cb.SendMessage(replyMessage)
+
 	}
+}
+
+// Checks if arg can be used with command
+// Used to supplement cache as cache only records functions as states
+func (cb *Cinnabot) CheckArgCmdPair(cmd string, args []string) bool {
+	key := "" //Messages with no text in message
+	if len(args) > 0 {
+		key = args[0]
+		log.Print(key)
+	}
+	checkMap := make(map[string][]string)
+	//Args must always be lower cased
+	checkMap["/feedback"] = []string{"cinnabot", "dining", "residential", "usc", "general(usc)", "ohs"}
+	checkMap["/stats"] = []string{"week", "month", "year", "forever"}
+	checkMap["/cinnabotfeedback"] = []string{"anything"}
+	checkMap["/uscfeedback"] = []string{"anything"}
+	checkMap["/dhsurveyfeedback"] = []string{"anything"}
+	checkMap["/diningfeedback"] = []string{"anything"}
+	checkMap["/residentialfeedback"] = []string{"anything"}
+	checkMap["/ohsfeedback"] = []string{"anything"}
+	checkMap["/cbs"] = []string{"subscribe", "unsubscribe"}
+
+	checkMap["/publicbus"] = []string{"cinnamon", ""}
+	checkMap["/nusbus"] = []string{"utown", "science", "arts", "law", "yih/engin", "cenlib", "biz", "yih", "kr-mrt", "mpsh", "comp", ""}
+	checkMap["/weather"] = []string{"cinnamon", ""}
+
+	checkMap["/subscribe"] = cb.allTags
+	checkMap["/unsubscribe"] = cb.allTags
+
+	arr := checkMap[cmd]
+	for i := 0; i < len(arr); i++ {
+		//If tag is anything, accept it
+		if arr[i] == "anything" {
+			return true
+		}
+		//Check tags
+		if arr[i] == key {
+			return true
+		}
+	}
+	return false
 }
 
 // GoSafely is a utility wrapper to recover and log panics in goroutines.
@@ -165,16 +236,18 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 
 	if msg.ReplyToMessage != nil {
 		// We use a hack. All reply-to messages have the command it's replying to as the
-		// part of the message.
+		// part of the message. [to be removed]
 		r := regexp.MustCompile(`\/\w*`)
 		res := r.FindString(msg.ReplyToMessage.Text)
 		for k := range cb.fmap {
 			if res == k {
 				cmd = k
+				log.Println(cmd)
 				args = strings.Split(msg.Text, " ")
 				break
 			}
 		}
+
 	} else if msg.Text != "" {
 		msgTokens := strings.Fields(msg.Text)
 		cmd, args = strings.ToLower(msgTokens[0]), msgTokens[1:]
@@ -192,6 +265,8 @@ func (cb *Cinnabot) parseMessage(msg *tgbotapi.Message) *message {
 // SendTextMessage sends a basic text message back to the specified user.
 func (cb *Cinnabot) SendTextMessage(recipient int, text string) error {
 	msg := tgbotapi.NewMessage(int64(recipient), text)
+	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+	msg.ParseMode = "Markdown"
 	_, err := cb.bot.Send(msg)
 	return err
 }

@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/varunpatro/cinnabot"
 	"github.com/varunpatro/cinnabot/model"
@@ -19,41 +18,51 @@ func main() {
 
 	logger := log.New(os.Stdout, "[cinnabot] ", 0)
 
-	db := initializeDB()
-	defer db.Close()
-
 	cb := cinnabot.InitCinnabot(configJSON, logger)
+	db := model.InitializeDB()
 
-	cb.AddFunction("/about", cb.About)
+	//Junk functions
 	cb.AddFunction("/echo", cb.Echo)
 	cb.AddFunction("/hello", cb.SayHello)
 	cb.AddFunction("/capitalize", cb.Capitalize)
+
+	//Main functions
+	cb.AddFunction("/start", cb.Start)
+	cb.AddFunction("/about", cb.About)
+	cb.AddFunction("/help", cb.Help)
+	cb.AddFunction("/stats", cb.GetStats)
+
+	cb.AddFunction("/resources", cb.Resources)
+	cb.AddFunction("/publicbus", cb.BusTimings)
+	cb.AddFunction("/nusbus", cb.NUSBus)
+	cb.AddFunction("/weather", cb.Weather)
+
+	cb.AddFunction("/cbs", cb.CBS)
+	cb.AddFunction("/broadcast", cb.Broadcast)
+	cb.AddFunction("/subscribe", cb.Subscribe)
+	cb.AddFunction("/unsubscribe", cb.Unsubscribe)
+
+	cb.AddFunction("/spaces", cb.Spaces)
+
+	cb.AddFunction("/feedback", cb.Feedback)
+	cb.AddFunction("/dhsurvey", cb.DHSurvey)
+	cb.AddFunction("/cinnabotfeedback", cb.CinnabotFeedback)
+	cb.AddFunction("/uscfeedback", cb.USCFeedback)
+	cb.AddFunction("/diningfeedback", cb.DiningFeedback)
+	cb.AddFunction("/residentialfeedback", cb.ResidentialFeedback)
+	cb.AddFunction("/dhsurveyfeedback", cb.DHSurveyFeedback)
+
+	cb.AddFunction("/cancel", cb.Cancel)
 
 	updates := cb.Listen(60)
 
 	for update := range updates {
 		if update.Message != nil {
-			modelMsg := model.FromTelegramMessage(*update.Message)
-			db.Create(&modelMsg)
+			modelMsg, modelUsr := model.FromTelegramMessage(*update.Message)
+			db.Add(&modelMsg)
+			db.Add(&modelUsr)
 			cb.Router(*update.Message)
 		}
 	}
-}
 
-func initializeDB() *gorm.DB {
-	db, err := gorm.Open("sqlite3", "./cinnabot.db")
-
-	if err != nil {
-		log.Fatalf("error in initializing db %s", err)
-	}
-
-	if !db.HasTable(&model.Message{}) {
-		db.CreateTable(&model.Message{})
-	}
-
-	if !db.HasTable(&model.User{}) {
-		db.CreateTable(&model.User{})
-	}
-
-	return db
 }

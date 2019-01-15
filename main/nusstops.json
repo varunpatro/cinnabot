@@ -1,0 +1,171 @@
+[{
+    "name": "AS7",
+    "lat": "1.2936110496521",
+    "lng": "103.771942138672",
+    "no": "AS7"
+}, {
+    "name": "BIZ 2",
+    "lat": "1.29333305358887",
+    "lng": "103.775001525879",
+    "no": "BIZ2"
+}, {
+    "name": "Botanic Gardens MRT",
+    "lat": "1.32249999046326",
+    "lng": "103.815002441406",
+    "no": "BG-MRT"
+}, {
+    "name": "BTC - Oei Tiong Ham Building",
+    "lat": "1.31972205638886",
+    "lng": "103.817779541016",
+    "no": "BUKITTIMAH-BTC2"
+}, {
+    "name": "Central Library",
+    "lat": "1.29666996002197",
+    "lng": "103.772453308105",
+    "no": "CENLIB"
+}, {
+    "name": "College Green Hostel",
+    "lat": "1.32333302497864",
+    "lng": "103.816108703613",
+    "no": "CGH"
+}, {
+    "name": "COM2 (CP13)",
+    "lat": "1.29416704177856",
+    "lng": "103.773612976074",
+    "no": "COM2"
+}, {
+    "name": "Computer Centre",
+    "lat": "1.29694402217865",
+    "lng": "103.772499084473",
+    "no": "COMCEN"
+}, {
+    "name": "Kent Ridge Bus Terminal",
+    "lat": "1.29416704177856",
+    "lng": "103.769721984863",
+    "no": "KR-BT"
+}, {
+    "name": "Kent Ridge MRT",
+    "lat": "1.29472196102142",
+    "lng": "103.784164428711",
+    "no": "KR-MRT"
+}, {
+    "name": "LT13",
+    "lat": "1.29444396495819",
+    "lng": "103.770553588867",
+    "no": "LT13"
+}, {
+    "name": "LT29",
+    "lat": "1.29722201824188",
+    "lng": "103.780830383301",
+    "no": "LT29"
+}, {
+    "name": "Museum",
+    "lat": "1.30083298683167",
+    "lng": "103.773612976074",
+    "no": "MUSEUM"
+}, {
+    "name": "Opp Block EA",
+    "lat": "1.30027794837952",
+    "lng": "103.769996643066",
+    "no": "BLK-EA-OPP"
+}, {
+    "name": "Opp HSSML",
+    "lat": "1.29277801513672",
+    "lng": "103.775001525879",
+    "no": "HSSML-OPP"
+}, {
+    "name": "Opp Kent Ridge MRT",
+    "lat": "1.29472196102142",
+    "lng": "103.784446716309",
+    "no": "KR-MRT-OPP"
+}, {
+    "name": "Opp NUSS",
+    "lat": "1.29305553436279",
+    "lng": "103.77222442627",
+    "no": "NUSS-OPP"
+}, {
+    "name": "Opp PGP Hse No 12",
+    "lat": "1.2936110496521",
+    "lng": "103.776947021484",
+    "no": "PGP12-OPP"
+}, {
+    "name": "Opp UHall",
+    "lat": "1.29722201824188",
+    "lng": "103.778053283691",
+    "no": "UHALL-OPP"
+}, {
+    "name": "Opp University Health Centre",
+    "lat": "1.29861104488373",
+    "lng": "103.77555847168",
+    "no": "STAFFCLUB-OPP"
+}, {
+    "name": "Opp YIH",
+    "lat": "1.29861104488373",
+    "lng": "103.773887634277",
+    "no": "YIH-OPP"
+}, {
+    "name": "PGP Hse No 12",
+    "lat": "1.2936110496521",
+    "lng": "103.776947021484",
+    "no": "PGP12"
+}, {
+    "name": "PGP Hse No 14 and No 15",
+    "lat": "1.29305601119995",
+    "lng": "103.777778625488",
+    "no": "PGP14-15"
+}, {
+    "name": "PGP Hse No 7",
+    "lat": "1.29305601119995",
+    "lng": "103.777778625488",
+    "no": "PGP7"
+}, {
+    "name": "PGPR",
+    "lat": "1.29083299636841",
+    "lng": "103.780830383301",
+    "no": "PGP"
+}, {
+    "name": "Prince George's Park Terminal",
+    "lat": "1.29194402694702",
+    "lng": "103.7802734375",
+    "no": "PGPT"
+}, {
+    "name": "Raffles Hall",
+    "lat": "1.30083298683167",
+    "lng": "103.77278137207",
+    "no": "RAFFLES"
+}, {
+    "name": "S17",
+    "lat": "1.29722201824188",
+    "lng": "103.780555725098",
+    "no": "S17"
+}, {
+    "name": "The Japanese School",
+    "lat": "1.30055594444275",
+    "lng": "103.769721984863",
+    "no": "JAPSCHOOL"
+}, {
+    "name": "UHall",
+    "lat": "1.29722201824188",
+    "lng": "103.778610229492",
+    "no": "UHALL"
+}, {
+    "name": "University Health Centre",
+    "lat": "1.29861104488373",
+    "lng": "103.776107788086",
+    "no": "STAFFCLUB"
+}, {
+    "name": "University Town",
+    "lat": "1.30361104011536",
+    "lng": "103.774444580078",
+    "no": "UTown"
+}, {
+    "name": "Ventus (Opp LT13)",
+    "lat": "1.29527795314789",
+    "lng": "103.770278930664",
+    "no": "LT13-OPP"
+}, {
+    "name": "YIH",
+    "lat": "1.29888904094696",
+    "lng": "103.774169921875",
+    "no": "YIH"
+}]
